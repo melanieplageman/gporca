@@ -115,8 +115,8 @@ CXformSplitDQA::Transform
 	HMExprCr *phmexprcr = GPOS_NEW(pmp) HMExprCr(pmp);
 	DrgPexpr *pdrgpexprChildPrEl = GPOS_NEW(pmp) DrgPexpr(pmp);
 	DrgPcr *pdrgpcrArgDQA = NULL;
-
-	ExtractDistinctCols
+    
+    ExtractDistinctCols
 				(
 				pmp,
 				pcf,
@@ -156,70 +156,96 @@ CXformSplitDQA::Transform
 													);
 		pexprRelational = pexprChildProject;
 	}
-
-	// multi-stage for both scalar and non-scalar aggregates.
-	CExpression *pexprAlt1 = PexprSplitHelper
-								(
-								pmp,
-								pcf,
-								pmda,
-								pexpr,
-								pexprRelational,
-								phmexprcr,
-								pdrgpcrArgDQA,
-								false /*fSpillTo2Level*/
-								);
+    
+    DrgPcr *pDrgPcr = CLogicalGbAgg::PopConvert(pexpr->Pop())->Pdrgpcr();
+    BOOL fScalarDQA = (pDrgPcr == NULL || pDrgPcr->UlLength() == 0);
+    BOOL fForce3StageScalarDQA = GPOS_FTRACE(EopttraceForceThreeStageScalarDQA);
+    BOOL isDistribution = false;
+    CExpression *pexprPrEl = (*pexprProjectList)[0];
+    CExpression *pexprAggFunc = (*pexprPrEl)[0];
+    CScalarAggFunc *popAggfunc = CScalarAggFunc::PopConvert(pexprAggFunc->Pop());
+    
+    if(!pmda->Pmdagg(popAggfunc->Pmdid())->FSplittable()) // If the AggFunc is not Splittable, generate Local/Global 1-stage Agg
+    {
+        CExpression *pexprAlt2 = PexprSplitIntoLocalDQAGlobalAgg
+        (
+         pmp,
+         pcf,
+         pmda,
+         pexpr,
+         pexprRelational,
+         phmexprcr,
+         pdrgpcrArgDQA
+         );
         
-	pxfres->Add(pexprAlt1);
-
-	DrgPcr *pDrgPcr = CLogicalGbAgg::PopConvert(pexpr->Pop())->Pdrgpcr();
-	BOOL fScalarDQA = (pDrgPcr == NULL || pDrgPcr->UlLength() == 0);
-	BOOL fForce3StageScalarDQA = GPOS_FTRACE(EopttraceForceThreeStageScalarDQA);
-	const CColRefSet *pcrDist = CLogicalGet::PopConvert(pexprRelational->Pop())->PcrsDist();
-	CColRefSet *pcrUsed = GPOS_NEW(pmp) CColRefSet(pmp, pDrgPcr, pDrgPcr->UlLength());
-	
-	CAutoTrace at(pmp);
-	pcrUsed->OsPrint(at.Os());
-	pcrDist->OsPrint(at.Os());
-	
-	BOOL isDistribution = pcrDist->FEqual(pcrUsed);
-	
-	if (!(fForce3StageScalarDQA && fScalarDQA)) {
-		// we skip this option if it is a Scalar DQA and we only want plans with 3-stages of aggregation
-
-		// local/global for both scalar and non-scalar aggregates.
-		CExpression *pexprAlt2 = PexprSplitIntoLocalDQAGlobalAgg
-				(
-				pmp,
-				pcf,
-				pmda,
-				pexpr,
-				pexprRelational,
-				phmexprcr,
-				pdrgpcrArgDQA
-				);
-
-		pxfres->Add(pexprAlt2);
-	}
-
-	if (fScalarDQA && isDistribution) {
-		// if only want 3-stage DQA then skip this 2-stage option for scalar DQA.
-
-		// special case for 'scalar DQA' only, transform to 2-stage aggregate.
-		// It's beneficial for distinct column same as distributed column.
-		CExpression *pexprAlt3 = PexprSplitHelper
-				(
-				pmp,
-				pcf,
-				pmda,
-				pexpr,
-				pexprRelational,
-				phmexprcr,
-				pdrgpcrArgDQA,
-				true /*fSpillTo2Level*/
-				);
-		pxfres->Add(pexprAlt3);
-	}
+        pxfres->Add(pexprAlt2);
+    }
+    else // Explore the Multi-stage Agg options
+    {
+        if(pexprRelational->Pop()->Eopid() == COperator::EopLogicalGet)
+        {
+            const CColRefSet *pcrDist = CLogicalGet::PopConvert(((*pexpr)[0])->Pop())->PcrsDist();
+            CColRefSet *pcrUsed = GPOS_NEW(pmp) CColRefSet(pmp, pdrgpcrArgDQA);
+            
+            isDistribution = pcrDist->FEqual(pcrUsed);
+            pcrUsed->Release();
+        }
+        
+        if(!isDistribution || fForce3StageScalarDQA)
+        {
+            // multi-stage for both scalar and non-scalar aggregates.
+            CExpression *pexprAlt1 = PexprSplitHelper
+            (
+             pmp,
+             pcf,
+             pmda,
+             pexpr,
+             pexprRelational,
+             phmexprcr,
+             pdrgpcrArgDQA,
+             false /*fSpillTo2Level*/
+             );
+            
+            pxfres->Add(pexprAlt1);
+        }
+        
+        if (!fScalarDQA && isDistribution) {
+            // we skip this option if it is a Scalar DQA and we only want plans with 3-stages of aggregation
+            
+            // local/global for both scalar and non-scalar aggregates.
+            CExpression *pexprAlt2 = PexprSplitIntoLocalDQAGlobalAgg
+            (
+             pmp,
+             pcf,
+             pmda,
+             pexpr,
+             pexprRelational,
+             phmexprcr,
+             pdrgpcrArgDQA
+             );
+            
+            pxfres->Add(pexprAlt2);
+        }
+        
+        else {
+            // if only want 3-stage DQA then skip this 2-stage option for scalar DQA.
+            
+            // special case for 'scalar DQA' only, transform to 2-stage aggregate.
+            // It's beneficial for distinct column same as distributed column.
+            CExpression *pexprAlt3 = PexprSplitHelper
+            (
+             pmp,
+             pcf,
+             pmda,
+             pexpr,
+             pexprRelational,
+             phmexprcr,
+             pdrgpcrArgDQA,
+             true /*fSpillTo2Level*/
+             );
+            pxfres->Add(pexprAlt3);
+        }
+    }
         
 	pdrgpcrArgDQA->Release();
 
@@ -234,7 +260,6 @@ CXformSplitDQA::Transform
 	}
 
 	phmexprcr->Release();
-	pcrUsed->Release();
 }
 
 
