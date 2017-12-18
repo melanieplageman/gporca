@@ -224,7 +224,7 @@ explain select aggfns(distinct a,b,c) from jazz;
         </dxl:LogicalGet>
       </dxl:LogicalGroupBy>
     </dxl:Query>
-    <dxl:Plan Id="0" SpaceSize="0">
+    <dxl:Plan Id="0" SpaceSize="1">
       <dxl:Aggregate AggregationStrategy="Plain" StreamSafe="false">
         <dxl:Properties>
           <dxl:Cost StartupCost="0" TotalCost="431.000239" Rows="1.000000" Width="8"/>

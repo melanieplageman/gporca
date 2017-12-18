@@ -3370,7 +3370,7 @@ CTestUtils::FPlanCompare
 	}
 
 	// check plan space size required comparison
-/*	if (
+	if (
 		(0 == iCmpSpaceSize && ullPlanSpaceSizeActual != ullPlanSpaceSizeExpected) ||	// required comparison is equality
 		(-1 == iCmpSpaceSize && ullPlanSpaceSizeActual > ullPlanSpaceSizeExpected) ||	// required comparison is (Actual <= Expected)
 		(1 == iCmpSpaceSize && ullPlanSpaceSizeActual < ullPlanSpaceSizeExpected)  // required comparison is (Actual >= Expected)
@@ -3384,7 +3384,7 @@ CTestUtils::FPlanCompare
 
 		return false;
 	}
-*/
+
     iCmpSpaceSize = 1;
     // perform deep matching on plan bodies
 	return FPlanMatch(pmp, os, pdxlnActual, ullPlanIdActual, ullPlanSpaceSizeActual, pdxlnExpected, ullPlanIdExpected, ullPlanSpaceSizeExpected);
