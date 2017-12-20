@@ -156,26 +156,35 @@ CXformSplitDQA::Transform
 													);
 		pexprRelational = pexprChildProject;
 	}
-    
+
     DrgPcr *pDrgPcr = CLogicalGbAgg::PopConvert(pexpr->Pop())->Pdrgpcr();
     BOOL fScalarDQA = (pDrgPcr == NULL || pDrgPcr->UlLength() == 0);
     BOOL fForce3StageScalarDQA = GPOS_FTRACE(EopttraceForceThreeStageScalarDQA);
-    BOOL fDistributionCol = false;
+    BOOL fDQAColDistribCol = false;
+    BOOL fGBColNotDistribCol = true;
     CExpression *pexprPrEl = (*pexprProjectList)[0];
     CExpression *pexprAggFunc = (*pexprPrEl)[0];
     CScalarAggFunc *popAggfunc = CScalarAggFunc::PopConvert(pexprAggFunc->Pop());
-    
-    if(pmda->Pmdagg(popAggfunc->Pmdid())->FSplittable()) // If the AggFunc is not Splittable, No 3 stage/2 stage Agg alternatives generated
+    if(pexprRelational->Pop()->Eopid() == COperator::EopLogicalGet)
     {
-        if(pexprRelational->Pop()->Eopid() == COperator::EopLogicalGet)
-        {
-            const CColRefSet *pcrDist = CLogicalGet::PopConvert(((*pexpr)[0])->Pop())->PcrsDist();
-            CColRefSet *pcrUsed = GPOS_NEW(pmp) CColRefSet(pmp, pdrgpcrArgDQA);
-            
-            fDistributionCol = pcrDist->FEqual(pcrUsed) || pcrDist->FSubset(pcrUsed);
-            pcrUsed->Release();
-        }
-        
+        const CColRefSet *pcrDist = CLogicalGet::PopConvert(((*pexpr)[0])->Pop())->PcrsDist();
+        CColRefSet *pcrUsed = GPOS_NEW(pmp) CColRefSet(pmp, pdrgpcrArgDQA);
+        CColRefSet *pcrGbCol = GPOS_NEW(pmp) CColRefSet(pmp, pDrgPcr);
+
+        fDQAColDistribCol = pcrDist->FEqual(pcrUsed);
+        if(!fScalarDQA)
+            fGBColNotDistribCol = !pcrDist->FEqual(pcrGbCol);
+        pcrUsed->Release();
+        pcrGbCol->Release();
+    }
+    
+    /*
+     * If the AggFunc is not Splittable and the Group By Col
+     * is not contained in the distribution columns,
+     * No 3 stage/2 stage Agg alternatives generated
+     */
+    if(pmda->Pmdagg(popAggfunc->Pmdid())->FSplittable() && fGBColNotDistribCol)
+    {
         // multi-stage for both scalar and non-scalar aggregates.
         CExpression *pexprAlt1 = PexprSplitHelper
             (
@@ -191,7 +200,7 @@ CXformSplitDQA::Transform
             
             pxfres->Add(pexprAlt1);
 
-        if (!(fForce3StageScalarDQA && fScalarDQA) || (fScalarDQA && fDistributionCol)) {
+        if (!(fForce3StageScalarDQA && fScalarDQA) || (fScalarDQA && fDQAColDistribCol)) {
             // we skip this option if it is a Scalar DQA and we only want plans with 3-stages of aggregation
             
             // local/global for both scalar and non-scalar aggregates.
