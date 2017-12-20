@@ -175,7 +175,17 @@ CXformSplitDQA::Transform
 	DrgPcr *pDrgPcr = CLogicalGbAgg::PopConvert(pexpr->Pop())->Pdrgpcr();
 	BOOL fScalarDQA = (pDrgPcr == NULL || pDrgPcr->UlLength() == 0);
 	BOOL fForce3StageScalarDQA = GPOS_FTRACE(EopttraceForceThreeStageScalarDQA);
-	if (!(fForce3StageScalarDQA && fScalarDQA)) {
+	BOOL fDQAColDistribCol = false;
+	if(pexprRelational->Pop()->Eopid() == COperator::EopLogicalGet)
+	{
+		const CColRefSet *pcrDist = CLogicalGet::PopConvert(((*pexpr)[0])->Pop())->PcrsDist();
+		CColRefSet *pcrUsed = GPOS_NEW(pmp) CColRefSet(pmp, pdrgpcrArgDQA);
+
+		fDQAColDistribCol = pcrDist->FEqual(pcrUsed);
+		pcrUsed->Release();
+	}
+
+	if (!(fForce3StageScalarDQA && fScalarDQA) || (fScalarDQA && fDQAColDistribCol)) {
 		// we skip this option if it is a Scalar DQA and we only want plans with 3-stages of aggregation
 
 		// local/global for both scalar and non-scalar aggregates.
