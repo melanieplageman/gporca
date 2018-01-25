@@ -89,6 +89,11 @@ namespace gpos
 			// hash value
 			ULONG UlHash() const;
 
+		BOOL FPartEmpty(ULLONG offsetme) const;
+
+		BOOL FEqualAt(const CBitVector *pbv, ULLONG *offsetMe, ULLONG *offsetOther) const;
+
+		BOOL TestFEqualAt() const;
 	}; // class CBitVector
 
 }

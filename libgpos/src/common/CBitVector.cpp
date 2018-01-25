@@ -15,6 +15,7 @@
 #include "gpos/common/CBitVector.h"
 #include "gpos/common/CAutoRg.h"
 #include "gpos/common/clibwrapper.h"
+#include "gpos/memory/CAutoMemoryPool.h"
 
 using namespace gpos;
 
@@ -338,9 +339,10 @@ CBitVector::FEqual
 	)
 	const
 {
-	GPOS_ASSERT(m_cBits == pbv->m_cBits && m_cUnits == pbv->m_cUnits && 
-		"vectors must be of same size");
-		
+	//GPOS_ASSERT(m_cBits == pbv->m_cBits && m_cUnits == pbv->m_cUnits &&
+	//	"vectors must be of same size");
+
+
 	// compare all components
 	if (0 == clib::IMemCmp(m_rgull, pbv->m_rgull, m_cUnits * BYTES_PER_UNIT))
 	{
@@ -351,6 +353,57 @@ CBitVector::FEqual
 	return false;
 }
 
+BOOL
+CBitVector::FEqualAt
+        (
+                const CBitVector *pbv,
+                ULLONG *offsetMe,
+                ULLONG *offsetOther
+        )
+const
+{
+//    ULLONG amountToCompareMe = static_cast<ULLONG>(m_cBits) - m_rgull + *offsetMe;
+    ULLONG amountToCompareMe = static_cast<ULLONG>((m_cUnits * BYTES_PER_UNIT)) - m_rgull + *offsetMe;
+    ULLONG amountToCompareOther = static_cast<ULLONG>((pbv->m_cUnits * BYTES_PER_UNIT)) - pbv->m_rgull + *offsetOther;
+    ULLONG amountToCompare = amountToCompareMe < amountToCompareOther ? amountToCompareMe : amountToCompareOther;
+    if (0 == clib::IMemCmp(m_rgull + *offsetMe, pbv->m_rgull + *offsetOther, amountToCompare))
+    {
+        *offsetMe = ((m_cUnits * BYTES_PER_UNIT) - (m_rgull + *offsetMe + amountToCompare) == 0) ? 0 : m_rgull + *offsetMe + amountToCompare;
+        *offsetOther = ((m_cUnits * BYTES_PER_UNIT) - (pbv->m_rgull + *offsetOther + amountToCompare)) == 0 ? 0 : pbv->m_rgull + *offsetOther + amountToCompare;
+        return true;
+    }
+    return false;
+}
+
+
+BOOL
+CBitVector::TestFEqualAt()
+const
+{
+    CAutoMemoryPool amp1;
+    IMemoryPool *pmp1 = amp1.Pmp();
+    ULONG cSizeBits1 = 256;
+    CBitVector bv1(pmp1, cSizeBits1);
+
+    CAutoMemoryPool amp2;
+    IMemoryPool *pmp2 = amp2.Pmp();
+    ULONG cSizeBits2 = 1024;
+    CBitVector bv2(pmp2, cSizeBits2);
+
+    for(ULONG i = 0; i < cSizeBits1; i++)
+    {
+        bv1.FExchangeSet(i);
+    }
+
+    for(ULONG j = 0; j < cSizeBits1; j++)
+    {
+        bv2.FExchangeSet(j);
+    }
+    ULLONG offsetMe = 0;
+    ULLONG offsetOther = 0;
+    bv2.FEqualAt(&bv1, &offsetMe, &offsetOther);
+    return true;
+}
 
 
 //---------------------------------------------------------------------------
@@ -373,6 +426,23 @@ CBitVector::FEmpty() const
 	}
 	
 	return true;
+}
+
+BOOL
+CBitVector::FPartEmpty
+        (
+                ULLONG offsetme
+        )
+        const
+{
+    for (ULONG i = offsetme; i < m_cUnits; i++)
+    {
+        if (0 != m_rgull[i])
+        {
+            return false;
+        }
+    }
+    return true;
 }
 
 

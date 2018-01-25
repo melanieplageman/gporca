@@ -601,21 +601,70 @@ CBitSet::FEqual
 	CBitSetLink *pbsl = m_bsllist.PtFirst();
 	CBitSetLink *pbslOther = pbsOther->m_bsllist.PtFirst();
 
-	while(NULL != pbsl)
-	{
-		if (NULL == pbslOther || 
-			pbsl->UlOffset() != pbslOther->UlOffset() ||
-			!pbsl->Pbv()->FEqual(pbslOther->Pbv()))
-		{
-			return false;
-		}
-				
-		pbsl = m_bsllist.PtNext(pbsl);
-		pbslOther = pbsOther->m_bsllist.PtNext(pbslOther);
-	}
-	
-	// same length implies pbslOther must have reached end as well
-	return pbslOther == NULL;
+    BOOL diffSize = 0;
+    if (pbsl->Pbv()->m_cBits != pbslOther->Pbv()->m_cBits)
+    {
+        diffSize = 1;
+    }
+    if (!diffSize)
+    {
+        while(NULL != pbsl)
+        {
+            if (NULL == pbslOther ||
+                pbsl->UlOffset() != pbslOther->UlOffset() ||
+                !pbsl->Pbv()->FEqual(pbslOther->Pbv()))
+            {
+                return false;
+            }
+
+            pbsl = m_bsllist.PtNext(pbsl);
+            pbslOther = pbsOther->m_bsllist.PtNext(pbslOther);
+        }
+
+    }
+    else
+    {
+        ULLONG offsetMe = 0;
+        ULLONG offsetOther = 0;
+        while(NULL != pbsl && NULL !=pbslOther)
+        {
+            if(!pbsl->Pbv()->FEqualAt(pbslOther->Pbv(), &offsetMe, &offsetOther))
+            {
+                return false;
+            }
+            // if my bv off is not zero, don't advance to my next link
+            // if other bv off is not zero don't advance to its next link
+            if (offsetMe == 0)
+            {
+                pbsl = m_bsllist.PtNext(pbsl);
+            }
+            if (offsetOther == 0)
+            {
+                pbslOther = pbsOther->m_bsllist.PtNext(pbslOther);
+            }
+        }
+        // if pbsl has reached the end and pbslother has not, confirm remainder of pbslother is empty
+        if (pbsl == NULL && pbslOther != NULL)
+        {
+            if (pbslOther->Pbv()->FPartEmpty(offsetOther))
+            {
+                return true;
+            }
+            return false;
+        }
+        else if (pbslOther == NULL && pbsl != NULL)
+        {
+            if (pbsl->Pbv()->FPartEmpty(offsetMe))
+            {
+                return true;
+            }
+            return false;
+        }
+    }
+    return true;
+
+    // same length implies pbslOther must have reached end as well
+//    return pbslOther == NULL;
 }
 
 
