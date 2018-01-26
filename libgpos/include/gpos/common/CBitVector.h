@@ -52,6 +52,11 @@ namespace gpos
 			
 			// copy ctor with target mem pool
 			CBitVector(IMemoryPool *pmp, const CBitVector &);
+
+			ULONG CUnits() const
+			{
+				return m_cUnits;
+			}
 			
 			// determine if bit is set
 			BOOL FBit(ULONG ulBit) const;
@@ -91,7 +96,7 @@ namespace gpos
 
 		BOOL FPartEmpty(ULLONG offsetme) const;
 
-		BOOL FEqualAt(const CBitVector *pbv, ULLONG *offsetMe, ULLONG *offsetOther) const;
+		BOOL FEqualAt(const CBitVector *pbv, ULONG *offsetMe, ULONG *offsetOther) const;
 
 		BOOL TestFEqualAt() const;
 	}; // class CBitVector

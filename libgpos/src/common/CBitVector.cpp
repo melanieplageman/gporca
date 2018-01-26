@@ -353,56 +353,36 @@ CBitVector::FEqual
 	return false;
 }
 
+// Takes (implicit self) and another vector to compare with.
+// offsetMe represents the offset at which to start comparing in self
+// offsetOther represents the offset at which to start comparing in other
+// basically iterates starting from offsetMe in self and offsetOther in other
+// returns false if any bits are different
+// returns true if we hit the end of either self or other
+// the end result is that either offsetMe or offsetOther will be the end of one of the vectors (at least)
 BOOL
 CBitVector::FEqualAt
         (
                 const CBitVector *pbv,
-                ULLONG *offsetMe,
-                ULLONG *offsetOther
+                ULONG *indexMe,
+                ULONG *indexOther
         )
 const
 {
-//    ULLONG amountToCompareMe = static_cast<ULLONG>(m_cBits) - m_rgull + *offsetMe;
-    ULLONG amountToCompareMe = static_cast<ULLONG>((m_cUnits * BYTES_PER_UNIT)) - m_rgull + *offsetMe;
-    ULLONG amountToCompareOther = static_cast<ULLONG>((pbv->m_cUnits * BYTES_PER_UNIT)) - pbv->m_rgull + *offsetOther;
-    ULLONG amountToCompare = amountToCompareMe < amountToCompareOther ? amountToCompareMe : amountToCompareOther;
-    if (0 == clib::IMemCmp(m_rgull + *offsetMe, pbv->m_rgull + *offsetOther, amountToCompare))
+    ULONG amountToCompareMe = m_cUnits * BYTES_PER_UNIT - *indexMe;
+    ULONG amountToCompareOther = pbv->m_cUnits * BYTES_PER_UNIT - *indexOther;
+    ULONG amountToCompare = amountToCompareMe < amountToCompareOther ? amountToCompareMe : amountToCompareOther;
+
+    unsigned char *rguc = reinterpret_cast<unsigned char*>(m_rgull);
+    unsigned char *rgucOther = reinterpret_cast<unsigned char*>(pbv->m_rgull);
+
+    if (!clib::IMemCmp(rguc + *indexMe, rgucOther + *indexMe, amountToCompare))
     {
-        *offsetMe = ((m_cUnits * BYTES_PER_UNIT) - (m_rgull + *offsetMe + amountToCompare) == 0) ? 0 : m_rgull + *offsetMe + amountToCompare;
-        *offsetOther = ((m_cUnits * BYTES_PER_UNIT) - (pbv->m_rgull + *offsetOther + amountToCompare)) == 0 ? 0 : pbv->m_rgull + *offsetOther + amountToCompare;
+        *indexMe += amountToCompare;
+        *indexOther += amountToCompare;
         return true;
     }
     return false;
-}
-
-
-BOOL
-CBitVector::TestFEqualAt()
-const
-{
-    CAutoMemoryPool amp1;
-    IMemoryPool *pmp1 = amp1.Pmp();
-    ULONG cSizeBits1 = 256;
-    CBitVector bv1(pmp1, cSizeBits1);
-
-    CAutoMemoryPool amp2;
-    IMemoryPool *pmp2 = amp2.Pmp();
-    ULONG cSizeBits2 = 1024;
-    CBitVector bv2(pmp2, cSizeBits2);
-
-    for(ULONG i = 0; i < cSizeBits1; i++)
-    {
-        bv1.FExchangeSet(i);
-    }
-
-    for(ULONG j = 0; j < cSizeBits1; j++)
-    {
-        bv2.FExchangeSet(j);
-    }
-    ULLONG offsetMe = 0;
-    ULLONG offsetOther = 0;
-    bv2.FEqualAt(&bv1, &offsetMe, &offsetOther);
-    return true;
 }
 
 

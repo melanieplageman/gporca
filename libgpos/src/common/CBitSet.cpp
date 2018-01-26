@@ -22,8 +22,30 @@
 #endif // GPOS_DEBUG
 
 using namespace gpos;
+#define BYTES_PER_UNIT	GPOS_SIZEOF(ULLONG)
 
+int
+my_log2(ULONG num)
+{
+    int			i;
+    long		limit;
 
+    /* guard against too-large input, which would put us into infinite loop */
+    if (num > ULONG_MAX / 2)
+        num = ULONG_MAX / 2;
+
+    for (i = 0, limit = 1; limit < num; i++, limit <<= 1)
+        ;
+    return i;
+}
+
+/* calculate first power of 2 >= num, bounded to what will fit in a long */
+ULONG
+next_pow2_ulong(ULONG num)
+{
+    /* my_log2's internal range check is sufficient */
+    return 1L << my_log2(num);
+}
 //---------------------------------------------------------------------------
 //	@function:
 //		CBitSetLink
@@ -41,7 +63,7 @@ CBitSet::CBitSetLink::CBitSetLink
 	: 
 	m_ulOffset(ulOffset)
 {
-	m_pbv = GPOS_NEW(pmp) CBitVector(pmp, cSizeBits);
+	m_pbv = GPOS_NEW(pmp) CBitVector(pmp, next_pow2_ulong(cSizeBits));
 }
 
 
@@ -601,12 +623,7 @@ CBitSet::FEqual
 	CBitSetLink *pbsl = m_bsllist.PtFirst();
 	CBitSetLink *pbslOther = pbsOther->m_bsllist.PtFirst();
 
-    BOOL diffSize = 0;
-    if (pbsl->Pbv()->m_cBits != pbslOther->Pbv()->m_cBits)
-    {
-        diffSize = 1;
-    }
-    if (!diffSize)
+    if (m_cSizeBits == pbsOther->m_cSizeBits)
     {
         while(NULL != pbsl)
         {
@@ -624,29 +641,31 @@ CBitSet::FEqual
     }
     else
     {
-        ULLONG offsetMe = 0;
-        ULLONG offsetOther = 0;
-        while(NULL != pbsl && NULL !=pbslOther)
+        ULONG indexMe = 0;
+        ULONG indexOther = 0;
+        while(NULL != pbsl && NULL != pbslOther)
         {
-            if(!pbsl->Pbv()->FEqualAt(pbslOther->Pbv(), &offsetMe, &offsetOther))
+            if(!pbsl->Pbv()->FEqualAt(pbslOther->Pbv(), &indexMe, &indexOther))
             {
                 return false;
             }
             // if my bv off is not zero, don't advance to my next link
             // if other bv off is not zero don't advance to its next link
-            if (offsetMe == 0)
+            if (indexMe == (pbsl->Pbv()->CUnits() * BYTES_PER_UNIT))
             {
                 pbsl = m_bsllist.PtNext(pbsl);
+                indexMe = 0;
             }
-            if (offsetOther == 0)
+            if (indexOther == (pbslOther->Pbv()->CUnits() * BYTES_PER_UNIT))
             {
                 pbslOther = pbsOther->m_bsllist.PtNext(pbslOther);
+                indexOther = 0;
             }
         }
         // if pbsl has reached the end and pbslother has not, confirm remainder of pbslother is empty
         if (pbsl == NULL && pbslOther != NULL)
         {
-            if (pbslOther->Pbv()->FPartEmpty(offsetOther))
+            if (pbslOther->Pbv()->FPartEmpty(indexOther))
             {
                 return true;
             }
@@ -654,7 +673,7 @@ CBitSet::FEqual
         }
         else if (pbslOther == NULL && pbsl != NULL)
         {
-            if (pbsl->Pbv()->FPartEmpty(offsetMe))
+            if (pbsl->Pbv()->FPartEmpty(indexMe))
             {
                 return true;
             }

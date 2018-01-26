@@ -54,11 +54,30 @@ CBitSetTest::EresUnittest()
 GPOS_RESULT
 CBitSetTest::EresUnittest_Basics()
 {
+	CAutoMemoryPool amp1;
+	IMemoryPool *pmp1 = amp1.Pmp();
+	CAutoMemoryPool amp2;
+	IMemoryPool *pmp2 = amp2.Pmp();
+	ULONG cSize1 = 64;
+	ULONG cSize2 = 110;
+	CBitSet *pbs1 = GPOS_NEW(pmp1) CBitSet(pmp1, cSize1);
+	CBitSet *pbs2 = GPOS_NEW(pmp2) CBitSet(pmp2, cSize2);
+
+	for(ULONG i = 10; i < 20; i++)
+	{
+        pbs2->FExchangeSet(i);
+		pbs1->FExchangeSet(i);
+	}
+	GPOS_ASSERT(pbs1->FEqual(pbs2));
+	pbs1->Release();
+	pbs2->Release();
+
 	// create memory pool
 	CAutoMemoryPool amp;
 	IMemoryPool *pmp = amp.Pmp();
 
 	ULONG cSizeBits = 32;
+
 	CBitSet *pbs = GPOS_NEW(pmp) CBitSet(pmp, cSizeBits);
 
 	ULONG cInserts = 10;
