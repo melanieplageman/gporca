@@ -68,5 +68,15 @@ CScalarIsDistinctFrom::PopCommutedOp
 	return NULL;
 }
 
+CScalar::EBoolEvalResult
+CScalarIsDistinctFrom::Eber
+	(
+	DrgPul *
+	)
+const
+{
+	return EberUnknown;
+}
+
 // EOF
 
