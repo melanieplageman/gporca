@@ -119,7 +119,9 @@ LOJ-IsNullPred Select-Proj-OuterJoin OuterJoin-With-OuterRefs Join-Disj-Subqs
 Join-Dist-Key-No-Motion RightJoin-NonDistKey-EquivClass EffectOfLocalPredOnJoin
 EffectOfLocalPredOnJoin2 EffectOfLocalPredOnJoin3
 LeftJoin-UnsupportedFilter-Cardinality LeftOuter2InnerUnionAllAntiSemiJoin
-LOJ-IDF-NotInner
+LOJ-IDF-NotInner LOJ_dont_convert_to_inner_with_IDF_predicate_on_cols.mdp LOJ_dont_convert_to_inner_with_outer_predicate_IDF.mdp
+LOJ_convert_to_inner_with_inner_predicate_IDF.mdp LOJ_dont_convert_to_inner_with_inner_prediate_INDF.mdp
+LOJ_dont_convert_to_inner_with_outer_predicate_INDF.mdp
 ")
 
 set(mdp_dir "../data/dxl/minidump/")

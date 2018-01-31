@@ -71,10 +71,22 @@ CScalarIsDistinctFrom::PopCommutedOp
 CScalar::EBoolEvalResult
 CScalarIsDistinctFrom::Eber
 	(
-	DrgPul *
+	DrgPul *pdrgpulChildren
 	)
 const
 {
+	GPOS_ASSERT(pdrgpulChildren->UlLength() == 2);
+
+	EBoolEvalResult eberLeftChild = (EBoolEvalResult) *((*pdrgpulChildren)[0]);
+	EBoolEvalResult eberRightChild = (EBoolEvalResult) *((*pdrgpulChildren)[1]);
+	if (eberRightChild == EberNull && eberLeftChild == EberNull)
+	{
+		return EberFalse;
+	}
+	else if (eberRightChild == EberNull || eberLeftChild == EberNull)
+	{
+		return EberTrue;
+	}
 	return EberUnknown;
 }
 

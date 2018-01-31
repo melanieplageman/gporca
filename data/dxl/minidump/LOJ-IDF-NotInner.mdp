@@ -307,7 +307,7 @@ EXPLAIN SELECT * FROM src LEFT JOIN trg ON src_k = trg_k WHERE src_v IS DISTINCT
         </dxl:LogicalJoin>
       </dxl:LogicalSelect>
     </dxl:Query>
-    <dxl:Plan Id="0" SpaceSize="0">
+    <dxl:Plan Id="0" SpaceSize="5">
       <dxl:GatherMotion InputSegments="0,1,2" OutputSegments="-1">
         <dxl:Properties>
           <dxl:Cost StartupCost="0" TotalCost="862.000698" Rows="1.600000" Width="12"/>
