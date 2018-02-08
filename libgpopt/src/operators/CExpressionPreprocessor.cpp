@@ -106,6 +106,78 @@ CExpressionPreprocessor::PexprPruneSuperfluousEquality
 	return GPOS_NEW(pmp) CExpression(pmp, pop, pdrgpexprChildren);
 }
 
+CExpression *
+		CExpressionPreprocessor::PexprConvertGetToConst
+				(
+						IMemoryPool *pmp,
+						CExpression *pexpr
+				)
+{
+	if (pexpr->Pop()->Eopid() != COperator::EopLogicalUnion)
+	{
+		return pexpr;
+	}
+	// loop through the children
+	DrgPexpr *logicalUnionChildren = GPOS_NEW(pmp) DrgPexpr(pmp);
+	for (ULONG ul = 0; ul < pexpr->UlArity(); ul++)
+	{
+		CExpression *logicalProject = (*pexpr)[ul];
+		if (logicalProject->Pop()->Eopid() != COperator::EopLogicalProject)
+		{
+			return pexpr;
+		}
+
+		CExpression *logicalGet = (*logicalProject)[0];
+		if (logicalGet->Pop()->Eopid() != COperator::EopLogicalGet)
+		{
+			return pexpr;
+		}
+
+		CExpression *scalarProjectList = (*logicalProject)[1];
+		if (scalarProjectList->Pop()->Eopid() != COperator::EopScalarProjectList)
+		{
+			return pexpr;
+		}
+
+//		CDrvdPropRelational *pdprel = CDrvdPropRelational::Pdprel(logicalGet->PdpDerive());
+		// output columns
+//		DrgPcr *pdrgpcr = pdprel->PcrsOutput()->Pdrgpcr(pmp);
+		DrgPcr *pdrgpcr = GPOS_NEW(pmp) DrgPcr(pmp);
+		// empty output data
+		DrgPdrgPdatum *pdrgpdrgpdatum = GPOS_NEW(pmp) DrgPdrgPdatum(pmp);
+
+		CLogicalConstTableGet *popCTG = GPOS_NEW(pmp) CLogicalConstTableGet(pmp, pdrgpcr, pdrgpdrgpdatum);
+		pdrgpcr->AddRef();
+		pdrgpdrgpdatum->AddRef();
+		// loop through project list and return early if any project element's child is not a scalar const
+		const ULONG ulArity = scalarProjectList->UlArity();
+		for (ULONG j = 0; j < ulArity; j++)
+		{
+			CExpression *scalarProjectElem = (*scalarProjectList)[j];
+			GPOS_ASSERT(scalarProjectElem->Pop()->Eopid() == COperator::EopScalarProjectElement);
+			if ((*scalarProjectElem)[0]->Pop()->Eopid() != COperator::EopScalarConst)
+			{
+				return pexpr;
+			}
+			CScalarConst *scalarConst = CScalarConst::PopConvert(((*scalarProjectElem)[0])->Pop());
+			DrgPdatum *pdrgpdatumScalarConst = GPOS_NEW(pmp) DrgPdatum(pmp);
+			pdrgpdatumScalarConst->Append(scalarConst->Pdatum()->PdatumCopy(pmp));
+			popCTG->Pdrgpdrgpdatum()->Append(pdrgpdatumScalarConst);
+			pdrgpdatumScalarConst->AddRef();
+		}
+		CExpression *CTG = GPOS_NEW(pmp) CExpression(pmp, popCTG);
+		// TODO: figure out if I should pass true or false to the pexprlogicalproject
+		CExpression *logicalProjectNewExpr = CUtils::PexprLogicalProject(pmp, CTG, (*logicalProject)[1], false);
+		CTG->AddRef();
+		(*logicalProject)[1]->AddRef();
+		logicalProjectNewExpr->AddRef();
+		logicalUnionChildren->Append(logicalProjectNewExpr);
+	}
+	CExpression *resultExpr = GPOS_NEW(pmp) CExpression(pmp, pexpr->Pop(), logicalUnionChildren);
+	logicalUnionChildren->AddRef();
+	return resultExpr;
+}
+
 // an existential subquery whose inner expression is a GbAgg
 // with no grouping columns is replaced with a Boolean constant
 //
@@ -2133,15 +2205,18 @@ CExpressionPreprocessor::PexprPreprocess
 
 	// (3) trim unnecessary existential subqueries
 	CExpression * pexprTrimmed = PexprTrimExistentialSubqueries(pmp, pexprSimplified);
-
 	GPOS_CHECK_ABORT;
 	pexprSimplified->Release();
+
+//	CExpression *pexprUnionGetToConst = PexprConvertGetToConst(pmp, pexprTrimmed);
+//	GPOS_CHECK_ABORT;
+//	pexprTrimmed->Release();
 
 	// (4) remove superfluous outer references from the order spec in limits, grouping columns in GbAgg, and
 	// Partition/Order columns in window operators
 	CExpression *pexprOuterRefsEleminated = PexprRemoveSuperfluousOuterRefs(pmp, pexprTrimmed);
-
 	GPOS_CHECK_ABORT;
+//	pexprUnionGetToConst->Release();
 	pexprTrimmed->Release();
 
 	// (5) remove superfluous equality

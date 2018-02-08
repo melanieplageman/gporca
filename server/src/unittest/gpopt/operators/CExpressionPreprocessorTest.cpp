@@ -66,7 +66,8 @@ CExpressionPreprocessorTest::EresUnittest()
 		GPOS_UNITTEST_FUNC(EresUnittest_CollapseInnerJoin),
 		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessConvert2InPredicate),
 		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessConvertArrayWithEquals),
-		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessConvert2InPredicateDeepExpressionTree)
+		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessConvert2InPredicateDeepExpressionTree),
+		GPOS_UNITTEST_FUNC(EresUnittest_ConvertGetToConst),
 		};
 
 	return CUnittest::EresExecute(rgut, GPOS_ARRAY_SIZE(rgut));
@@ -1444,6 +1445,47 @@ CExpressionPreprocessorTest::EresUnittest_PreProcessNestedScalarSubqueries()
 
 	return GPOS_OK;
 }
+
+GPOS_RESULT
+CExpressionPreprocessorTest::EresUnittest_ConvertGetToConst()
+{
+	CAutoMemoryPool amp;
+	IMemoryPool *pmp = amp.Pmp();
+	// reset metadata cache
+	CMDCache::Reset();
+
+	// setup a file-based provider
+	CMDProviderMemory *pmdp = CTestUtils::m_pmdpf;
+	pmdp->AddRef();
+	CMDAccessor mda(pmp, CMDCache::Pcache(), CTestUtils::m_sysidDefault, pmdp);
+
+	CAutoOptCtxt aoc(pmp, &mda, NULL, CTestUtils::Pcm(pmp));
+
+	CWStringConst strName(GPOS_WSZ_LIT("foo"));
+	CMDIdGPDB *pmdid = GPOS_NEW(pmp) CMDIdGPDB(GPOPT_MDCACHE_TEST_OID, 1, 1);
+	CTableDescriptor *ptabdesc = CTestUtils::PtabdescCreate(pmp, 1, pmdid, CName(&strName));
+	CWStringConst strAlias(GPOS_WSZ_LIT("fooAlias"));
+	CExpression *pexprLogicalGet = CTestUtils::PexprLogicalGet(pmp, ptabdesc, &strAlias);
+
+	CExpression *pexprScalarConst = CUtils::PexprScalarConstInt4(pmp, 5);
+
+	IMDId *pmdidType = CScalarConst::PopConvert(pexprScalarConst->Pop())->PmdidType();
+	const IMDType *pmdtype = (&mda)->Pmdtype(pmdidType);
+	// TODO: why do I need this optimization context thing?
+	CColumnFactory *pcf = COptCtxt::PoctxtFromTLS()->Pcf();
+	CColRef *pcrComputed = pcf->PcrCreate(pmdtype);
+	CExpression *pexprPrjElem = CUtils::PexprScalarProjectElement(pmp, pcrComputed, pexprScalarConst);
+
+	CExpression *pexprPrjList = GPOS_NEW(pmp) CExpression(pmp, GPOS_NEW(pmp) CScalarProjectList(pmp), pexprPrjElem);
+// use if i want another elem
+//	CExpression *pexprScalarProjectList = CUtils::PexprAddProjection(pmp, pexprPrjList, pexprPrjElem2);
+	CExpression *logicalProject = CUtils::PexprLogicalProject(pmp, pexprLogicalGet, pexprPrjList, true);
+
+	CExpression *pexprLogicalUnion = GPOS_NEW(pmp) CExpression(pmp, GPOS_NEW(pmp) CLogicalUnion(pmp), logicalProject);
+	pexprLogicalUnion->DbgPrint();
+	return GPOS_OK;
+}
+
 
 //---------------------------------------------------------------------------
 //	@function:

@@ -182,6 +182,7 @@ namespace gpopt
 			static GPOS_RESULT EresUnittest_PreProcessWindowFuncWithOuterRefs();
 			static GPOS_RESULT EresUnittest_PreProcessWindowFuncWithDistinctAggs();
 			static GPOS_RESULT EresUnittest_PreProcessNestedScalarSubqueries();
+			static GPOS_RESULT EresUnittest_ConvertGetToConst();
 			static GPOS_RESULT EresUnittest_UnnestSubqueries();
 			static GPOS_RESULT EresUnittest_PreProcessOuterJoin();
 			static GPOS_RESULT EresUnittest_PreProcessOuterJoinMinidumps();

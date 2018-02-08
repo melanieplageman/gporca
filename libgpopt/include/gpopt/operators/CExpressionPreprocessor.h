@@ -81,6 +81,9 @@ namespace gpopt
 			static
 			CExpression *PexprRemoveCTEAnchors(IMemoryPool *pmp, CExpression *pexpr);
 
+			static
+			CExpression *PexprConvertGetToConst(IMemoryPool *pmp, CExpression *pexpr);
+
 			// trim superfluos equality
 			static
 			CExpression *PexprPruneSuperfluousEquality(IMemoryPool *pmp, CExpression *pexpr);
