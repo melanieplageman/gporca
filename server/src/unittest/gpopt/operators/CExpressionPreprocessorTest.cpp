@@ -1449,6 +1449,9 @@ CExpressionPreprocessorTest::EresUnittest_PreProcessNestedScalarSubqueries()
 GPOS_RESULT
 CExpressionPreprocessorTest::EresUnittest_ConvertGetToConst()
 {
+	// TODO: make this test not the worst thing in the whole world
+	// TODO: make it actually work with limit injected
+	// TODO: stop leaking memory from in here
 	CAutoMemoryPool amp;
 	IMemoryPool *pmp = amp.Pmp();
 	// reset metadata cache
@@ -1461,27 +1464,53 @@ CExpressionPreprocessorTest::EresUnittest_ConvertGetToConst()
 
 	CAutoOptCtxt aoc(pmp, &mda, NULL, CTestUtils::Pcm(pmp));
 
+	// make a table
 	CWStringConst strName(GPOS_WSZ_LIT("foo"));
 	CMDIdGPDB *pmdid = GPOS_NEW(pmp) CMDIdGPDB(GPOPT_MDCACHE_TEST_OID, 1, 1);
-	CTableDescriptor *ptabdesc = CTestUtils::PtabdescCreate(pmp, 1, pmdid, CName(&strName));
+	CTableDescriptor *ptabdesc = CTestUtils::PtabdescCreate(pmp, 2, pmdid, CName(&strName));
 	CWStringConst strAlias(GPOS_WSZ_LIT("fooAlias"));
+	// and a get for that table
 	CExpression *pexprLogicalGet = CTestUtils::PexprLogicalGet(pmp, ptabdesc, &strAlias);
 
-	CExpression *pexprScalarConst = CUtils::PexprScalarConstInt4(pmp, 5);
+	CExpression *pexprScalarConst1 = CUtils::PexprScalarConstInt4(pmp, 5);
+//	CExpression *pexprScalarConst2 = CUtils::PexprScalarConstInt4(pmp, 10);
 
-	IMDId *pmdidType = CScalarConst::PopConvert(pexprScalarConst->Pop())->PmdidType();
-	const IMDType *pmdtype = (&mda)->Pmdtype(pmdidType);
-	// TODO: why do I need this optimization context thing?
+	IMDId *pmdidType1 = CScalarConst::PopConvert(pexprScalarConst1->Pop())->PmdidType();
+	const IMDType *pmdtype1 = (&mda)->Pmdtype(pmdidType1);
+//	IMDId *pmdidType2 = CScalarConst::PopConvert(pexprScalarConst2->Pop())->PmdidType();
+//	const IMDType *pmdtype2 = (&mda)->Pmdtype(pmdidType2);
+
 	CColumnFactory *pcf = COptCtxt::PoctxtFromTLS()->Pcf();
-	CColRef *pcrComputed = pcf->PcrCreate(pmdtype);
-	CExpression *pexprPrjElem = CUtils::PexprScalarProjectElement(pmp, pcrComputed, pexprScalarConst);
+	CColRef *pcrComputed1 = pcf->PcrCreate(pmdtype1);
+//	CColRef *pcrComputed2 = pcf->PcrCreate(pmdtype2);
 
-	CExpression *pexprPrjList = GPOS_NEW(pmp) CExpression(pmp, GPOS_NEW(pmp) CScalarProjectList(pmp), pexprPrjElem);
-// use if i want another elem
+	CExpression *pexprPrjElem1 = CUtils::PexprScalarProjectElement(pmp, pcrComputed1, pexprScalarConst1);
+//	CExpression *pexprPrjElem2 = CUtils::PexprScalarProjectElement(pmp, pcrComputed2, pexprScalarConst2);
+
+	CExpression *pexprPrjList = GPOS_NEW(pmp) CExpression(pmp, GPOS_NEW(pmp) CScalarProjectList(pmp), pexprPrjElem1);
+//														  pexprPrjElem2);
 //	CExpression *pexprScalarProjectList = CUtils::PexprAddProjection(pmp, pexprPrjList, pexprPrjElem2);
-	CExpression *logicalProject = CUtils::PexprLogicalProject(pmp, pexprLogicalGet, pexprPrjList, true);
 
-	CExpression *pexprLogicalUnion = GPOS_NEW(pmp) CExpression(pmp, GPOS_NEW(pmp) CLogicalUnion(pmp), logicalProject);
+	CExpression *logicalProject1 = CUtils::PexprLogicalProject(pmp, pexprLogicalGet, pexprPrjList, true);
+	CExpression *logicalProject2 = CUtils::PexprLogicalProject(pmp, pexprLogicalGet, pexprPrjList, true);
+
+	CDrvdPropRelational *pdprel = CDrvdPropRelational::Pdprel(logicalProject1->PdpDerive());
+	DrgPcr *pdrgpcrOutput = pdprel->PcrsOutput()->Pdrgpcr(pmp);
+
+	DrgDrgPcr *pdrgpdrgpcrInput = GPOS_NEW(pmp) DrgDrgPcr(pmp);
+	CExpressionHandle exprhdl1(pmp);
+	CExpressionHandle exprhdl2(pmp);
+
+	exprhdl1.Attach(logicalProject1);
+	exprhdl2.Attach(logicalProject2);
+	CColRefSet *inputcolsforunion1 = CLogical::PopConvert(logicalProject1->Pop())->PcrsDeriveOutput(pmp, exprhdl1);
+	CColRefSet *inputcolsforunion2 = CLogical::PopConvert(logicalProject2->Pop())->PcrsDeriveOutput(pmp, exprhdl2);
+	DrgPcr *pdrgpcrInput1 = inputcolsforunion1->Pdrgpcr(pmp);
+	DrgPcr *pdrgpcrInput2 = inputcolsforunion2->Pdrgpcr(pmp);
+	pdrgpdrgpcrInput->Append(pdrgpcrInput1);
+	pdrgpdrgpcrInput->Append(pdrgpcrInput2);
+
+	CExpression *pexprLogicalUnion = GPOS_NEW(pmp) CExpression(pmp, GPOS_NEW(pmp) CLogicalUnion(pmp, pdrgpcrOutput, pdrgpdrgpcrInput), logicalProject1, logicalProject2);
 	pexprLogicalUnion->DbgPrint();
 	return GPOS_OK;
 }

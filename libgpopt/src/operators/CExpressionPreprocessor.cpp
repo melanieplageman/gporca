@@ -113,6 +113,7 @@ CExpression *
 						CExpression *pexpr
 				)
 {
+	// TODO: change this to do the inject limit thing
 	if (pexpr->Pop()->Eopid() != COperator::EopLogicalUnion)
 	{
 		return pexpr;
