@@ -321,7 +321,7 @@ CTestUtils::PexprLogicalGet
 					GPOS_NEW(pmp) CLogicalGet
 								(
 								pmp,
-								GPOS_NEW(pmp) CName(pmp, CName(pstrTableAlias)),
+								GPOS_NEW(pmp) CName(pmp, pstrTableAlias),
 								ptabdesc
 								)
 					);

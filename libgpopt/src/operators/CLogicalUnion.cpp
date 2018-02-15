@@ -81,6 +81,7 @@ CLogicalUnion::CLogicalUnion
 //---------------------------------------------------------------------------
 CLogicalUnion::~CLogicalUnion()
 {
+	return;
 }
 
 
