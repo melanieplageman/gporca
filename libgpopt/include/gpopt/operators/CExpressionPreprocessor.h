@@ -89,6 +89,9 @@ namespace gpopt
 			static
 			CExpression *PexprTrimExistentialSubqueries(IMemoryPool *pmp, CExpression *pexpr);
 
+			static
+			CExpression *PexprConvertGetToConst(IMemoryPool *pmp, CExpression *pexpr);
+
 			// simplify quantified subqueries
 			static
 			CExpression *PexprSimplifyQuantifiedSubqueries(IMemoryPool *pmp, CExpression *pexpr);

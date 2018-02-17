@@ -106,6 +106,81 @@ CExpressionPreprocessor::PexprPruneSuperfluousEquality
 	return GPOS_NEW(pmp) CExpression(pmp, pop, pdrgpexprChildren);
 }
 
+CExpression *
+CExpressionPreprocessor::PexprConvertGetToConst
+	(
+	IMemoryPool *pmp,
+	CExpression *pexpr
+	)
+{
+	if (pexpr->Pop()->Eopid() != COperator::EopLogicalUnion)
+	{
+		(pexpr->Pop())->AddRef();
+		(pexpr->PdrgPexpr())->AddRef();
+		return GPOS_NEW(pmp) CExpression(pmp, pexpr->Pop(), pexpr->PdrgPexpr());
+	}
+	// loop through the children
+	DrgPexpr *logicalUnionChildren = GPOS_NEW(pmp) DrgPexpr(pmp);
+	for (ULONG ul = 0; ul < pexpr->UlArity(); ul++)
+	{
+		CExpression *logicalProject = (*pexpr)[ul];
+		if (logicalProject->Pop()->Eopid() != COperator::EopLogicalProject)
+		{
+			logicalProject->AddRef();
+			logicalUnionChildren->Append(logicalProject);
+			continue;
+		}
+
+		CExpression *logicalGet = (*logicalProject)[0];
+		if (logicalGet->Pop()->Eopid() != COperator::EopLogicalGet)
+		{
+			logicalProject->AddRef();
+			logicalUnionChildren->Append(logicalProject);
+			continue;
+		}
+
+		CExpression *scalarProjectList = (*logicalProject)[1];
+		if (scalarProjectList->Pop()->Eopid() != COperator::EopScalarProjectList)
+		{
+			logicalProject->AddRef();
+			logicalUnionChildren->Append(logicalProject);
+			continue;
+		}
+
+		// loop through project list and return early if any project element's child is not a scalar const
+		const ULONG ulArity = scalarProjectList->UlArity();
+		for (ULONG j = 0; j < ulArity; j++)
+		{
+			CExpression *scalarProjectElem = (*scalarProjectList)[j];
+			GPOS_ASSERT(scalarProjectElem->Pop()->Eopid() == COperator::EopScalarProjectElement);
+			if ((*scalarProjectElem)[0]->Pop()->Eopid() != COperator::EopScalarConst)
+			{
+				logicalProject->AddRef();
+				logicalUnionChildren->Append(logicalProject);
+				continue;
+			}
+		}
+
+		// all children are constant so make a logical limit
+		logicalGet->Pop()->AddRef();
+		logicalGet->PdrgPexpr()->AddRef();
+		CExpression *pexprLogicalGet = GPOS_NEW(pmp) CExpression(pmp, logicalGet->Pop(), logicalGet->PdrgPexpr());
+
+		CExpression *logicalLimit = CUtils::PexprLimit(pmp, pexprLogicalGet, 0, 1);
+
+		scalarProjectList->Pop()->AddRef();
+		scalarProjectList->PdrgPexpr()->AddRef();
+		CExpression *pexprScalarProjectList = GPOS_NEW(pmp) CExpression(pmp, scalarProjectList->Pop(), scalarProjectList->PdrgPexpr());
+
+		CExpression *logicalProjectNewExpr = CUtils::PexprLogicalProject(pmp, logicalLimit, pexprScalarProjectList, false);
+		logicalUnionChildren->Append(logicalProjectNewExpr);
+	}
+
+	pexpr->Pop()->AddRef();
+	CExpression *resultExpr = GPOS_NEW(pmp) CExpression(pmp, pexpr->Pop(), logicalUnionChildren);
+	return resultExpr;
+}
+
 // an existential subquery whose inner expression is a GbAgg
 // with no grouping columns is replaced with a Boolean constant
 //
@@ -2261,7 +2336,11 @@ CExpressionPreprocessor::PexprPreprocess
 	GPOS_CHECK_ABORT;
 	pexrReorderedScalarCmpChildren->Release();
 
-	return pexprExistWithPredFromINSubq;
+	CExpression *pexprUnionGetToConst = PexprConvertGetToConst(pmp, pexprExistWithPredFromINSubq);
+	GPOS_CHECK_ABORT;
+	pexprExistWithPredFromINSubq->Release();
+
+	return pexprUnionGetToConst;
 }
 
 // EOF
