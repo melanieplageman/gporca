@@ -56,9 +56,9 @@ ConvertGetToConstTest::EresUnittest()
 
 	return CUnittest::EresExecute(rgut, GPOS_ARRAY_SIZE(rgut));
 }
-CExpression *getLogicalGet(IMemoryPool *pmp)
+
+CExpression *CreateLogicalGet(IMemoryPool *pmp)
 {
-	// make a table
 	CWStringConst strName(GPOS_WSZ_LIT("foo"));
 	CMDIdGPDB *pmdid = GPOS_NEW(pmp) CMDIdGPDB(GPOPT_MDCACHE_TEST_OID, 1, 1);
 	CTableDescriptor *ptabdesc = CTestUtils::PtabdescCreate(pmp, 2, pmdid, CName(&strName));
@@ -67,27 +67,27 @@ CExpression *getLogicalGet(IMemoryPool *pmp)
 	return logicalGet;
 }
 
-CExpression *getLogicalProject(IMemoryPool *pmp, CExpression *pexprFirstChild, CMDAccessor *cmdAccessor)
+CExpression *CreateLogicalProject(IMemoryPool *pmp, CExpression *pexprFirstChild, CMDAccessor *cmdAccessor)
 {
-	CExpression *pexprScalarConst1 = CUtils::PexprScalarConstInt4(pmp, 5);
-	IMDId *pmdidType1 = CScalarConst::PopConvert(pexprScalarConst1->Pop())->PmdidType(); // lifecycle of the guy before it?
+	CExpression *pexprScalarConst = CUtils::PexprScalarConstInt4(pmp, 5);
+	IMDId *pmdidType = CScalarConst::PopConvert(pexprScalarConst->Pop())->PmdidType();
 
-	const IMDType *pmdtype1 = cmdAccessor->Pmdtype(pmdidType1); // copy from a cast
+	const IMDType *pmdtype = cmdAccessor->Pmdtype(pmdidType); // copy from a cast
 	CColumnFactory *pcf = COptCtxt:: PoctxtFromTLS()->Pcf(); // copy from reinterpret cast
-	CColRef *pcrComputed1 = pcf->PcrCreate(pmdtype1); // destructor does nothing
+	CColRef *pcrComputed = pcf->PcrCreate(pmdtype); // destructor does nothing
 
-	CExpression *pexprPrjElem1 = CUtils::PexprScalarProjectElement(pmp, pcrComputed1, pexprScalarConst1); // releases the paramters passed in
-	CExpression *pexprPrjList = GPOS_NEW(pmp) CExpression(pmp, GPOS_NEW(pmp) CScalarProjectList(pmp), pexprPrjElem1); // no utility to make this?
-	CExpression *logicalProject = CUtils::PexprLogicalProject(pmp, pexprFirstChild, pexprPrjList, true); // is taking responsiblity for pexprPrjList and pexprlogicalget
+	CExpression *pexprPrjElem = CUtils::PexprScalarProjectElement(pmp, pcrComputed, pexprScalarConst);
+	CExpression *pexprPrjList = GPOS_NEW(pmp) CExpression(pmp, GPOS_NEW(pmp) CScalarProjectList(pmp), pexprPrjElem);
+	CExpression *logicalProject = CUtils::PexprLogicalProject(pmp, pexprFirstChild, pexprPrjList, true);
 
 	return logicalProject;
 }
 
-CColRefSet *PcrsOutput(IMemoryPool *pmp, CExpression *pexprLogical)
+CColRefSet *CreateDerivedCColRefSet(IMemoryPool *pmp, CExpression *pexprLogical)
 {
 	CExpressionHandle exprhdl(pmp);
 	exprhdl.Attach(pexprLogical);
-	return CLogical::PopConvert(pexprLogical->Pop())->PcrsDeriveOutput(pmp, exprhdl); // doesn't take ownership of expr handle or logicalproject
+	return CLogical::PopConvert(pexprLogical->Pop())->PcrsDeriveOutput(pmp, exprhdl); // doesn't take ownership of logicalproject
 }
 
 // Returns the first descendent of pexpr with OperatorId eopid from a depth first search.
@@ -143,7 +143,7 @@ CExpression *FindExprWithOperatorId(CExpression *pexpr, COperator::EOperatorId e
 
 CExpression *CreateLogicalUnion(IMemoryPool *pmp, CExpression *pexprLogicalProject, CExpression *pexprLogicalGet)
 {
-	CColRefSet *pcrsProject = PcrsOutput(pmp, pexprLogicalProject);
+	CColRefSet *pcrsProject = CreateDerivedCColRefSet(pmp, pexprLogicalProject);
 
 	// CLogicalUnion needs an input array of CColRefSet and an output CColRefSet
 	// The input will include CColRefSet for both of its children
@@ -153,7 +153,7 @@ CExpression *CreateLogicalUnion(IMemoryPool *pmp, CExpression *pexprLogicalProje
 	// from that of the CLogicalProject of which it is a descendent
 	CExpression *pexprGetUnderProject = FindExprWithOperatorId(pexprLogicalProject, COperator::EopLogicalGet);
 	GPOS_ASSERT(pexprGetUnderProject);
-	CColRefSet *pcrsGetUnderProject = PcrsOutput(pmp, pexprGetUnderProject);
+	CColRefSet *pcrsGetUnderProject = CreateDerivedCColRefSet(pmp, pexprGetUnderProject);
 	pcrsProject->Exclude(pcrsGetUnderProject);
 	pcrsGetUnderProject->Release();
 
@@ -162,7 +162,7 @@ CExpression *CreateLogicalUnion(IMemoryPool *pmp, CExpression *pexprLogicalProje
 	// Otherwise, we would have to determine which of the CColRefs in the CLogicalGet we actually want as input to the CLogicalUnion
 	// And I have no idea how to do that since those that we are projecting are not in the project list and
 	// not marked in any way in the CLogicalGet (TODO: look this up)
-	CColRefSet *pcrsGet = PcrsOutput(pmp, pexprLogicalGet);
+	CColRefSet *pcrsGet = CreateDerivedCColRefSet(pmp, pexprLogicalGet);
 	DrgPcr *pdrgpcrGet = GPOS_NEW(pmp) DrgPcr(pmp);
 	pdrgpcrGet->Append(pcrsGet->PcrFirst());
 	pcrsGet->Release();
@@ -200,13 +200,13 @@ ConvertGetToConstTest::EresUnittest_ConvertGetToConst()
 	CAutoOptCtxt aoc(pmp, &mda, NULL, CTestUtils::Pcm(pmp));
 
 	// RHS is shared by input and output
-	CExpression *pexprLogicalGetRHS = getLogicalGet(pmp);
+	CExpression *pexprLogicalGetRHS = CreateLogicalGet(pmp);
 
 	// Construct Input
-	CExpression *pexprLogicalGetLHS = getLogicalGet(pmp);
+	CExpression *pexprLogicalGetLHS = CreateLogicalGet(pmp);
 
 	pexprLogicalGetLHS->AddRef();
-	CExpression *pexprLogicalProjectInput = getLogicalProject(pmp, pexprLogicalGetLHS, &mda); // takes ownership of pexprLogicalGetLHS
+	CExpression *pexprLogicalProjectInput = CreateLogicalProject(pmp, pexprLogicalGetLHS, &mda); // takes ownership of pexprLogicalGetLHS
 
 	pexprLogicalProjectInput->AddRef();
 	pexprLogicalGetRHS->AddRef();

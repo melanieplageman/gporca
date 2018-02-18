@@ -113,6 +113,8 @@ CExpressionPreprocessor::PexprConvertGetToConst
 	CExpression *pexpr
 	)
 {
+	// TODO: handle unions under other stuff
+	// TODO: handle other set operations
 	if (pexpr->Pop()->Eopid() != COperator::EopLogicalUnion)
 	{
 		(pexpr->Pop())->AddRef();
