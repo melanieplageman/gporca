@@ -3,13 +3,13 @@
 //	Copyright (C) 2012 EMC Corp.
 //
 //	@filename:
-//		ConvertGetToConstTest.h
+//		InjectLimitUnderConstUnionTest.h
 //
 //	@doc:
 //		Test for expression preprocessing
 //---------------------------------------------------------------------------
-#ifndef GPOPT_ConvertGetToConstTest_H
-#define GPOPT_ConvertGetToConstTest_H
+#ifndef GPOPT_InjectLimitUnderConstUnionTest_H
+#define GPOPT_InjectLimitUnderConstUnionTest_H
 
 #include "gpos/base.h"
 
@@ -17,13 +17,13 @@ namespace gpopt
 {
 	//---------------------------------------------------------------------------
 	//	@class:
-	//		ConvertGetToConstTest
+	//		InjectLimitUnderConstUnionTest
 	//
 	//	@doc:
 	//		Unittests
 	//
 	//---------------------------------------------------------------------------
-	class ConvertGetToConstTest
+	class InjectLimitUnderConstUnionTest 
 	{
 
 
@@ -31,12 +31,12 @@ namespace gpopt
 
 		// unittests
 		static GPOS_RESULT EresUnittest();
-		static GPOS_RESULT EresUnittest_ConvertGetToConst();
+		static GPOS_RESULT EresUnittest_InjectLimitUnderConstUnionTest();
 
 
-	}; // class ConvertGetToConstTest
+	}; // class InjectLimitUnderConstUnionTest
 }
 
-#endif // !GPOPT_ConvertGetToConstTest_H
+#endif // !GPOPT_InjectLimitUnderConstUnionTest_H
 
 // EOF

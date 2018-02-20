@@ -3,7 +3,7 @@
 //	Copyright (C) 2012 EMC Corp.
 //
 //	@filename:
-//		ConvertGetToConstTest.cpp
+//		InjectLimitUnderConstUnionTest.cpp
 //
 //	@doc:
 //		Test for expression preprocessing
@@ -28,7 +28,7 @@
 #include "gpopt/xforms/CXformUtils.h"
 
 #include "unittest/base.h"
-#include "unittest/gpopt/operators/ConvertGetToConstTest.h"
+#include "unittest/gpopt/operators/InjectLimitUnderConstUnionTest.h"
 #include "unittest/gpopt/CTestUtils.h"
 
 #include "naucrates/md/CMDProviderMemory.h"
@@ -38,20 +38,20 @@ using namespace gpopt;
 using namespace gpmd;
 //---------------------------------------------------------------------------
 //	@function:
-//		ConvertGetToConstTest::EresUnittest
+//		InjectLimitUnderConstUnionTest::EresUnittest
 //
 //	@doc:
-//		Unittest for convertgettoconst pre-processing step
+//		Unittest for InjectLimitUnderConstUnion pre-processing step
 //
 //---------------------------------------------------------------------------
 GPOS_RESULT
-ConvertGetToConstTest::EresUnittest()
+InjectLimitUnderConstUnionTest::EresUnittest()
 {
 
 	CUnittest rgut[] =
 			{
 
-					GPOS_UNITTEST_FUNC(EresUnittest_ConvertGetToConst),
+					GPOS_UNITTEST_FUNC(EresUnittest_InjectLimitUnderConstUnionTest),
 			};
 
 	return CUnittest::EresExecute(rgut, GPOS_ARRAY_SIZE(rgut));
@@ -184,11 +184,9 @@ CExpression *CreateLogicalUnion(IMemoryPool *pmp, CExpression *pexprLogicalProje
 }
 
 GPOS_RESULT
-ConvertGetToConstTest::EresUnittest_ConvertGetToConst()
+InjectLimitUnderConstUnionTest::EresUnittest_InjectLimitUnderConstUnionTest()
 {
-	// how is a dynamic cast different than gpos_new? if it makes a copy, where does it make the copy?
-	// TODO: refactor into fixture
-	// TODO: figure out logic of when we use helper functions
+	// TODO: add negative test case
 	CAutoMemoryPool amp;
 	IMemoryPool *pmp = amp.Pmp();
 	// reset metadata cache
@@ -228,9 +226,6 @@ ConvertGetToConstTest::EresUnittest_ConvertGetToConst()
 
 	pexprLogicalUnionInput->AddRef();
 	CExpression *pexprPreprocessed = CExpressionPreprocessor::PexprPreprocess(pmp, pexprLogicalUnionInput);
-	pexprLogicalUnionInput->DbgPrint();
-	pexprLogicalUnionExpectedOutput->DbgPrint();
-	pexprPreprocessed->DbgPrint();
 	pexprLogicalUnionInput->Release();
 
 	GPOS_RTL_ASSERT(pexprLogicalUnionExpectedOutput->FMatch(pexprPreprocessed));

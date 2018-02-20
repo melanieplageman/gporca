@@ -90,7 +90,10 @@ namespace gpopt
 			CExpression *PexprTrimExistentialSubqueries(IMemoryPool *pmp, CExpression *pexpr);
 
 			static
-			CExpression *PexprConvertGetToConst(IMemoryPool *pmp, CExpression *pexpr);
+			BOOL CheckScalarProjectAllConst(CExpression *scalarProjectList);
+
+			static
+			CExpression *InjectLimitUnderConstUnion(IMemoryPool *pmp, CExpression *pexpr);
 
 			// simplify quantified subqueries
 			static
