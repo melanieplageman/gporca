@@ -74,7 +74,7 @@ CExpression *CreateLogicalProject(IMemoryPool *pmp, CExpression *pexprFirstChild
 
 	const IMDType *pmdtype = cmdAccessor->Pmdtype(pmdidType); // copy from a cast
 	CColumnFactory *pcf = COptCtxt:: PoctxtFromTLS()->Pcf(); // copy from reinterpret cast
-	CColRef *pcrComputed = pcf->PcrCreate(pmdtype); // destructor does nothing
+	CColRef *pcrComputed = pcf->PcrCreate(pmdtype, -1); // destructor does nothing
 
 	CExpression *pexprPrjElem = CUtils::PexprScalarProjectElement(pmp, pcrComputed, pexprScalarConst);
 	CExpression *pexprPrjList = GPOS_NEW(pmp) CExpression(pmp, GPOS_NEW(pmp) CScalarProjectList(pmp), pexprPrjElem);
