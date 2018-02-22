@@ -106,6 +106,7 @@ CExpressionPreprocessor::PexprPruneSuperfluousEquality
 	return GPOS_NEW(pmp) CExpression(pmp, pop, pdrgpexprChildren);
 }
 
+// helper function to determine if all scalar project elements are scalar consts
 BOOL CExpressionPreprocessor::CheckScalarProjectAllConst
 		(
 				CExpression *scalarProjectList
@@ -125,6 +126,7 @@ BOOL CExpressionPreprocessor::CheckScalarProjectAllConst
 	return true;
 }
 
+// injects a limit under any child of a logical union which has only scalar consts in its project list
 CExpression *
 CExpressionPreprocessor::InjectLimitUnderConstUnion
 	(

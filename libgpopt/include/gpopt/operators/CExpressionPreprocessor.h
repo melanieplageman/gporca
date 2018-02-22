@@ -89,12 +89,6 @@ namespace gpopt
 			static
 			CExpression *PexprTrimExistentialSubqueries(IMemoryPool *pmp, CExpression *pexpr);
 
-			static
-			BOOL CheckScalarProjectAllConst(CExpression *scalarProjectList);
-
-			static
-			CExpression *InjectLimitUnderConstUnion(IMemoryPool *pmp, CExpression *pexpr);
-
 			// simplify quantified subqueries
 			static
 			CExpression *PexprSimplifyQuantifiedSubqueries(IMemoryPool *pmp, CExpression *pexpr);
@@ -239,6 +233,15 @@ namespace gpopt
 			// convert series of AND or OR comparisons into array IN expressions
 			static
 			CExpression *PexprConvert2In(IMemoryPool *pmp, CExpression *pexpr);
+
+			// helper function to check if all project elements are scalar consts
+			static
+			BOOL CheckScalarProjectAllConst(CExpression *scalarProjectList);
+
+			// inject limit under logical union if the entire project list are scalar consts
+			static
+			CExpression *InjectLimitUnderConstUnion(IMemoryPool *pmp, CExpression *pexpr);
+
 
 	}; // class CExpressionPreprocessor
 }
