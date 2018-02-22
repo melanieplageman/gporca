@@ -159,9 +159,6 @@ CExpression *CreateLogicalUnion(IMemoryPool *pmp, CExpression *pexprLogicalProje
 
 	// The CLogicalGet, which is the second child to the CLogicalUnion, because we have collapsed its CScalarProjectLIst
 	// In this very contrived test case, we assume that we are using exactly the first CColRef in the CLogicalGet's CColRefSet
-	// Otherwise, we would have to determine which of the CColRefs in the CLogicalGet we actually want as input to the CLogicalUnion
-	// And I have no idea how to do that since those that we are projecting are not in the project list and
-	// not marked in any way in the CLogicalGet (TODO: look this up)
 	CColRefSet *pcrsGet = CreateDerivedCColRefSet(pmp, pexprLogicalGet);
 	DrgPcr *pdrgpcrGet = GPOS_NEW(pmp) DrgPcr(pmp);
 	pdrgpcrGet->Append(pcrsGet->PcrFirst());
