@@ -1196,7 +1196,7 @@ CExpression::PrintProperties
 void
 CExpression::DbgPrint() const
 {
-//	CAutoTraceFlag atf(EopttracePrintExpressionProperties, true);
+	CAutoTraceFlag atf(EopttracePrintExpressionProperties, true);
 	CAutoTrace at(m_pmp);
 	(void) this->OsPrint(at.Os());
 }
