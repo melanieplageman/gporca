@@ -67,15 +67,16 @@ namespace gpnaucrates
 						DrgPdouble *pdrgpd,
 						IStatistics::EStatsJoinType esjt
 				);
-
-//		CStatistics
-//				(
-//						IMemoryPool *pmp,
-//						HMUlDouble *phmuldoubleWidth,
-//						CDouble dRows,
-//						BOOL fEmpty,
-//						ULONG ulNumPredicates
-//				);
+// make a new parent class and then subclass this and make another separate subclass which doesn't have all this stuff
+		CStatistics
+				(
+						IMemoryPool *pmp,
+						HMUlDouble *phmuldoubleWidth,
+						CDouble dRows,
+						BOOL fEmpty,
+						BOOL fUnsupported,
+						ULONG ulNumPredicates
+				);
 				// method used to compute for columns of each source it corresponding
 				// the cardinality upper bound
 				enum ECardBoundingMethod
@@ -239,6 +240,18 @@ namespace gpnaucrates
 				CDouble *pdScaleFactor, // output: scale factor based on the join
 				BOOL fEmptyInput, // if true, one of the inputs is empty
 				BOOL fIgnoreLasjHistComputation
+				);
+
+			static
+			void JoinHistogramsWithUnsupported
+				(
+						CStatsPredJoin *pstatsjoin,
+						CHistogram *phist1,
+						CHistogram *phist2,
+						CDouble dRows1,
+						CDouble dRows2,
+						CDouble *pdScaleFactor, // output: scale factor based on the join
+						BOOL fEmptyInput // if true, one of the inputs is empty
 				);
 
 

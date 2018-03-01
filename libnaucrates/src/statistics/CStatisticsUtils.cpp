@@ -1253,6 +1253,7 @@ CStatisticsUtils::PstatsJoinArray
 		pdrgpcrsOutput->Append(pstatsCurrent->Pcrs(pmp));
 
 		CStatsPred *pstatspredUnsupported = NULL;
+		// single join multiple preds
 		DrgPstatspredjoin *pdrgpstatspredjoin = CStatsPredUtils::PdrgpstatspredjoinExtract
 															(
 															pmp,

@@ -383,6 +383,10 @@ CStatsPredUtils::FCmpColsIgnoreCast
 CExpression *
 CStatsPredUtils::FindExprWithOperatorId(CExpression *pexpr, COperator::EOperatorId eopid)
 {
+	if (pexpr->Pop()->Eopid() == eopid)
+	{
+		return pexpr;
+	}
 	for (ULONG ul = 0; ul < pexpr->UlArity(); ul++)
 	{
 		CExpression *pexprChild = (*pexpr)[ul];
@@ -1214,6 +1218,7 @@ CStatsPredUtils::PdrgpstatspredjoinExtract
 	for (ULONG ul = 0; ul < ulSize; ul++)
 	{
 		CExpression *pexprPred = (*pdrgpexprConjuncts) [ul];
+		// single join's single predicate
 		CStatsPredJoin *pstatsjoin = PstatsjoinExtract
 										(
 										pmp,

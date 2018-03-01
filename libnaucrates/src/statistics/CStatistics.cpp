@@ -514,6 +514,7 @@ CStatistics::PstatsJoinDriver
 	for (ULONG ul = 0; ul < pdrgpstatspredjoin->UlLength(); ul++)
 	{
 		CStatsPredJoin *pstatsjoin = (*pdrgpstatspredjoin)[ul];
+
 		(void) pbsJoinColIds->FExchangeSet(pstatsjoin->UlColId1());
 		if (!fSemiJoin)
 		{
@@ -533,13 +534,13 @@ CStatistics::PstatsJoinDriver
 	const ULONG ulJoinConds = pdrgpstatspredjoin->UlLength();
 
 	BOOL fEmptyOutput = false;
+	CDouble dRowsJoin = 0;
 	// iterate over joins
 	for (ULONG ul = 0; ul < ulJoinConds; ul++)
 	{
 		CStatsPredJoin *pstatsjoin = (*pdrgpstatspredjoin)[ul];
 		ULONG ulColId1 = pstatsjoin->UlColId1();
 		ULONG ulColId2 = pstatsjoin->UlColId2();
-
 		GPOS_ASSERT(ulColId1 != ulColId2);
 		// find the histograms corresponding to the two columns
 		CHistogram *phist1 = m_phmulhist->PtLookup(&ulColId1);
@@ -552,36 +553,55 @@ CStatistics::PstatsJoinDriver
 		CDouble dScaleFactorLocal(1.0);
 		CHistogram *phist1After = NULL;
 		CHistogram *phist2After = NULL;
-		JoinHistograms
-			(
-			pmp,
-			phist1,
-			phist2,
-			pstatsjoin,
-			DRows(),
-			pstatsOther->DRows(),
-			fLASJ,
-			&phist1After,
-			&phist2After,
-			&dScaleFactorLocal,
-			fEmptyInput,
-			fIgnoreLasjHistComputation
-			);
-
-		fEmptyOutput = FEmptyJoinStats(FEmpty(), fEmptyOutput, fLASJ, phist1, phist2, phist1After);
-
-		CStatisticsUtils::AddHistogram(pmp, ulColId1, phist1After, phmulhistJoin);
-		if (!fSemiJoin)
+		// make an unsupported joinhistograms
+		// sett scale factor local
+		if(!pstatsjoin->Unsupported())
 		{
-			CStatisticsUtils::AddHistogram(pmp, ulColId2, phist2After, phmulhistJoin);
-		}
-		GPOS_DELETE(phist1After);
-		GPOS_DELETE(phist2After);
+			JoinHistograms
+					(
+							pmp,
+							phist1,
+							phist2,
+							pstatsjoin,
+							DRows(),
+							pstatsOther->DRows(),
+							fLASJ,
+							&phist1After,
+							&phist2After,
+							&dScaleFactorLocal,
+							fEmptyInput,
+							fIgnoreLasjHistComputation
+					);
 
+			fEmptyOutput = FEmptyJoinStats(FEmpty(), fEmptyOutput, fLASJ, phist1, phist2, phist1After);
+
+			CStatisticsUtils::AddHistogram(pmp, ulColId1, phist1After, phmulhistJoin);
+			if (!fSemiJoin)
+			{
+				CStatisticsUtils::AddHistogram(pmp, ulColId2, phist2After, phmulhistJoin);
+			}
+			GPOS_DELETE(phist1After);
+			GPOS_DELETE(phist2After);
+		}
+		else
+		{
+			JoinHistogramsWithUnsupported(
+										  pstatsjoin,
+											   phist1,
+											   phist2,
+											   DRows(),
+											   pstatsOther->DRows(),
+											   &dScaleFactorLocal,
+											   fEmptyInput);
+		}
+
+		// need to add an unsupported stats object to the array of stats objects
 		pdrgpd->Append(GPOS_NEW(pmp) CDouble(dScaleFactorLocal));
 	}
 
-	CDouble dRowsJoin = DJoinCardinality(m_pstatsconf, m_dRows, pstatsOther->m_dRows, pdrgpd, esjt);
+
+	// we still want to add a stats object, just a special unsupported one
+	dRowsJoin = DJoinCardinality(m_pstatsconf, m_dRows, pstatsOther->m_dRows, pdrgpd, esjt);
 	if (fEmptyOutput)
 	{
 		dRowsJoin = DMinRows;
@@ -598,6 +618,7 @@ CStatistics::PstatsJoinDriver
 		CStatistics::AddWidthInfo(pmp, pstatsOther->m_phmuldoubleWidth, phmuldoubleWidth);
 	}
 
+	// make a new unsupported join stats class
 	// create an output stats object
 	CStatistics *pstatsJoin = GPOS_NEW(pmp) CStatistics
 											(
@@ -1167,6 +1188,60 @@ CStatistics::JoinHistograms
 	}
 
 	InnerJoinHistograms(pmp, phist1, phist2, pstatsjoin, dRows1, dRows2, pphist1, pphist2, pdScaleFactor, fEmptyInput);
+}
+
+// helper for joining histograms
+void
+CStatistics::JoinHistogramsWithUnsupported
+		(
+				CStatsPredJoin *pstatsjoin,
+				CHistogram *phist1,
+				CHistogram *phist2,
+				CDouble dRows1,
+				CDouble dRows2,
+				CDouble *pdScaleFactor, // output: scale factor based on the join
+				BOOL fEmptyInput
+		)
+{
+	GPOS_ASSERT(NULL != pstatsjoin);
+	GPOS_ASSERT(NULL != pdScaleFactor);
+
+	*pdScaleFactor = 1.0;
+	CStatsPred::EStatsCmpType escmpt = pstatsjoin->Escmpt();
+
+	if (fEmptyInput)
+	{
+		// use Cartesian product as scale factor
+		*pdScaleFactor = dRows1 * dRows2;
+
+		return;
+	}
+
+	*pdScaleFactor = CScaleFactorUtils::DDefaultScaleFactorJoin;
+
+	/*BOOL fEmptyHistograms = phist1->FEmpty() || phist2->FEmpty();
+
+	if (fEmptyHistograms)
+	{
+		// if one more input has no histograms (due to lack of statistics
+		// for table columns or computed columns), we estimate
+		// the join cardinality to be the max of the two rows.
+		// In other words, the scale factor is equivalent to the
+		// min of the two rows.
+		*pdScaleFactor = std::min(dRows1, dRows2);
+	}*/
+	if (CStatsPred::EstatscmptEq != escmpt)
+		return;
+
+	*pdScaleFactor = std::max
+			(
+					std::max(phist1->DMinDistinct.DVal(), phist1->DDistinct().DVal()),
+					std::max(phist1->DMinDistinct.DVal(), phist2->DDistinct().DVal())
+			);
+	CDouble dCartesianProduct = dRows1 * dRows2;
+	// bound scale factor by cross product
+	*pdScaleFactor = std::min((*pdScaleFactor).DVal(), dCartesianProduct.DVal());
+
 }
 
 

@@ -95,6 +95,11 @@ namespace gpnaucrates
 				return m_ulColId2;
 			}
 
+			BOOL Unsupported() const
+			{
+				return m_unsupported;
+			}
+
 			// d'tor
 			virtual
 			~CStatsPredJoin()
