@@ -46,6 +46,9 @@ namespace gpnaucrates
 			// column id
 			ULONG m_ulColId2;
 
+			// Special type of join pred
+			BOOL m_unsupported;
+
 		public:
 
 			// c'tor
@@ -60,6 +63,20 @@ namespace gpnaucrates
 				m_escmpt(escmpt),
 				m_ulColId2(ulColId2)
 			{}
+		// c'tor
+		CStatsPredJoin
+				(
+						ULONG ulColId1,
+						CStatsPred::EStatsCmpType escmpt,
+						ULONG ulColId2,
+						BOOL unsupported
+				)
+				:
+				m_ulColId1(ulColId1),
+				m_escmpt(escmpt),
+				m_ulColId2(ulColId2),
+				m_unsupported(unsupported)
+		{}
 
 			// accessors
 			ULONG UlColId1() const

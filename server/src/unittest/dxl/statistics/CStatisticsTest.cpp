@@ -117,7 +117,7 @@ CStatisticsTest::EresUnittest()
 		GPOS_UNITTEST_FUNC(CStatisticsTest::EresUnittest_CStatisticsNestedPred),
 		GPOS_UNITTEST_FUNC(CStatisticsTest::EresUnittest_SortInt4MCVs),
 		GPOS_UNITTEST_FUNC(CStatisticsTest::EresUnittest_MergeHistMCV),
-		GPOS_UNITTEST_FUNC(CStatisticsTest::EresUnittest_CStatisticsAccumulateCard)
+		GPOS_UNITTEST_FUNC(CStatisticsTest::EresUnittest_CStatisticsAccumulateCard),
 		};
 
 	// tests that use separate optimization contexts

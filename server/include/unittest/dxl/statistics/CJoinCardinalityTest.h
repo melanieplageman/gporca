@@ -116,6 +116,9 @@ namespace gpnaucrates
 			static
 			GPOS_RESULT EresUnittest_Join();
 
+			static
+			GPOS_RESULT EresUnittest_CStatisticsJoinCard();
+
 	}; // class CJoinCardinalityTest
 }
 

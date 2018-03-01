@@ -12,6 +12,7 @@
 #ifndef __STDC_CONSTANT_MACROS
 #define __STDC_CONSTANT_MACROS
 #endif
+#define GPDB_INT4_ADD_OP OID(551)
 
 #include <stdint.h>
 
@@ -26,6 +27,9 @@
 #include "unittest/dxl/statistics/CCardinalityTestUtils.h"
 #include "unittest/dxl/statistics/CJoinCardinalityTest.h"
 #include "unittest/gpopt/CTestUtils.h"
+#include "naucrates/statistics/CStatistics.h"
+#include "naucrates/md/CMDTypeInt4GPDB.h"
+#include "gpopt/operators/CLogicalNAryJoin.h"
 
 // unittest for join cardinality estimation
 GPOS_RESULT
@@ -36,6 +40,7 @@ CJoinCardinalityTest::EresUnittest()
 		{
 		GPOS_UNITTEST_FUNC(CJoinCardinalityTest::EresUnittest_Join),
 		GPOS_UNITTEST_FUNC(CJoinCardinalityTest::EresUnittest_JoinNDVRemain),
+		GPOS_UNITTEST_FUNC(CJoinCardinalityTest::EresUnittest_CStatisticsJoinCard),
 		};
 
 	// run tests with shared optimization context first
@@ -286,6 +291,122 @@ CJoinCardinalityTest::EresUnittest_Join()
 		}
 	}
 
+	return GPOS_OK;
+}
+
+CExpression *CreateLogicalGet(IMemoryPool *pmp)
+{
+	CWStringConst strName(GPOS_WSZ_LIT("foo"));
+	CMDIdGPDB *pmdid = GPOS_NEW(pmp) CMDIdGPDB(GPOPT_MDCACHE_TEST_OID, 1, 1);
+	CTableDescriptor *ptabdesc = CTestUtils::PtabdescCreate(pmp, 2, pmdid, CName(&strName));
+	CWStringConst strAlias = CWStringConst(GPOS_WSZ_LIT("fooAlias"));
+	CExpression *logicalGet = CTestUtils::PexprLogicalGet(pmp, ptabdesc, &strAlias);
+	return logicalGet;
+}
+
+GPOS_RESULT
+CJoinCardinalityTest::EresUnittest_CStatisticsJoinCard()
+{
+	// create memory pool
+	CAutoMemoryPool amp;
+	IMemoryPool *pmp = amp.Pmp();
+//
+//	// create hash map from colid -> histogram
+//	HMUlHist *phmulhist = GPOS_NEW(pmp) HMUlHist(pmp);
+//
+//	// array capturing columns for which width information is available
+//	HMUlDouble *phmuldoubleWidth = GPOS_NEW(pmp) HMUlDouble(pmp);
+//
+//	const ULONG ulCols = 2;
+//	for (ULONG ul = 0; ul < ulCols; ul ++)
+//	{
+//		// generate histogram of the form [0, 10), [10, 20), [20, 30), [80, 90), [100,100]
+//		phmulhist->FInsert(GPOS_NEW(pmp) ULONG(ul), CCardinalityTestUtils::PhistExampleInt4(pmp));
+//
+//		// width for int
+//		phmuldoubleWidth->FInsert(GPOS_NEW(pmp) ULONG(ul), GPOS_NEW(pmp) CDouble(4.0));
+//	}
+
+	/*
+	 * For a query T1 JOIN T2 WHERE T1.a + 1 = T2.b
+	 * pstats is an object with statistics for table T1
+	 * which calls the function PstatsInnerJoin passing
+	 * to it the statistics of the joining table (T2) and
+	 * the array of predicate that we join on (T1.a + 1 = T2.b)
+	 * The array is useful for queries of type
+	 * T1 JOIN T2 JOIN T3 WHERE T1.a = T2.b and T3.b = 2.
+	 * In the above case, there are two predicates
+	 * T1.a = T2.b
+	 * and T3.b = 2
+	 * In this test, however, there is only one predicate:
+	 * T1.a = T2.b
+	 * */
+//	CStatistics __attribute__((unused)) *pstatsT1 = GPOS_NEW(pmp) CStatistics
+//			(
+//					pmp,
+//					phmulhist,
+//					phmuldoubleWidth,
+//					CDouble(1000.0) /* dRows */,
+//					false /* fEmpty() */
+//			);
+//	CStatistics __attribute__((unused)) *pstatsT2 = GPOS_NEW(pmp) CStatistics
+//			(
+//					pmp,
+//					phmulhist,
+//					phmuldoubleWidth,
+//					CDouble(500.0) /* dRows */,
+//					false /* fEmpty() */
+//			);
+
+//	DrgPstatspredjoin *pdrgstatspredUnsupported = GPOS_NEW(pmp) DrgPstatspredjoin(pmp);
+////	CStatsPredUnsupported *pStatsPredUnsupported = GPOS_NEW(pmp) CStatsPred(0, CStatsPred::EstatscmptEq);
+//	CStatsPredJoin *pstatsPredJoin = GPOS_NEW(pmp) CStatsPredJoin(0, CStatsPred::EstatscmptEq, 1);
+//	pdrgstatspredUnsupported->Append(pstatsPredJoin);
+//	CStatistics *pnewstats = pstatsT1->PstatsInnerJoin(pmp, pstatsT2, pdrgstatspredUnsupported);
+//	GPOS_ASSERT(pnewstats->DRows() == 2222);
+	CExpression  *logicalGet1 = CreateLogicalGet(pmp);
+	CExpression  *logicalGet2 = CreateLogicalGet(pmp);
+
+	CColRefSet *pcrsLeft = CDrvdPropRelational::Pdprel(logicalGet1->PdpDerive())->PcrsOutput();
+	CColRef *pcrLeft =  pcrsLeft->PcrAny();
+
+	CColRefSet *pcrsRight = CDrvdPropRelational::Pdprel(logicalGet2->PdpDerive())->PcrsOutput();
+	CColRef *pcrRight =  pcrsRight->PcrAny();
+	CExpression *pexprScalarIdentRight = CUtils::PexprScalarIdent(pmp, pcrRight);
+
+	CExpression *pexprScConst =  CUtils::PexprScalarConstInt4(pmp, 10 /* iVal */);
+	CExpression *pexprScOp =
+			CUtils::PexprScalarOp(pmp, pcrLeft, pexprScConst, CWStringConst(GPOS_WSZ_LIT("+")), GPOS_NEW(pmp) CMDIdGPDB(GPDB_INT4_ADD_OP));
+
+	CExpression *pScalarCmp = CUtils::PexprScalarEqCmp(pmp, pexprScOp, pexprScalarIdentRight);
+
+	DrgPexpr *drgPexpr = GPOS_NEW(pmp) DrgPexpr(pmp);
+	drgPexpr->Append(logicalGet1);
+	drgPexpr->Append(logicalGet2);
+	drgPexpr->Append(pScalarCmp);
+	COperator *logicalnarypop = GPOS_NEW(pmp) CLogicalNAryJoin(pmp);
+	CExpression  *logicalNaryJoin = GPOS_NEW(pmp) CExpression(pmp, logicalnarypop, drgPexpr);
+	logicalNaryJoin->DbgPrint();
+	CExpressionHandle exprhdl(pmp);
+	exprhdl.Attach(logicalNaryJoin);
+
+//	GPOS_NEW(pmp) CExpression(pmp, GPOS_NEW(pmp) CLogicalInnerJoin(pmp), )
+
+//	CLogical *popLogical = GPOS_NEW(pmp) CLogical(pmp);
+	IStatistics *naryJoinStats = ((CLogicalJoin *)logicalnarypop)->PstatsDerive(pmp, exprhdl, GPOS_NEW(pmp) DrgPstat(pmp));
+	GPOS_ASSERT(naryJoinStats != NULL);
+	logicalNaryJoin->Release();
+
+
+//	CStatisticsConfig __attribute__((unused)) *cStatisticsConfig = CStatisticsConfig::PstatsconfDefault(pmp);
+//	DrgPdouble *pdrgpd = GPOS_NEW(pmp) DrgPdouble(pmp);
+//	CDouble *dummyScaleFactor = GPOS_NEW(pmp) CDouble(1.0);
+//	pdrgpd->Append(dummyScaleFactor);
+//	IStatistics::EStatsJoinType __attribute__((unused)) esjt = IStatistics::EsjtInnerJoin;
+//	CDouble __attribute__((unused)) dRowsJoin = CStatistics::DJoinCardinality(cStatisticsConfig, CDouble(100.0), CDouble(100.0), pdrgpd, esjt);
+//	GPOS_ASSERT(dRowsJoin == 2222);
+//	pdrgpd->Release();
+//	cStatisticsConfig->Release();
 	return GPOS_OK;
 }
 

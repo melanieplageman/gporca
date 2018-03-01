@@ -56,6 +56,26 @@ namespace gpnaucrates
 	class CStatistics: public IStatistics
 	{
 		public:
+
+		// return join cardinality based on scaling factor and join type
+		static
+		CDouble DJoinCardinality
+				(
+						CStatisticsConfig *pstatsconf,
+						CDouble dRowsLeft,
+						CDouble dRowsRight,
+						DrgPdouble *pdrgpd,
+						IStatistics::EStatsJoinType esjt
+				);
+
+//		CStatistics
+//				(
+//						IMemoryPool *pmp,
+//						HMUlDouble *phmuldoubleWidth,
+//						CDouble dRows,
+//						BOOL fEmpty,
+//						ULONG ulNumPredicates
+//				);
 				// method used to compute for columns of each source it corresponding
 				// the cardinality upper bound
 				enum ECardBoundingMethod
@@ -221,16 +241,7 @@ namespace gpnaucrates
 				BOOL fIgnoreLasjHistComputation
 				);
 
-			// return join cardinality based on scaling factor and join type
-			static
-			CDouble DJoinCardinality
-						(
-						CStatisticsConfig *pstatsconf,
-						CDouble dRowsLeft,
-						CDouble dRowsRight,
-						DrgPdouble *pdrgpd,
-						IStatistics::EStatsJoinType esjt
-						);
+
 
 			//	check if the join statistics object is empty output based on the input
 			//	histograms and the join histograms

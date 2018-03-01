@@ -378,6 +378,77 @@ CStatsPredUtils::FCmpColsIgnoreCast
 	return true;
 }
 
+// Returns the first descendent of pexpr with OperatorId eopid from a depth first search.
+// Returns NULL if no such descendent exists.
+CExpression *
+CStatsPredUtils::FindExprWithOperatorId(CExpression *pexpr, COperator::EOperatorId eopid)
+{
+	for (ULONG ul = 0; ul < pexpr->UlArity(); ul++)
+	{
+		CExpression *pexprChild = (*pexpr)[ul];
+		if (pexprChild->Pop()->Eopid() == eopid)
+		{
+			return pexprChild;
+		}
+		else
+		{
+			CExpression *pexprResult = FindExprWithOperatorId(pexprChild, eopid);
+			if (pexprResult != NULL)
+			{
+				return pexprResult;
+			}
+		}
+	}
+
+	return NULL;
+}
+
+BOOL
+CStatsPredUtils::FCmpColsIgnoreCastUnsupported
+		(
+				CExpression *pexpr,
+				const CColRef **ppcrLeft,
+				CStatsPred::EStatsCmpType *pescmpt,
+				const CColRef **ppcrRight
+		)
+{
+	GPOS_ASSERT(NULL != ppcrLeft);
+	GPOS_ASSERT(NULL != ppcrRight);
+	COperator *pop = pexpr->Pop();
+
+	BOOL fScalarCmp = (COperator::EopScalarCmp == pop->Eopid());
+	if (!fScalarCmp)
+	{
+		return false;
+	}
+
+	CExpression *pexprLeft = NULL;
+	CExpression *pexprRight = NULL;
+
+	CScalarCmp *popScCmp = CScalarCmp::PopConvert(pop);
+
+	// Comparison semantics for stats purposes is looser
+	// than regular comparison.
+	(*pescmpt) = CStatsPredUtils::Estatscmpt(popScCmp->PmdidOp());
+
+	pexprLeft = (*pexpr)[0];
+	CExpression *leftScalarIdent = FindExprWithOperatorId(pexprLeft, COperator::EopScalarIdent);
+	pexprRight = (*pexpr)[1];
+	CExpression *rightScalarIdent = FindExprWithOperatorId(pexprRight, COperator::EopScalarIdent);
+
+
+	(*ppcrLeft) = CCastUtils::PcrExtractFromScIdOrCastScId(leftScalarIdent);
+	(*ppcrRight) = CCastUtils::PcrExtractFromScIdOrCastScId(rightScalarIdent);
+
+	if (NULL == *ppcrLeft || NULL == *ppcrRight)
+	{
+		// failed to extract a scalar ident
+		return false;
+	}
+
+	return true;
+}
+
 
 //---------------------------------------------------------------------------
 //	@function:
@@ -1092,6 +1163,12 @@ CStatsPredUtils::PstatsjoinExtract
 
 			return GPOS_NEW(pmp) CStatsPredJoin(pcrRight->UlId(), escmpt, pcrLeft->UlId());
 		}
+	}
+	else if (!fSupportedScIdentComparison && CStatsPred::EstatscmptEq == escmpt)
+	{
+		BOOL fCheck = FCmpColsIgnoreCastUnsupported(pexprJoinPred, &pcrLeft, &escmpt, &pcrRight);
+		if(fCheck)
+			return GPOS_NEW(pmp) CStatsPredJoin(pcrLeft->UlId(), escmpt, pcrRight->UlId(), true);
 	}
 
 	if (CColRefSet::FCovered(pdrgpcrsOutput, pcrsUsed))

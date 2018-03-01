@@ -79,7 +79,6 @@ CCastUtils::PcrExtractFromScIdOrCastScId
     BOOL fScIdent = COperator::EopScalarIdent == pexpr->Pop()->Eopid();
 	BOOL fCastedScIdent = CScalarIdent::FCastedScId(pexpr);
 
-	// col or cast(col)
 	if (!fScIdent && !fCastedScIdent)
 	{
 		return NULL;
@@ -93,6 +92,7 @@ CCastUtils::PcrExtractFromScIdOrCastScId
 	else
 	{
 		GPOS_ASSERT(fCastedScIdent);
+		if(pexpr->Pop()->Eopid() == COperator::EopScalarFunc)
 		popScIdent = CScalarIdent::PopConvert((*pexpr)[0]->Pop());
 	}
 

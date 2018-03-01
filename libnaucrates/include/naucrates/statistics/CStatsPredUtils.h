@@ -174,6 +174,17 @@ namespace gpopt
 				CStatsPred::EStatsCmpType *pescmpt,
 				const CColRef **pcr2
 				);
+			static
+			BOOL FCmpColsIgnoreCastUnsupported
+				(
+						CExpression *pexpr,
+						const CColRef **pcr1,
+						CStatsPred::EStatsCmpType *pescmpt,
+						const CColRef **pcr2
+				);
+
+			static
+			CExpression *FindExprWithOperatorId(CExpression *pexpr, COperator::EOperatorId eopid);
 
 		public:
 

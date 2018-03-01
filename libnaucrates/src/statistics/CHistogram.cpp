@@ -672,6 +672,7 @@ CHistogram::PhistJoinNormalized
 
 		return phistAfter;
 	}
+	// Add condition
 	
 	CHistogram *phistAfter = PhistJoin(pmp, escmpt, phistOther);
 	*pdScaleFactor = phistAfter->DNormalize();

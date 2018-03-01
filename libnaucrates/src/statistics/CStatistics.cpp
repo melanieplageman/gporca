@@ -84,6 +84,35 @@ CStatistics::CStatistics
 	m_pstatsconf = COptCtxt::PoctxtFromTLS()->Poconf()->Pstatsconf();
 }
 
+
+//// ctor
+//CStatistics::CStatistics
+//		(
+//				IMemoryPool *pmp,
+//				HMUlDouble *phmuldoubleWidth,
+//				CDouble dRows,
+//				BOOL fEmpty,
+//				ULONG ulNumPredicates
+//		)
+//		:
+//		m_phmuldoubleWidth(phmuldoubleWidth),
+//		m_dRows(dRows),
+//		m_ulStatsEstimationRisk(ulStatsEstimationNoRisk),
+//		m_fEmpty(fEmpty),
+//		m_dRebinds(1.0), // by default, a stats object is rebound to parameters only once
+//		m_ulNumPredicates(ulNumPredicates),
+//		m_pdrgpubndvs(NULL)
+//{
+//	GPOS_ASSERT(NULL != m_phmuldoubleWidth);
+//	GPOS_ASSERT(CDouble(0.0) <= m_dRows);
+//
+//	// hash map for source id -> max source cardinality mapping
+//	m_pdrgpubndvs = GPOS_NEW(pmp) DrgPubndvs(pmp);
+//
+//	m_pstatsconf = COptCtxt::PoctxtFromTLS()->Poconf()->Pstatsconf();
+//}
+
+
 // Dtor
 CStatistics::~CStatistics()
 {
