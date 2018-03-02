@@ -33,14 +33,6 @@ namespace gpnaucrates
 			// predicate comparison type
 			CStatsPred::EStatsCmpType m_estatscmptype;
 
-			// scale factor of the predicate
-			CDouble m_dDefaultScaleFactor;
-
-			// initialize the scale factor of the predicate
-			CDouble DScaleFactorInit();
-
-			// an array of doubles which are the stats of the columns in the unsupported predicate
-			DrgPdouble m_drgPdoubleStats;
 
 			// private copy ctor
 			CStatsPredUnsupported(const CStatsPredUnsupported &);
@@ -49,14 +41,7 @@ namespace gpnaucrates
 
 			// ctors
 			CStatsPredUnsupported(ULONG ulColId, CStatsPred::EStatsCmpType espt);
-			CStatsPredUnsupported(ULONG ulColId, CStatsPred::EStatsCmpType espt, CDouble dDefaultScaleFactor);
 
-			// filter type id
-			virtual
-			CStatsPred::EStatsPredType Espt() const
-			{
-				return CStatsPred::EsptUnsupported;
-			}
 
 			// comparison types for stats computation
 			virtual
@@ -65,10 +50,7 @@ namespace gpnaucrates
 				return m_estatscmptype;
 			}
 
-			CDouble DScaleFactor() const
-			{
-				return m_dDefaultScaleFactor;
-			}
+
 
 			// conversion function
 			static
@@ -83,12 +65,12 @@ namespace gpnaucrates
 				return dynamic_cast<CStatsPredUnsupported*>(pstatspred);
 			}
 
-
-		void
-		UpdateColumnStats(CStatsPredUnsupported cStatsPredUnsupported)
-		{
-			// update my m_drgPdoubleStats using cStatsPredUnsupported.colids
-		}
+			void
+			UpdateScaleFactor(CJoinStatsConfig joinStatsConfig, CStatsPredUnsupported statsPredUnsupported)
+			{
+				// Update joinstatsconfig.scaleFactor using statsPredUnsupported.m_drgPdoubleStats
+				// pdrgndvs, pdrgmcvs, etc
+			}
 
 
 	}; // class CStatsPredUnsupported
