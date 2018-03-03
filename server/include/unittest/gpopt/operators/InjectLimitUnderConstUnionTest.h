@@ -32,6 +32,7 @@ namespace gpopt
 		// unittests
 		static GPOS_RESULT EresUnittest();
 		static GPOS_RESULT EresUnittest_InjectLimitUnderConstUnionTest();
+		static GPOS_RESULT EresUnittest_InjectLimit_UnderUnionAll();
 
 
 	}; // class InjectLimitUnderConstUnionTest

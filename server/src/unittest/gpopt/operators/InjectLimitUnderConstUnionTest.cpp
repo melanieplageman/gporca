@@ -52,6 +52,7 @@ InjectLimitUnderConstUnionTest::EresUnittest()
 			{
 
 					GPOS_UNITTEST_FUNC(EresUnittest_InjectLimitUnderConstUnionTest),
+					GPOS_UNITTEST_FUNC(EresUnittest_InjectLimit_UnderUnionAll),
 			};
 
 	return CUnittest::EresExecute(rgut, GPOS_ARRAY_SIZE(rgut));
@@ -72,9 +73,9 @@ CExpression *CreateLogicalProject(IMemoryPool *pmp, CExpression *pexprFirstChild
 	CExpression *pexprScalarConst = CUtils::PexprScalarConstInt4(pmp, 5);
 	IMDId *pmdidType = CScalarConst::PopConvert(pexprScalarConst->Pop())->PmdidType();
 
-	const IMDType *pmdtype = cmdAccessor->Pmdtype(pmdidType); // copy from a cast
-	CColumnFactory *pcf = COptCtxt:: PoctxtFromTLS()->Pcf(); // copy from reinterpret cast
-	CColRef *pcrComputed = pcf->PcrCreate(pmdtype, -1); // destructor does nothing
+	const IMDType *pmdtype = cmdAccessor->Pmdtype(pmdidType);
+	CColumnFactory *pcf = COptCtxt:: PoctxtFromTLS()->Pcf();
+	CColRef *pcrComputed = pcf->PcrCreate(pmdtype, -1);
 
 	CExpression *pexprPrjElem = CUtils::PexprScalarProjectElement(pmp, pcrComputed, pexprScalarConst);
 	CExpression *pexprPrjList = GPOS_NEW(pmp) CExpression(pmp, GPOS_NEW(pmp) CScalarProjectList(pmp), pexprPrjElem);
@@ -87,7 +88,7 @@ CColRefSet *CreateDerivedCColRefSet(IMemoryPool *pmp, CExpression *pexprLogical)
 {
 	CExpressionHandle exprhdl(pmp);
 	exprhdl.Attach(pexprLogical);
-	return CLogical::PopConvert(pexprLogical->Pop())->PcrsDeriveOutput(pmp, exprhdl); // doesn't take ownership of logicalproject
+	return CLogical::PopConvert(pexprLogical->Pop())->PcrsDeriveOutput(pmp, exprhdl);
 }
 
 // Returns the first descendent of pexpr with OperatorId eopid from a depth first search.
@@ -112,6 +113,45 @@ CExpression *FindExprWithOperatorId(CExpression *pexpr, COperator::EOperatorId e
 	}
 
 	return NULL;
+}
+
+void SetLogicalSetOpInputOutput(IMemoryPool *pmp, CExpression *pexprLogicalProject, CExpression *pexprLogicalGet, DrgPcr *pdrgpcrOutput, DrgDrgPcr *pdrgpdrgpcrInput)
+{
+	CColRefSet *pcrsProject = CreateDerivedCColRefSet(pmp, pexprLogicalProject);
+
+	// CLogicalUnion needs an input array of CColRefSet and an output CColRefSet
+	// The input will include CColRefSet for both of its children
+	// The output will be only the CColRefSet projected by its first child
+	// Because the first child of the CLogicalUnion, in this case, is projecting only constants
+	// The CColRefSet is obtained, as a matter of convenience, by excluding the CColRefSet from the CLogicalGet
+	// from that of the CLogicalProject of which it is a descendent
+	CExpression *pexprGetUnderProject = FindExprWithOperatorId(pexprLogicalProject, COperator::EopLogicalGet);
+	GPOS_ASSERT(pexprGetUnderProject);
+	CColRefSet *pcrsGetUnderProject = CreateDerivedCColRefSet(pmp, pexprGetUnderProject);
+	pcrsProject->Exclude(pcrsGetUnderProject);
+	pcrsGetUnderProject->Release();
+
+	// The CLogicalGet, which is the second child to the CLogicalUnion, because we have collapsed its CScalarProjectLIst
+	// In this very contrived test case, we assume that we are using exactly the first CColRef in the CLogicalGet's CColRefSet
+	CColRefSet *pcrsGet = CreateDerivedCColRefSet(pmp, pexprLogicalGet);
+	DrgPcr *pdrgpcrGet = GPOS_NEW(pmp) DrgPcr(pmp);
+	pdrgpcrGet->Append(pcrsGet->PcrFirst());
+	pcrsGet->Release();
+
+	// Construct the input array of arrays of column reference sets for the CLogicalUnion
+	(pdrgpdrgpcrInput)->Append(pcrsProject->Pdrgpcr(pmp));
+	(pdrgpdrgpcrInput)->Append(pdrgpcrGet);
+
+	// Construct the output array of column reference set for the CLogicalUnion
+	// This is the same as the CColRefSet of the first child of the CLogicalUnion
+
+	// TODO: this makes a new colrefset, why am I not able to keep it even after the function cleans up
+	// it all gets wiped out when this function returns
+	DrgPcr *temp = GPOS_NEW(pmp) DrgPcr(pmp);
+	temp = (pcrsProject->Pdrgpcr(pmp));
+	temp->AddRef();
+	pdrgpcrOutput = temp;
+	pcrsProject->Release();
 }
 
 // Produces a CLogicalUnion where the first child exclusively projects CScalarConsts and the second child projects
@@ -143,36 +183,11 @@ CExpression *FindExprWithOperatorId(CExpression *pexpr, COperator::EOperatorId e
 
 CExpression *CreateLogicalUnion(IMemoryPool *pmp, CExpression *pexprLogicalProject, CExpression *pexprLogicalGet)
 {
-	CColRefSet *pcrsProject = CreateDerivedCColRefSet(pmp, pexprLogicalProject);
 
-	// CLogicalUnion needs an input array of CColRefSet and an output CColRefSet
-	// The input will include CColRefSet for both of its children
-	// The output will be only the CColRefSet projected by its first child
-	// Because the first child of the CLogicalUnion, in this case, is projecting only constants
-	// The CColRefSet is obtained, as a matter of convenience, by excluding the CColRefSet from the CLogicalGet
-	// from that of the CLogicalProject of which it is a descendent
-	CExpression *pexprGetUnderProject = FindExprWithOperatorId(pexprLogicalProject, COperator::EopLogicalGet);
-	GPOS_ASSERT(pexprGetUnderProject);
-	CColRefSet *pcrsGetUnderProject = CreateDerivedCColRefSet(pmp, pexprGetUnderProject);
-	pcrsProject->Exclude(pcrsGetUnderProject);
-	pcrsGetUnderProject->Release();
-
-	// The CLogicalGet, which is the second child to the CLogicalUnion, because we have collapsed its CScalarProjectLIst
-	// In this very contrived test case, we assume that we are using exactly the first CColRef in the CLogicalGet's CColRefSet
-	CColRefSet *pcrsGet = CreateDerivedCColRefSet(pmp, pexprLogicalGet);
-	DrgPcr *pdrgpcrGet = GPOS_NEW(pmp) DrgPcr(pmp);
-	pdrgpcrGet->Append(pcrsGet->PcrFirst());
-	pcrsGet->Release();
-
-	// Construct the input array of arrays of column reference sets for the CLogicalUnion
 	DrgDrgPcr *pdrgpdrgpcrInput = GPOS_NEW(pmp) DrgDrgPcr(pmp);
-	pdrgpdrgpcrInput->Append(pcrsProject->Pdrgpcr(pmp));
-	pdrgpdrgpcrInput->Append(pdrgpcrGet);
+	DrgPcr *pdrgpcrOutput = GPOS_NEW(pmp) DrgPcr(pmp);
 
-	// Construct the output array of column reference set for the CLogicalUnion
-	// This is the same as the CColRefSet of the first child of the CLogicalUnion
-	DrgPcr *pdrgpcrOutput = pcrsProject->Pdrgpcr(pmp);
-	pcrsProject->Release();
+	SetLogicalSetOpInputOutput(pmp, pexprLogicalProject, pexprLogicalGet, pdrgpcrOutput, pdrgpdrgpcrInput);
 
 	CExpression *pexprLogicalUnion = GPOS_NEW(pmp) CExpression(pmp, GPOS_NEW(pmp) CLogicalUnion(pmp,
 																								pdrgpcrOutput,
@@ -180,6 +195,7 @@ CExpression *CreateLogicalUnion(IMemoryPool *pmp, CExpression *pexprLogicalProje
 	return pexprLogicalUnion;
 }
 
+// This test has superfluous reference adding and decrementing to make it easier to move sections of it around
 GPOS_RESULT
 InjectLimitUnderConstUnionTest::EresUnittest_InjectLimitUnderConstUnionTest()
 {
@@ -201,7 +217,68 @@ InjectLimitUnderConstUnionTest::EresUnittest_InjectLimitUnderConstUnionTest()
 	CExpression *pexprLogicalGetLHS = CreateLogicalGet(pmp);
 
 	pexprLogicalGetLHS->AddRef();
-	CExpression *pexprLogicalProjectInput = CreateLogicalProject(pmp, pexprLogicalGetLHS, &mda); // takes ownership of pexprLogicalGetLHS
+	CExpression *pexprLogicalProjectInput = CreateLogicalProject(pmp, pexprLogicalGetLHS, &mda);
+
+	pexprLogicalProjectInput->AddRef();
+	pexprLogicalGetRHS->AddRef();
+	CExpression *pexprLogicalUnionInput = CreateLogicalUnion(pmp, pexprLogicalProjectInput, pexprLogicalGetRHS);
+
+	// Construct expected output by remaking logicalproject but with same scalar project list
+	CExpression *pexprScalarProjectList = (*pexprLogicalProjectInput)[1];
+	// same logical get left hand side but now we want to put the limit on top of it
+	pexprLogicalGetLHS->AddRef();
+	CExpression *pexprLogicalLimit = CUtils::PexprLimit(pmp, pexprLogicalGetLHS, 0, 1);
+
+	pexprLogicalLimit->AddRef();
+	pexprScalarProjectList->AddRef();
+	CExpression *pexprLogicalProjectOutput = CUtils::PexprLogicalProject(pmp, pexprLogicalLimit, pexprScalarProjectList, false);
+
+	pexprLogicalProjectOutput->AddRef();
+	pexprLogicalGetRHS->AddRef();
+	CExpression *pexprLogicalUnionExpectedOutput = CreateLogicalUnion(pmp, pexprLogicalProjectOutput, pexprLogicalGetRHS);
+
+	pexprLogicalUnionInput->AddRef();
+	CExpression *pexprPreprocessed = CExpressionPreprocessor::PexprPreprocess(pmp, pexprLogicalUnionInput);
+	pexprLogicalUnionInput->Release();
+
+	GPOS_RTL_ASSERT(pexprLogicalUnionExpectedOutput->FMatch(pexprPreprocessed));
+	pexprPreprocessed->Release();
+
+	pexprLogicalUnionExpectedOutput->Release();
+
+	pexprLogicalLimit->Release();
+	pexprLogicalProjectOutput->Release();
+	pexprLogicalUnionInput->Release();
+	pexprLogicalProjectInput->Release();
+	pexprLogicalGetLHS->Release();
+	pexprLogicalGetRHS->Release();
+
+	return GPOS_OK;
+}
+
+// This test has superfluous reference adding and decrementing to make it easier to move sections of it around
+// Don't inject the limit if there is a UNION ALL instead of a UNION
+		GPOS_RESULT
+InjectLimitUnderConstUnionTest::EresUnittest_InjectLimit_UnderUnionAll()
+{
+	CAutoMemoryPool amp;
+	IMemoryPool *pmp = amp.Pmp();
+	// reset metadata cache
+	CMDCache::Reset();
+	// setup a file-based provider
+	CMDProviderMemory *pmdp = CTestUtils::m_pmdpf;
+	pmdp->AddRef();
+	CMDAccessor mda(pmp, CMDCache::Pcache(), CTestUtils::m_sysidDefault, pmdp);
+	CAutoOptCtxt aoc(pmp, &mda, NULL, CTestUtils::Pcm(pmp));
+
+	// RHS is shared by input and output
+	CExpression *pexprLogicalGetRHS = CreateLogicalGet(pmp);
+
+	// Construct Input
+	CExpression *pexprLogicalGetLHS = CreateLogicalGet(pmp);
+
+	pexprLogicalGetLHS->AddRef();
+	CExpression *pexprLogicalProjectInput = CreateLogicalProject(pmp, pexprLogicalGetLHS, &mda);
 
 	pexprLogicalProjectInput->AddRef();
 	pexprLogicalGetRHS->AddRef();
