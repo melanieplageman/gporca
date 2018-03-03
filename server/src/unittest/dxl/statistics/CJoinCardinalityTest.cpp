@@ -40,7 +40,7 @@ CJoinCardinalityTest::EresUnittest()
 		{
 		GPOS_UNITTEST_FUNC(CJoinCardinalityTest::EresUnittest_Join),
 		GPOS_UNITTEST_FUNC(CJoinCardinalityTest::EresUnittest_JoinNDVRemain),
-		GPOS_UNITTEST_FUNC(CJoinCardinalityTest::EresUnittest_CStatisticsJoinCard),
+//		GPOS_UNITTEST_FUNC(CJoinCardinalityTest::EresUnittest_CStatisticsJoinCard),
 		};
 
 	// run tests with shared optimization context first
@@ -304,12 +304,12 @@ CExpression *CreateLogicalGet(IMemoryPool *pmp)
 	return logicalGet;
 }
 
-GPOS_RESULT
-CJoinCardinalityTest::EresUnittest_CStatisticsJoinCard()
-{
-	// create memory pool
-	CAutoMemoryPool amp;
-	IMemoryPool *pmp = amp.Pmp();
+//GPOS_RESULT
+//CJoinCardinalityTest::EresUnittest_CStatisticsJoinCard()
+//{
+//	// create memory pool
+//	CAutoMemoryPool amp;
+//	IMemoryPool *pmp = amp.Pmp();
 //
 //	// create hash map from colid -> histogram
 //	HMUlHist *phmulhist = GPOS_NEW(pmp) HMUlHist(pmp);
@@ -364,38 +364,38 @@ CJoinCardinalityTest::EresUnittest_CStatisticsJoinCard()
 //	pdrgstatspredUnsupported->Append(pstatsPredJoin);
 //	CStatistics *pnewstats = pstatsT1->PstatsInnerJoin(pmp, pstatsT2, pdrgstatspredUnsupported);
 //	GPOS_ASSERT(pnewstats->DRows() == 2222);
-	CExpression  *logicalGet1 = CreateLogicalGet(pmp);
-	CExpression  *logicalGet2 = CreateLogicalGet(pmp);
-
-	CColRefSet *pcrsLeft = CDrvdPropRelational::Pdprel(logicalGet1->PdpDerive())->PcrsOutput();
-	CColRef *pcrLeft =  pcrsLeft->PcrAny();
-
-	CColRefSet *pcrsRight = CDrvdPropRelational::Pdprel(logicalGet2->PdpDerive())->PcrsOutput();
-	CColRef *pcrRight =  pcrsRight->PcrAny();
-	CExpression *pexprScalarIdentRight = CUtils::PexprScalarIdent(pmp, pcrRight);
-
-	CExpression *pexprScConst =  CUtils::PexprScalarConstInt4(pmp, 10 /* iVal */);
-	CExpression *pexprScOp =
-			CUtils::PexprScalarOp(pmp, pcrLeft, pexprScConst, CWStringConst(GPOS_WSZ_LIT("+")), GPOS_NEW(pmp) CMDIdGPDB(GPDB_INT4_ADD_OP));
-
-	CExpression *pScalarCmp = CUtils::PexprScalarEqCmp(pmp, pexprScOp, pexprScalarIdentRight);
-
-	DrgPexpr *drgPexpr = GPOS_NEW(pmp) DrgPexpr(pmp);
-	drgPexpr->Append(logicalGet1);
-	drgPexpr->Append(logicalGet2);
-	drgPexpr->Append(pScalarCmp);
-	COperator *logicalnarypop = GPOS_NEW(pmp) CLogicalNAryJoin(pmp);
-	CExpression  *logicalNaryJoin = GPOS_NEW(pmp) CExpression(pmp, logicalnarypop, drgPexpr);
-	logicalNaryJoin->DbgPrint();
-	CExpressionHandle exprhdl(pmp);
-	exprhdl.Attach(logicalNaryJoin);
-
-//	GPOS_NEW(pmp) CExpression(pmp, GPOS_NEW(pmp) CLogicalInnerJoin(pmp), )
-
-//	CLogical *popLogical = GPOS_NEW(pmp) CLogical(pmp);
-	IStatistics *naryJoinStats = ((CLogicalJoin *)logicalnarypop)->PstatsDerive(pmp, exprhdl, GPOS_NEW(pmp) DrgPstat(pmp));
-	GPOS_ASSERT(naryJoinStats != NULL);
-	logicalNaryJoin->Release();
+//	CExpression  *logicalGet1 = CreateLogicalGet(pmp);
+//	CExpression  *logicalGet2 = CreateLogicalGet(pmp);
+//
+//	CColRefSet *pcrsLeft = CDrvdPropRelational::Pdprel(logicalGet1->PdpDerive())->PcrsOutput();
+//	CColRef *pcrLeft =  pcrsLeft->PcrAny();
+//
+//	CColRefSet *pcrsRight = CDrvdPropRelational::Pdprel(logicalGet2->PdpDerive())->PcrsOutput();
+//	CColRef *pcrRight =  pcrsRight->PcrAny();
+//	CExpression *pexprScalarIdentRight = CUtils::PexprScalarIdent(pmp, pcrRight);
+//
+//	CExpression *pexprScConst =  CUtils::PexprScalarConstInt4(pmp, 10 /* iVal */);
+//	CExpression *pexprScOp =
+//			CUtils::PexprScalarOp(pmp, pcrLeft, pexprScConst, CWStringConst(GPOS_WSZ_LIT("+")), GPOS_NEW(pmp) CMDIdGPDB(GPDB_INT4_ADD_OP));
+//
+//	CExpression *pScalarCmp = CUtils::PexprScalarEqCmp(pmp, pexprScOp, pexprScalarIdentRight);
+//
+//	DrgPexpr *drgPexpr = GPOS_NEW(pmp) DrgPexpr(pmp);
+//	drgPexpr->Append(logicalGet1);
+//	drgPexpr->Append(logicalGet2);
+//	drgPexpr->Append(pScalarCmp);
+//	COperator *logicalnarypop = GPOS_NEW(pmp) CLogicalNAryJoin(pmp);
+//	CExpression  *logicalNaryJoin = GPOS_NEW(pmp) CExpression(pmp, logicalnarypop, drgPexpr);
+////	logicalNaryJoin->DbgPrint();
+//	CExpressionHandle exprhdl(pmp);
+//	exprhdl.Attach(logicalNaryJoin);
+//
+////	GPOS_NEW(pmp) CExpression(pmp, GPOS_NEW(pmp) CLogicalInnerJoin(pmp), )
+//
+////	CLogical *popLogical = GPOS_NEW(pmp) CLogical(pmp);
+//	IStatistics *naryJoinStats = ((CLogicalJoin *)logicalnarypop)->PstatsDerive(pmp, exprhdl, GPOS_NEW(pmp) DrgPstat(pmp));
+//	GPOS_ASSERT(naryJoinStats != NULL);
+//	logicalNaryJoin->Release();
 
 
 //	CStatisticsConfig __attribute__((unused)) *cStatisticsConfig = CStatisticsConfig::PstatsconfDefault(pmp);
@@ -407,8 +407,8 @@ CJoinCardinalityTest::EresUnittest_CStatisticsJoinCard()
 //	GPOS_ASSERT(dRowsJoin == 2222);
 //	pdrgpd->Release();
 //	cStatisticsConfig->Release();
-	return GPOS_OK;
-}
+//	return GPOS_OK;
+//}
 
 //	helper method to generate a single join predicate
 DrgPstatspredjoin *

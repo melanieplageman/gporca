@@ -40,7 +40,7 @@ namespace gpnaucrates
 			CDouble DScaleFactorInit();
 
 			// an array of doubles which are the stats of the columns in the unsupported predicate
-			DrgPdouble m_drgPdoubleStats;
+			//DrgPdouble m_drgPdoubleStats;
 
 			// private copy ctor
 			CStatsPredUnsupported(const CStatsPredUnsupported &);
@@ -84,11 +84,11 @@ namespace gpnaucrates
 			}
 
 
-		void
-		UpdateColumnStats(CStatsPredUnsupported cStatsPredUnsupported)
-		{
-			// update my m_drgPdoubleStats using cStatsPredUnsupported.colids
-		}
+//		void
+//		UpdateColumnStats(CStatsPredUnsupported cStatsPredUnsupported)
+//		{
+//			// update my m_drgPdoubleStats using cStatsPredUnsupported.colids
+//		}
 
 
 	}; // class CStatsPredUnsupported
