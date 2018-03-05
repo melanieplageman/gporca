@@ -143,7 +143,7 @@ namespace gpnaucrates
 			CStatistics *PstatsJoinDriver
 							(
 							IMemoryPool *pmp,
-							const IStatistics *pistatsOther,
+							const IStatistics *pistatsInner,
 							DrgPstatspredjoin *pdrgpstatspredjoin,
 							IStatistics::EStatsJoinType ejst,
 							BOOL fIgnoreLasjHistComputation

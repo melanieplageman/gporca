@@ -1160,6 +1160,7 @@ CStatsPredUtils::PstatsjoinExtract
 
 		if (ULONG_MAX != ulIndexLeft && ULONG_MAX != ulIndexRight && ulIndexLeft != ulIndexRight)
 		{
+			// why do we have to do this? mincard caller needs this?
 			if (ulIndexLeft < ulIndexRight)
 			{
 				return GPOS_NEW(pmp) CStatsPredJoin(pcrLeft->UlId(), escmpt, pcrRight->UlId());
@@ -1172,7 +1173,29 @@ CStatsPredUtils::PstatsjoinExtract
 	{
 		BOOL fCheck = FCmpColsIgnoreCastUnsupported(pexprJoinPred, &pcrLeft, &escmpt, &pcrRight);
 		if(fCheck)
-			return GPOS_NEW(pmp) CStatsPredJoin(pcrLeft->UlId(), escmpt, pcrRight->UlId(), true);
+		{
+			if (!IMDType::FStatsComparable(pcrLeft->Pmdtype(), pcrRight->Pmdtype()))
+			{
+				// unsupported statistics comparison between the histogram boundaries of the columns
+				pexprJoinPred->AddRef();
+				pdrgpexprUnsupported->Append(pexprJoinPred);
+				return NULL;
+			}
+
+			ULONG ulIndexLeft = CUtils::UlPcrIndexContainingSet(pdrgpcrsOutput, pcrLeft);
+			ULONG ulIndexRight = CUtils::UlPcrIndexContainingSet(pdrgpcrsOutput, pcrRight);
+
+			if (ULONG_MAX != ulIndexLeft && ULONG_MAX != ulIndexRight && ulIndexLeft != ulIndexRight)
+			{
+				if (ulIndexLeft < ulIndexRight)
+				{
+					return GPOS_NEW(pmp) CStatsPredJoin(pcrLeft->UlId(), escmpt, pcrRight->UlId(), true);
+				}
+
+				return GPOS_NEW(pmp) CStatsPredJoin(pcrRight->UlId(), escmpt, pcrLeft->UlId(), true);
+			}
+//			return GPOS_NEW(pmp) CStatsPredJoin(pcrLeft->UlId(), escmpt, pcrRight->UlId(), true);
+		}
 	}
 
 	if (CColRefSet::FCovered(pdrgpcrsOutput, pcrsUsed))

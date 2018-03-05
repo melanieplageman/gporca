@@ -1244,6 +1244,7 @@ CStatisticsUtils::PstatsJoinArray
 	IStatistics *pstats = (*pdrgpstat)[0]->PstatsCopy(pmp);
 	CDouble dRowsOuter = pstats->DRows();
 
+	// is this loop necessary? it seems like we will always call it once
 	for (ULONG ul = 1; ul < ulStats; ul++)
 	{
 		IStatistics *pstatsCurrent = (*pdrgpstat)[ul];
@@ -1379,6 +1380,7 @@ CStatisticsUtils::PstatsJoin
 
 	DrgPstat *pdrgpstat = GPOS_NEW(pmp) DrgPstat(pmp);
 	const ULONG ulArity = exprhdl.UlArity();
+	// Does not create a stats object for the scalar predicate
 	for (ULONG ul = 0; ul < ulArity - 1; ul++)
 	{
 		IStatistics *pstatsChild = exprhdl.Pstats(ul);

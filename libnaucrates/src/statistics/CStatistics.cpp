@@ -490,30 +490,30 @@ CStatistics *
 CStatistics::PstatsJoinDriver
 	(
 	IMemoryPool *pmp,
-	const IStatistics *pistatsOther,
-	DrgPstatspredjoin *pdrgpstatspredjoin,
+	const IStatistics *pistatsInner,
+	DrgPstatspredjoin *pdrgppredInfo,
 	IStatistics::EStatsJoinType esjt,
 	BOOL fIgnoreLasjHistComputation
 	)
 	const
 {
 	GPOS_ASSERT(NULL != pmp);
-	GPOS_ASSERT(NULL != pistatsOther);
-	GPOS_ASSERT(NULL != pdrgpstatspredjoin);
+	GPOS_ASSERT(NULL != pistatsInner);
+	GPOS_ASSERT(NULL != pdrgppredInfo);
 
 	BOOL fLASJ = (IStatistics::EsjtLeftAntiSemiJoin == esjt);
 	BOOL fSemiJoin = IStatistics::FSemiJoin(esjt);
 
-	const CStatistics *pstatsOther = dynamic_cast<const CStatistics *> (pistatsOther);
+	const CStatistics *pstatsInner = dynamic_cast<const CStatistics *> (pistatsInner);
 
 	// create hash map from colid -> histogram for resultant structure
 	HMUlHist *phmulhistJoin = GPOS_NEW(pmp) HMUlHist(pmp);
 
 	// build a bitset with all join columns
 	CBitSet *pbsJoinColIds = GPOS_NEW(pmp) CBitSet(pmp);
-	for (ULONG ul = 0; ul < pdrgpstatspredjoin->UlLength(); ul++)
+	for (ULONG ul = 0; ul < pdrgppredInfo->UlLength(); ul++)
 	{
-		CStatsPredJoin *pstatsjoin = (*pdrgpstatspredjoin)[ul];
+		CStatsPredJoin *pstatsjoin = (*pdrgppredInfo)[ul];
 
 		(void) pbsJoinColIds->FExchangeSet(pstatsjoin->UlColId1());
 		if (!fSemiJoin)
@@ -527,70 +527,73 @@ CStatistics::PstatsJoinDriver
 	AddNotExcludedHistograms(pmp, pbsJoinColIds, phmulhistJoin);
 	if (!fSemiJoin)
 	{
-		pstatsOther->AddNotExcludedHistograms(pmp, pbsJoinColIds, phmulhistJoin);
+		pstatsInner->AddNotExcludedHistograms(pmp, pbsJoinColIds, phmulhistJoin);
 	}
 
 	DrgPdouble *pdrgpd = GPOS_NEW(pmp) DrgPdouble(pmp);
-	const ULONG ulJoinConds = pdrgpstatspredjoin->UlLength();
+	const ULONG ulJoinConds = pdrgppredInfo->UlLength();
 
 	BOOL fEmptyOutput = false;
 	CDouble dRowsJoin = 0;
 	// iterate over joins
 	for (ULONG ul = 0; ul < ulJoinConds; ul++)
 	{
-		CStatsPredJoin *pstatsjoin = (*pdrgpstatspredjoin)[ul];
+		CStatsPredJoin *pstatsjoin = (*pdrgppredInfo)[ul];
 		ULONG ulColId1 = pstatsjoin->UlColId1();
 		ULONG ulColId2 = pstatsjoin->UlColId2();
 		GPOS_ASSERT(ulColId1 != ulColId2);
 		// find the histograms corresponding to the two columns
-		CHistogram *phist1 = m_phmulhist->PtLookup(&ulColId1);
-		CHistogram *phist2 = pstatsOther->m_phmulhist->PtLookup(&ulColId2);
-		GPOS_ASSERT(NULL != phist1);
-		GPOS_ASSERT(NULL != phist2);
+		CHistogram *phistOuter = m_phmulhist->PtLookup(&ulColId1);
+		// are column id1 and 2 always in the order of outer inner?
+		CHistogram *phistInner = pstatsInner->m_phmulhist->PtLookup(&ulColId2);
+		GPOS_ASSERT(NULL != phistOuter);
+		GPOS_ASSERT(NULL != phistInner);
 
-		BOOL fEmptyInput = FEmptyJoinInput(this, pstatsOther, fLASJ);
+		BOOL fEmptyInput = FEmptyJoinInput(this, pstatsInner, fLASJ);
 
 		CDouble dScaleFactorLocal(1.0);
-		CHistogram *phist1After = NULL;
-		CHistogram *phist2After = NULL;
+		CHistogram *phistOuterAfter = NULL;
+		CHistogram *phistInnerAfter = NULL;
 		// make an unsupported joinhistograms
-		// sett scale factor local
+		// set scale factor local
 		if(!pstatsjoin->Unsupported())
+
+
 		{
 			JoinHistograms
 					(
 							pmp,
-							phist1,
-							phist2,
+							phistOuter,
+							phistInner,
 							pstatsjoin,
 							DRows(),
-							pstatsOther->DRows(),
+							pstatsInner->DRows(),
 							fLASJ,
-							&phist1After,
-							&phist2After,
+							&phistOuterAfter,
+							&phistInnerAfter,
 							&dScaleFactorLocal,
 							fEmptyInput,
 							fIgnoreLasjHistComputation
 					);
 
-			fEmptyOutput = FEmptyJoinStats(FEmpty(), fEmptyOutput, fLASJ, phist1, phist2, phist1After);
+			fEmptyOutput = FEmptyJoinStats(FEmpty(), fEmptyOutput, fLASJ, phistOuter, phistInner, phistOuterAfter);
 
-			CStatisticsUtils::AddHistogram(pmp, ulColId1, phist1After, phmulhistJoin);
+			CStatisticsUtils::AddHistogram(pmp, ulColId1, phistOuterAfter, phmulhistJoin);
 			if (!fSemiJoin)
 			{
-				CStatisticsUtils::AddHistogram(pmp, ulColId2, phist2After, phmulhistJoin);
+				CStatisticsUtils::AddHistogram(pmp, ulColId2, phistInnerAfter, phmulhistJoin);
 			}
-			GPOS_DELETE(phist1After);
-			GPOS_DELETE(phist2After);
+			GPOS_DELETE(phistOuterAfter);
+			GPOS_DELETE(phistInnerAfter);
 		}
 		else
 		{
 			JoinHistogramsWithUnsupported(
 										  pstatsjoin,
-											   phist1,
-											   phist2,
+											   phistOuter,
+											   phistInner,
 											   DRows(),
-											   pstatsOther->DRows(),
+											   pstatsInner->DRows(),
 											   &dScaleFactorLocal,
 											   fEmptyInput);
 		}
@@ -601,7 +604,7 @@ CStatistics::PstatsJoinDriver
 
 
 	// we still want to add a stats object, just a special unsupported one
-	dRowsJoin = DJoinCardinality(m_pstatsconf, m_dRows, pstatsOther->m_dRows, pdrgpd, esjt);
+	dRowsJoin = DJoinCardinality(m_pstatsconf, m_dRows, pstatsInner->m_dRows, pdrgpd, esjt);
 	if (fEmptyOutput)
 	{
 		dRowsJoin = DMinRows;
@@ -615,7 +618,7 @@ CStatistics::PstatsJoinDriver
 	CStatistics::AddWidthInfo(pmp, m_phmuldoubleWidth, phmuldoubleWidth);
 	if (!fSemiJoin)
 	{
-		CStatistics::AddWidthInfo(pmp, pstatsOther->m_phmuldoubleWidth, phmuldoubleWidth);
+		CStatistics::AddWidthInfo(pmp, pstatsInner->m_phmuldoubleWidth, phmuldoubleWidth);
 	}
 
 	// make a new unsupported join stats class
@@ -639,7 +642,7 @@ CStatistics::PstatsJoinDriver
 	ComputeCardUpperBounds(pmp, pstatsJoin, dRowsJoin, CStatistics::EcbmMin /* ecbm */);
 	if (!fSemiJoin)
 	{
-		pstatsOther->ComputeCardUpperBounds(pmp, pstatsJoin, dRowsJoin, CStatistics::EcbmMin /* ecbm */);
+		pstatsInner->ComputeCardUpperBounds(pmp, pstatsJoin, dRowsJoin, CStatistics::EcbmMin /* ecbm */);
 	}
 
 	return pstatsJoin;
