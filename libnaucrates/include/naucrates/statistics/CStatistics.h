@@ -16,6 +16,7 @@
 #include "gpos/sync/CMutex.h"
 
 #include "naucrates/statistics/IStatistics.h"
+#include "naucrates/statistics/CJoinStatistics.h"
 #include "naucrates/statistics/CStatsPredDisj.h"
 #include "naucrates/statistics/CStatsPredConj.h"
 #include "naucrates/statistics/CStatsPredLike.h"
@@ -53,7 +54,7 @@ namespace gpnaucrates
 	//	@doc:
 	//		Abstract statistics API
 	//---------------------------------------------------------------------------
-	class CStatistics: public IStatistics
+	class CStatistics: public IStatistics, public CJoinStatistics
 	{
 		public:
 
@@ -67,16 +68,7 @@ namespace gpnaucrates
 						DrgPdouble *pdrgpd,
 						IStatistics::EStatsJoinType esjt
 				);
-// make a new parent class and then subclass this and make another separate subclass which doesn't have all this stuff
-		CStatistics
-				(
-						IMemoryPool *pmp,
-						HMUlDouble *phmuldoubleWidth,
-						CDouble dRows,
-						BOOL fEmpty,
-						BOOL fUnsupported,
-						ULONG ulNumPredicates
-				);
+
 				// method used to compute for columns of each source it corresponding
 				// the cardinality upper bound
 				enum ECardBoundingMethod

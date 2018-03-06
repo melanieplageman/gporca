@@ -383,6 +383,7 @@ CStatsPredUtils::FCmpColsIgnoreCast
 CExpression *
 CStatsPredUtils::FindExprWithOperatorId(CExpression *pexpr, COperator::EOperatorId eopid)
 {
+	// TODO: move to cutils
 	if (pexpr->Pop()->Eopid() == eopid)
 	{
 		return pexpr;
@@ -436,6 +437,7 @@ CStatsPredUtils::FCmpColsIgnoreCastUnsupported
 	(*pescmpt) = CStatsPredUtils::Estatscmpt(popScCmp->PmdidOp());
 
 	pexprLeft = (*pexpr)[0];
+	// TODO: for FindExprWithOperatorId, it should bail out if there is more than one scalarident under the the scalarfunc
 	CExpression *leftScalarIdent = FindExprWithOperatorId(pexprLeft, COperator::EopScalarIdent);
 	pexprRight = (*pexpr)[1];
 	CExpression *rightScalarIdent = FindExprWithOperatorId(pexprRight, COperator::EopScalarIdent);

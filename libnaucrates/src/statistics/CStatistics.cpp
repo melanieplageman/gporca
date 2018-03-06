@@ -45,14 +45,15 @@ const CDouble CStatistics::DEpsilon(0.001);
 // default column width
 const CDouble CStatistics::DDefaultColumnWidth(8.0);
 
-// minimum number of rows in relation
-const CDouble CStatistics::DMinRows(1.0);
-
 // default number of distinct values
 const CDouble CStatistics::DDefaultDistinctValues(1000.0);
 
 // the default value for operators that have no cardinality estimation risk
 const ULONG CStatistics::ulStatsEstimationNoRisk = 1;
+
+// minimum number of rows in relation
+// TODO: is this used outside of join? if so, add it to those new parent classes when we make them
+const CDouble CStatistics::DMinRows(1.0);
 
 // ctor
 CStatistics::CStatistics
@@ -538,9 +539,9 @@ CStatistics::PstatsJoinDriver
 	// iterate over joins
 	for (ULONG ul = 0; ul < ulJoinConds; ul++)
 	{
-		CStatsPredJoin *pstatsjoin = (*pdrgppredInfo)[ul];
-		ULONG ulColId1 = pstatsjoin->UlColId1();
-		ULONG ulColId2 = pstatsjoin->UlColId2();
+		CStatsPredJoin *ppredInfo = (*pdrgppredInfo)[ul];
+		ULONG ulColId1 = ppredInfo->UlColId1();
+		ULONG ulColId2 = ppredInfo->UlColId2();
 		GPOS_ASSERT(ulColId1 != ulColId2);
 		// find the histograms corresponding to the two columns
 		CHistogram *phistOuter = m_phmulhist->PtLookup(&ulColId1);
@@ -548,22 +549,17 @@ CStatistics::PstatsJoinDriver
 		CHistogram *phistInner = pstatsInner->m_phmulhist->PtLookup(&ulColId2);
 		GPOS_ASSERT(NULL != phistOuter);
 		GPOS_ASSERT(NULL != phistInner);
-
 		BOOL fEmptyInput = FEmptyJoinInput(this, pstatsInner, fLASJ);
 
 		CDouble dScaleFactorLocal(1.0);
 		CHistogram *phistOuterAfter = NULL;
 		CHistogram *phistInnerAfter = NULL;
-		// make an unsupported joinhistograms
-		// set scale factor local
-		if(!pstatsjoin->Unsupported())
-		{
-			JoinHistograms
+		JoinHistograms
 					(
 							pmp,
 							phistOuter,
 							phistInner,
-							pstatsjoin,
+							ppredInfo,
 							DRows(),
 							pstatsInner->DRows(),
 							fLASJ,
@@ -574,37 +570,17 @@ CStatistics::PstatsJoinDriver
 							fIgnoreLasjHistComputation
 					);
 
-			fEmptyOutput = FEmptyJoinStats(FEmpty(), fEmptyOutput, fLASJ, phistOuter, phistInner, phistOuterAfter);
+		fEmptyOutput = FEmptyJoinStats(FEmpty(), fEmptyOutput, fLASJ, phistOuter, phistInner, phistOuterAfter);
 
-			CStatisticsUtils::AddHistogram(pmp, ulColId1, phistOuterAfter, phmulhistJoin);
-			if (!fSemiJoin)
-			{
-				CStatisticsUtils::AddHistogram(pmp, ulColId2, phistInnerAfter, phmulhistJoin);
-			}
-			GPOS_DELETE(phistOuterAfter);
-			GPOS_DELETE(phistInnerAfter);
-		}
-		else
+		// TODO: consider if we should drop the buckets of the histogram in the case of an unsupported predicate
+		CStatisticsUtils::AddHistogram(pmp, ulColId1, phistOuterAfter, phmulhistJoin);
+		if (!fSemiJoin)
 		{
-			CDouble ddistinctValuesOuter = phistOuter->DDistinct();
-			CDouble ddistinctValuesInner = phistInner->DDistinct();
-			dScaleFactorLocal = GetUnsupportedPredJoinScaleFactor(
-										  pstatsjoin,
-										  ddistinctValuesOuter,
-										  ddistinctValuesInner,
-											   DRows(),
-											   pstatsInner->DRows(),
-											   fEmptyInput);
-			// TODO: consider if we should drop the buckets of the histogram in the case of an unsupported predicate
-			CStatisticsUtils::AddHistogram(pmp, ulColId1, phistOuter, phmulhistJoin);
-			if (!fSemiJoin)
-			{
-				CStatisticsUtils::AddHistogram(pmp, ulColId2, phistInner, phmulhistJoin);
-			}
+			CStatisticsUtils::AddHistogram(pmp, ulColId2, phistInnerAfter, phmulhistJoin);
 		}
+		GPOS_DELETE(phistOuterAfter);
+		GPOS_DELETE(phistInnerAfter);
 
-
-		// need to add an unsupported stats object to the array of stats objects
 		pdrgpd->Append(GPOS_NEW(pmp) CDouble(dScaleFactorLocal));
 	}
 
@@ -1059,6 +1035,7 @@ CStatistics::LASJoinHistograms
 }
 
 // helper for inner-joining histograms
+// TODO: rename this function because it is used for all joins except left anti-semi join
 void
 CStatistics::InnerJoinHistograms
 	(
@@ -1131,6 +1108,12 @@ CStatistics::InnerJoinHistograms
 			{
 				(*pphist2)->SetNDVScaled();
 			}
+			// If the join for which we are creating a histogram has an unsupported predicate, then set the scale factor
+			// using special logic
+			if (pstatsjoin->Unsupported() && CStatsPred::EstatscmptEq == escmpt)
+			{
+				*pdScaleFactor = GetUnsupportedPredJoinScaleFactor(phist1->DDistinct(), phist2->DDistinct(), dRows1, dRows2);
+			}
 			return;
 		}
 
@@ -1201,42 +1184,16 @@ CStatistics::JoinHistograms
 CDouble
 CStatistics::GetUnsupportedPredJoinScaleFactor
 		(
-				CStatsPredJoin *pstatsjoin,
 				CDouble dDistinctValuesOuter,
 				CDouble dDistinctValuesInner,
 				CDouble dRows1,
-				CDouble dRows2,
-				BOOL fEmptyInput
+				CDouble dRows2
 		)
 {
-	GPOS_ASSERT(NULL != pstatsjoin);
 
 	CDouble pdScaleFactor = 1.0;
-	CStatsPred::EStatsCmpType escmpt = pstatsjoin->Escmpt();
-
-	if (fEmptyInput)
-	{
-		// use Cartesian product as scale factor
-		pdScaleFactor = dRows1 * dRows2;
-
-		return pdScaleFactor;
-	}
 
 	pdScaleFactor = CScaleFactorUtils::DDefaultScaleFactorJoin;
-
-	/*BOOL fEmptyHistograms = phist1->FEmpty() || phist2->FEmpty();
-
-	if (fEmptyHistograms)
-	{
-		// if one more input has no histograms (due to lack of statistics
-		// for table columns or computed columns), we estimate
-		// the join cardinality to be the max of the two rows.
-		// In other words, the scale factor is equivalent to the
-		// min of the two rows.
-		*pdScaleFactor = std::min(dRows1, dRows2);
-	}*/
-	if (CStatsPred::EstatscmptEq != escmpt)
-		return pdScaleFactor;
 
 	pdScaleFactor = std::max
 			(
