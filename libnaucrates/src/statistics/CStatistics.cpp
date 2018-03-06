@@ -557,8 +557,6 @@ CStatistics::PstatsJoinDriver
 		// make an unsupported joinhistograms
 		// set scale factor local
 		if(!pstatsjoin->Unsupported())
-
-
 		{
 			JoinHistograms
 					(
@@ -588,26 +586,33 @@ CStatistics::PstatsJoinDriver
 		}
 		else
 		{
-			JoinHistogramsWithUnsupported(
+			CDouble ddistinctValuesOuter = phistOuter->DDistinct();
+			CDouble ddistinctValuesInner = phistInner->DDistinct();
+			dScaleFactorLocal = GetUnsupportedPredJoinScaleFactor(
 										  pstatsjoin,
-											   phistOuter,
-											   phistInner,
+										  ddistinctValuesOuter,
+										  ddistinctValuesInner,
 											   DRows(),
 											   pstatsInner->DRows(),
-											   &dScaleFactorLocal,
 											   fEmptyInput);
+			// TODO: consider if we should drop the buckets of the histogram in the case of an unsupported predicate
+			CStatisticsUtils::AddHistogram(pmp, ulColId1, phistOuter, phmulhistJoin);
+			if (!fSemiJoin)
+			{
+				CStatisticsUtils::AddHistogram(pmp, ulColId2, phistInner, phmulhistJoin);
+			}
 		}
+
 
 		// need to add an unsupported stats object to the array of stats objects
 		pdrgpd->Append(GPOS_NEW(pmp) CDouble(dScaleFactorLocal));
 	}
 
 
-	// we still want to add a stats object, just a special unsupported one
-	dRowsJoin = DJoinCardinality(m_pstatsconf, m_dRows, pstatsInner->m_dRows, pdrgpd, esjt);
-	if (fEmptyOutput)
+	dRowsJoin = DMinRows;
+	if (!fEmptyOutput)
 	{
-		dRowsJoin = DMinRows;
+		dRowsJoin = DJoinCardinality(m_pstatsconf, m_dRows, pstatsInner->m_dRows, pdrgpd, esjt);
 	}
 
 	// clean up
@@ -1193,34 +1198,31 @@ CStatistics::JoinHistograms
 	InnerJoinHistograms(pmp, phist1, phist2, pstatsjoin, dRows1, dRows2, pphist1, pphist2, pdScaleFactor, fEmptyInput);
 }
 
-// helper for joining histograms
-void
-CStatistics::JoinHistogramsWithUnsupported
+CDouble
+CStatistics::GetUnsupportedPredJoinScaleFactor
 		(
 				CStatsPredJoin *pstatsjoin,
-				CHistogram *phist1,
-				CHistogram *phist2,
+				CDouble dDistinctValuesOuter,
+				CDouble dDistinctValuesInner,
 				CDouble dRows1,
 				CDouble dRows2,
-				CDouble *pdScaleFactor, // output: scale factor based on the join
 				BOOL fEmptyInput
 		)
 {
 	GPOS_ASSERT(NULL != pstatsjoin);
-	GPOS_ASSERT(NULL != pdScaleFactor);
 
-	*pdScaleFactor = 1.0;
+	CDouble pdScaleFactor = 1.0;
 	CStatsPred::EStatsCmpType escmpt = pstatsjoin->Escmpt();
 
 	if (fEmptyInput)
 	{
 		// use Cartesian product as scale factor
-		*pdScaleFactor = dRows1 * dRows2;
+		pdScaleFactor = dRows1 * dRows2;
 
-		return;
+		return pdScaleFactor;
 	}
 
-	*pdScaleFactor = CScaleFactorUtils::DDefaultScaleFactorJoin;
+	pdScaleFactor = CScaleFactorUtils::DDefaultScaleFactorJoin;
 
 	/*BOOL fEmptyHistograms = phist1->FEmpty() || phist2->FEmpty();
 
@@ -1234,16 +1236,16 @@ CStatistics::JoinHistogramsWithUnsupported
 		*pdScaleFactor = std::min(dRows1, dRows2);
 	}*/
 	if (CStatsPred::EstatscmptEq != escmpt)
-		return;
+		return pdScaleFactor;
 
-	*pdScaleFactor = std::max
+	pdScaleFactor = std::max
 			(
-					std::max(phist1->DMinDistinct.DVal(), phist1->DDistinct().DVal()),
-					std::max(phist1->DMinDistinct.DVal(), phist2->DDistinct().DVal())
+					std::max(CHistogram::DMinDistinct.DVal(), dDistinctValuesOuter.DVal()),
+					std::max(CHistogram::DMinDistinct.DVal(), dDistinctValuesInner.DVal())
 			);
 	CDouble dCartesianProduct = dRows1 * dRows2;
 	// bound scale factor by cross product
-	*pdScaleFactor = std::min((*pdScaleFactor).DVal(), dCartesianProduct.DVal());
+	return std::min(pdScaleFactor.DVal(), dCartesianProduct.DVal());
 
 }
 

@@ -243,14 +243,13 @@ namespace gpnaucrates
 				);
 
 			static
-			void JoinHistogramsWithUnsupported
+			CDouble GetUnsupportedPredJoinScaleFactor
 				(
 						CStatsPredJoin *pstatsjoin,
-						CHistogram *phist1,
-						CHistogram *phist2,
+						CDouble dDistinctValuesOuter,
+						CDouble dDistinctValuesInner,
 						CDouble dRows1,
 						CDouble dRows2,
-						CDouble *pdScaleFactor, // output: scale factor based on the join
 						BOOL fEmptyInput // if true, one of the inputs is empty
 				);
 
