@@ -1145,9 +1145,11 @@ CStatisticsUtils::PstatsDeriveWithOuterRefs
 
 	// join outer stats object based on given scalar expression,
 	// we use inner join semantics here to consider all relevant combinations of outer tuples
-	IStatistics *pstatsOuter = PstatsJoinArray(pmp, false /*fOuterJoin*/, pdrgpstatOuter, pexprScalar);
-	CDouble dRowsOuter = pstatsOuter->DRows();
 
+//	IStatistics *pstatsOuter = PstatsJoinArray(pmp, false /*fOuterJoin*/, pdrgpstatOuter, pexprScalar);
+	IStatistics *pstatsOuter = PstatsJoinArray(pmp, fOuterJoin, pdrgpstatOuter, pexprScalar);
+
+	CDouble dRowsOuter = pstatsOuter->DRows();
 	// join passed stats object and outer stats based on the passed join type
 	DrgPstat *pdrgpstat = GPOS_NEW(pmp) DrgPstat(pmp);
 	pdrgpstat->Append(pstatsOuter);

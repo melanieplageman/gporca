@@ -567,7 +567,8 @@ CStatistics::PstatsJoinDriver
 							&phistInnerAfter,
 							&dScaleFactorLocal,
 							fEmptyInput,
-							fIgnoreLasjHistComputation
+							fIgnoreLasjHistComputation,
+							esjt
 					);
 
 		fEmptyOutput = FEmptyJoinStats(FEmpty(), fEmptyOutput, fLASJ, phistOuter, phistInner, phistOuterAfter);
@@ -1048,7 +1049,8 @@ CStatistics::InnerJoinHistograms
 	CHistogram **pphist1, // output: histogram 1 after join
 	CHistogram **pphist2, // output: histogram 2 after join
 	CDouble *pdScaleFactor, // output: scale factor based on the join
-	BOOL fEmptyInput
+	BOOL fEmptyInput,
+	IStatistics::EStatsJoinType esjt
 	)
 {
 	GPOS_ASSERT(NULL != phist1);
@@ -1110,7 +1112,7 @@ CStatistics::InnerJoinHistograms
 			}
 			// If the join for which we are creating a histogram has an unsupported predicate, then set the scale factor
 			// using special logic
-			if (pstatsjoin->Unsupported() && CStatsPred::EstatscmptEq == escmpt)
+			if (pstatsjoin->Unsupported() && CStatsPred::EstatscmptEq == escmpt && esjt == IStatistics::EsjtInnerJoin)
 			{
 				*pdScaleFactor = GetUnsupportedPredJoinScaleFactor(phist1->DDistinct(), phist2->DDistinct(), dRows1, dRows2);
 			}
@@ -1143,12 +1145,13 @@ CStatistics::JoinHistograms
 	CStatsPredJoin *pstatsjoin,
 	CDouble dRows1,
 	CDouble dRows2,
-	BOOL fLASJ, // if true, use anti-semi join semantics, otherwise use inner join semantics
+	BOOL , // if true, use anti-semi join semantics, otherwise use inner join semantics
 	CHistogram **pphist1, // output: histogram 1 after join
 	CHistogram **pphist2, // output: histogram 2 after join
 	CDouble *pdScaleFactor, // output: scale factor based on the join
 	BOOL fEmptyInput,
-	BOOL fIgnoreLasjHistComputation
+	BOOL fIgnoreLasjHistComputation,
+	IStatistics::EStatsJoinType esjt
 	)
 {
 	GPOS_ASSERT(NULL != phist1);
@@ -1158,7 +1161,7 @@ CStatistics::JoinHistograms
 	GPOS_ASSERT(NULL != pphist2);
 	GPOS_ASSERT(NULL != pdScaleFactor);
 
-	if (fLASJ)
+	if (IStatistics::EsjtLeftAntiSemiJoin == esjt)
 	{
 		LASJoinHistograms
 			(
@@ -1178,7 +1181,7 @@ CStatistics::JoinHistograms
 		return;
 	}
 
-	InnerJoinHistograms(pmp, phist1, phist2, pstatsjoin, dRows1, dRows2, pphist1, pphist2, pdScaleFactor, fEmptyInput);
+	InnerJoinHistograms(pmp, phist1, phist2, pstatsjoin, dRows1, dRows2, pphist1, pphist2, pdScaleFactor, fEmptyInput, esjt);
 }
 
 CDouble

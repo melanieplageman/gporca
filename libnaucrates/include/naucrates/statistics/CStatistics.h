@@ -196,7 +196,8 @@ namespace gpnaucrates
 				CHistogram **pphist1, // output: histogram 1 after join
 				CHistogram **pphist2, // output: histogram 2 after join
 				CDouble *pdScaleFactor, // output: scale factor based on the join
-				BOOL fEmptyInput // if true, one of the inputs is empty
+				BOOL fEmptyInput, // if true, one of the inputs is empty
+				IStatistics::EStatsJoinType esjt
 				);
 
 			// helper for LAS-joining histograms
@@ -231,18 +232,17 @@ namespace gpnaucrates
 				CHistogram **pphist2, // output: histogram 2 after join
 				CDouble *pdScaleFactor, // output: scale factor based on the join
 				BOOL fEmptyInput, // if true, one of the inputs is empty
-				BOOL fIgnoreLasjHistComputation
+				BOOL fIgnoreLasjHistComputation,
+				IStatistics::EStatsJoinType esjt
 				);
 
 			static
 			CDouble GetUnsupportedPredJoinScaleFactor
 				(
-						CStatsPredJoin *pstatsjoin,
 						CDouble dDistinctValuesOuter,
 						CDouble dDistinctValuesInner,
 						CDouble dRows1,
-						CDouble dRows2,
-						BOOL fEmptyInput // if true, one of the inputs is empty
+						CDouble dRows2
 				);
 
 
