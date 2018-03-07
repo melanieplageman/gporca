@@ -56,14 +56,20 @@ namespace gpnaucrates
 	//---------------------------------------------------------------------------
 	class CJoinStatistics
 	{
-		public:
-
-
 
 
 		private:
+			IStatistics::EStatsJoinType m_eStatsJoinType;
 
+		public:
+		CJoinStatistics(){}
+		CJoinStatistics(IStatistics::EStatsJoinType m_eStatsJoinType) : m_eStatsJoinType(m_eStatsJoinType)
+		{}
 
+		IStatistics::EStatsJoinType EstatsJoinType() const
+			{
+				return m_eStatsJoinType;
+			}
 
 	}; // class CJoinStatistics
 

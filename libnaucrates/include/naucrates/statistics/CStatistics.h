@@ -261,16 +261,29 @@ namespace gpnaucrates
 					);
 
 		public:
+		// ctor
+		CStatistics
+				(
+						IMemoryPool *pmp,
+						HMUlHist *phmulhist,
+						HMUlDouble *phmuldoubleWidth,
+						CDouble dRows,
+						BOOL fEmpty,
+						ULONG ulNumPredicates = 0
+
+				);
 
 			// ctor
 			CStatistics
 				(
-				IMemoryPool *pmp,
-				HMUlHist *phmulhist,
-				HMUlDouble *phmuldoubleWidth,
-				CDouble dRows,
-				BOOL fEmpty,
-				ULONG ulNumPredicates = 0
+						IStatistics::EStatsJoinType eStatsJoinType, // make this whatever the 0 value is
+						IMemoryPool *pmp,
+						HMUlHist *phmulhist,
+						HMUlDouble *phmuldoubleWidth,
+						CDouble dRows,
+						BOOL fEmpty,
+						ULONG ulNumPredicates = 0
+
 				);
 
 			// dtor

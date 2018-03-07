@@ -86,32 +86,38 @@ CStatistics::CStatistics
 }
 
 
-//// ctor
-//CStatistics::CStatistics
-//		(
-//				IMemoryPool *pmp,
-//				HMUlDouble *phmuldoubleWidth,
-//				CDouble dRows,
-//				BOOL fEmpty,
-//				ULONG ulNumPredicates
-//		)
-//		:
-//		m_phmuldoubleWidth(phmuldoubleWidth),
-//		m_dRows(dRows),
-//		m_ulStatsEstimationRisk(ulStatsEstimationNoRisk),
-//		m_fEmpty(fEmpty),
-//		m_dRebinds(1.0), // by default, a stats object is rebound to parameters only once
-//		m_ulNumPredicates(ulNumPredicates),
-//		m_pdrgpubndvs(NULL)
-//{
-//	GPOS_ASSERT(NULL != m_phmuldoubleWidth);
-//	GPOS_ASSERT(CDouble(0.0) <= m_dRows);
-//
-//	// hash map for source id -> max source cardinality mapping
-//	m_pdrgpubndvs = GPOS_NEW(pmp) DrgPubndvs(pmp);
-//
-//	m_pstatsconf = COptCtxt::PoctxtFromTLS()->Poconf()->Pstatsconf();
-//}
+// ctor
+CStatistics::CStatistics
+		(
+				IStatistics::EStatsJoinType eStatsJoinType __attribute__((unused)),
+				IMemoryPool *pmp,
+				HMUlHist *phmulhist,
+				HMUlDouble *phmuldoubleWidth,
+				CDouble dRows,
+				BOOL fEmpty,
+				ULONG ulNumPredicates
+
+		)
+		:
+//CJoinStatistics(eStatsJoinType),
+		m_phmulhist(phmulhist),
+		m_phmuldoubleWidth(phmuldoubleWidth),
+		m_dRows(dRows),
+		m_ulStatsEstimationRisk(ulStatsEstimationNoRisk),
+		m_fEmpty(fEmpty),
+		m_dRebinds(1.0), // by default, a stats object is rebound to parameters only once
+		m_ulNumPredicates(ulNumPredicates),
+		m_pdrgpubndvs(NULL)
+{
+	GPOS_ASSERT(NULL != m_phmulhist);
+	GPOS_ASSERT(NULL != m_phmuldoubleWidth);
+	GPOS_ASSERT(CDouble(0.0) <= m_dRows);
+
+	// hash map for source id -> max source cardinality mapping
+	m_pdrgpubndvs = GPOS_NEW(pmp) DrgPubndvs(pmp);
+
+	m_pstatsconf = COptCtxt::PoctxtFromTLS()->Poconf()->Pstatsconf();
+}
 
 
 // Dtor
@@ -219,14 +225,8 @@ CStatistics::PstatsFilter
 	}
 
 	CStatistics *pstatsFilter = GPOS_NEW(pmp) CStatistics
-												(
-												pmp,
-												phmulhistNew,
-												m_phmuldoubleWidth,
-												dRowsFilter,
-												FEmpty(),
-												m_ulNumPredicates + ulNumPredicates
-												);
+			(EsjtInnerJoin, pmp, phmulhistNew, m_phmuldoubleWidth, dRowsFilter, FEmpty(),
+			 m_ulNumPredicates + ulNumPredicates);
 
 	// since the filter operation is reductive, we choose the bounding method that takes
 	// the minimum of the cardinality upper bound of the source column (in the input hash map)
@@ -391,7 +391,7 @@ CStatistics::PstatsDummy
 	BOOL fEmpty = (CStatistics::DEpsilon >= dRows);
 	CHistogramUtils::AddDummyHistogramAndWidthInfo(pmp, pcf, phmulhist, phmuldoubleWidth, pdrgpulColIds, fEmpty);
 
-	CStatistics *pstats = GPOS_NEW(pmp) CStatistics(pmp, phmulhist, phmuldoubleWidth, dRows, fEmpty);
+	CStatistics *pstats = GPOS_NEW(pmp) CStatistics(EsjtInnerJoin, pmp, phmulhist, phmuldoubleWidth, dRows, fEmpty, 0);
 	CreateAndInsertUpperBoundNDVs(pmp, pstats, pdrgpulColIds, dRows);
 
 	return pstats;
@@ -480,7 +480,7 @@ CStatistics::PstatsDummy
 		phmuldoubleWidth->FInsert(GPOS_NEW(pmp) ULONG(ulColId), GPOS_NEW(pmp) CDouble(dWidth));
 	}
 
-	CStatistics *pstats = GPOS_NEW(pmp) CStatistics(pmp, phmulhist, phmuldoubleWidth, dRows, false /* fEmpty */);
+	CStatistics *pstats = GPOS_NEW(pmp) CStatistics(EsjtInnerJoin, pmp, phmulhist, phmuldoubleWidth, dRows, false, 0);
 	CreateAndInsertUpperBoundNDVs(pmp, pstats, pdrgpulHistColIds, dRows);
 
 	return pstats;
@@ -606,14 +606,7 @@ CStatistics::PstatsJoinDriver
 	// make a new unsupported join stats class
 	// create an output stats object
 	CStatistics *pstatsJoin = GPOS_NEW(pmp) CStatistics
-											(
-											pmp,
-											phmulhistJoin,
-											phmuldoubleWidth,
-											dRowsJoin,
-											fEmptyOutput,
-											m_ulNumPredicates
-											);
+			(EsjtInnerJoin, pmp, phmulhistJoin, phmuldoubleWidth, dRowsJoin, fEmptyOutput, m_ulNumPredicates);
 
 	// In the output statistics object, the upper bound source cardinality of the join column
 	// cannot be greater than the upper bound source cardinality information maintained in the input
@@ -756,14 +749,7 @@ CStatistics::PstatsLOJ
 
 	// create an output stats object
 	CStatistics *pstatsLOJ = GPOS_NEW(pmp) CStatistics
-										(
-										pmp,
-										phmulhistLOJ,
-										phmuldoubleWidth,
-										dRowsLOJ,
-										FEmpty(),
-										m_ulNumPredicates
-										);
+			(EsjtInnerJoin, pmp, phmulhistLOJ, phmuldoubleWidth, dRowsLOJ, FEmpty(), m_ulNumPredicates);
 
 	// In the output statistics object, the upper bound source cardinality of the join column
 	// cannot be greater than the upper bound source cardinality information maintained in the input

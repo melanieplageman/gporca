@@ -690,13 +690,7 @@ CDXLUtils::PdrgpstatsTranslateStats
 		
 		CDouble dRows = pdxlstatsderrel->DRows();
 		CStatistics *pstats = GPOS_NEW(pmp) CStatistics
-										(
-										pmp,
-										phmulhist,
-										phmuldouble,
-										dRows,
-										false /* fEmpty */
-										);
+				(pmp, phmulhist, phmuldouble, dRows, false, 0);
 		//pstats->AddCardUpperBound(pmp, ulIdxRelStat, dRows);
 
 		pdrgpstat->Append(pstats);
