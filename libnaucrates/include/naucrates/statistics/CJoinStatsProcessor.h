@@ -11,6 +11,9 @@
 #ifndef GPNAUCRATES_CJoinStatsProcessor_H
 #define GPNAUCRATES_CJoinStatsProcessor_H
 
+#include "naucrates/statistics/CStatsPredUnsupported.h"
+#include "naucrates/statistics/CStatsPred.h"
+
 namespace gpnaucrates
 {
 
@@ -76,6 +79,19 @@ namespace gpnaucrates
 				 IStatistics::EStatsJoinType eStatsJoinType,
 				 BOOL fIgnoreLasjHistComputation
 				 );
+
+			static
+			IStatistics *
+			GetJoinStats
+					(
+					IMemoryPool *pmp,
+					BOOL fLeftOuterJoin,
+					CDouble dRowsOuter,
+					IStatistics *&pstats,
+					IStatistics *pstatsCurrent,
+					DrgPstatspredjoin *pdrgpstatspredjoin,
+					CStatsPred *pstatspredUnsupported
+					);
 
 			static
 			IStatistics *PstatsJoinArray
