@@ -106,6 +106,19 @@ namespace gpnaucrates
 				 DrgPstat *pdrgpstatOuter, // array of stats objects where outer references are defined
 				 IStatistics::EStatsJoinType eStatsJoinType
 				 );
+			static
+			IStatistics *
+			getJoinStats
+				(
+						IMemoryPool *pmp,
+						CDouble dRowsOuter,
+						IStatistics *pstatsOuter,
+						IStatistics *pstatsInner,
+						IStatistics *pstatsNew,
+						CStatsPred *pstatspredUnsupported,
+						DrgPstatspredjoin *pdrgpstatspredjoin,
+						IStatistics::EStatsJoinType eStatsJoinType
+				);
 	};
 }
 

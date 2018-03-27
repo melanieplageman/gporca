@@ -132,6 +132,63 @@ CJoinStatsProcessor::JoinHistograms
 	*pphist2 = phist2->PhistCopy(pmp);
 }
 
+IStatistics *
+		CJoinStatsProcessor::getJoinStats
+				(
+				IMemoryPool *pmp,
+				CDouble dRowsOuter,
+				IStatistics *pstatsOuter,
+				IStatistics *pstatsInner,
+				IStatistics *pstatsNew,
+				CStatsPred *pstatspredUnsupported,
+				DrgPstatspredjoin *pdrgpstatspredjoin,
+				IStatistics::EStatsJoinType eStatsJoinType
+				)
+{
+	BOOL fLeftOuterJoin = IStatistics::EsjtLeftOuterJoin == eStatsJoinType;
+	if (fLeftOuterJoin)
+	{
+		pstatsNew = pstatsOuter->PstatsLOJ(pmp, pstatsInner, pdrgpstatspredjoin);
+	}
+	else
+	{
+		pstatsNew = pstatsOuter->PstatsInnerJoin(pmp, pstatsInner, pdrgpstatspredjoin);
+	}
+	pstatsOuter->Release();
+	pstatsOuter = pstatsNew;
+
+	if (NULL != pstatspredUnsupported)
+	{
+		// apply the unsupported join filters as a filter on top of the join results.
+		// TODO,  June 13 2014 we currently only cap NDVs for filters
+		// immediately on top of tables.
+		IStatistics *pstatsAfterJoinFilter = pstatsOuter->PstatsFilter
+				(
+						pmp,
+						pstatspredUnsupported,
+						false /* fCapNdvs */
+				);
+
+		// If it is outer join and the cardinality after applying the unsupported join
+		// filters is less than the cardinality of outer child, we don't use this stats.
+		// Because we need to make sure that Card(LOJ) >= Card(Outer child of LOJ).
+		if (fLeftOuterJoin && pstatsAfterJoinFilter->DRows() < dRowsOuter)
+		{
+			pstatsAfterJoinFilter->Release();
+		}
+		else
+		{
+			pstatsOuter->Release();
+			pstatsOuter = pstatsAfterJoinFilter;
+		}
+
+//		pstatspredUnsupported->Release();
+		pdrgpstatspredjoin->Release();
+	}
+	return pstatsOuter;
+}
+
+
 //	derive statistics for the given join's predicate(s)
 IStatistics *
 CJoinStatsProcessor::PstatsJoinArray
@@ -174,48 +231,16 @@ CJoinStatsProcessor::PstatsJoinArray
 						pcrsOuterRefs,
 						&pstatspredUnsupported
 				);
+		pdrgpcrsOutput->Release();
 		IStatistics *pstatsNew = NULL;
 		if (fLeftOuterJoin)
 		{
-			pstatsNew = pstats->PstatsLOJ(pmp, pstatsCurrent, pdrgpstatspredjoin);
+			pstatsNew = CJoinStatsProcessor::getJoinStats(pmp, dRowsOuter, pstats, pstatsCurrent, pstatsNew, pstatspredUnsupported, pdrgpstatspredjoin, eStatsJoinType);
 		}
 		else
 		{
-			pstatsNew = pstats->PstatsInnerJoin(pmp, pstatsCurrent, pdrgpstatspredjoin);
+			pstatsNew = CJoinStatsProcessor::getJoinStats(pmp, dRowsOuter, pstats, pstatsCurrent, pstatsNew, pstatspredUnsupported, pdrgpstatspredjoin, eStatsJoinType);
 		}
-		pstats->Release();
-		pstats = pstatsNew;
-
-		if (NULL != pstatspredUnsupported)
-		{
-			// apply the unsupported join filters as a filter on top of the join results.
-			// TODO,  June 13 2014 we currently only cap NDVs for filters
-			// immediately on top of tables.
-			IStatistics *pstatsAfterJoinFilter = pstats->PstatsFilter
-					(
-							pmp,
-							pstatspredUnsupported,
-							false /* fCapNdvs */
-					);
-
-			// If it is outer join and the cardinality after applying the unsupported join
-			// filters is less than the cardinality of outer child, we don't use this stats.
-			// Because we need to make sure that Card(LOJ) >= Card(Outer child of LOJ).
-			if (fLeftOuterJoin && pstatsAfterJoinFilter->DRows() < dRowsOuter)
-			{
-				pstatsAfterJoinFilter->Release();
-			}
-			else
-			{
-				pstats->Release();
-				pstats = pstatsAfterJoinFilter;
-			}
-
-			pstatspredUnsupported->Release();
-		}
-
-		pdrgpstatspredjoin->Release();
-		pdrgpcrsOutput->Release();
 	}
 
 	// clean up
@@ -372,7 +397,7 @@ CJoinStatsProcessor::PstatsJoinDriver
 		CStatisticsUtils::ComputeCardUpperBounds(pmp, pstatsInner, pstatsJoin, dRowsJoin, CStatistics::EcbmMin /* ecbm */);
 	}
 
-		return pstatsJoin;
+	return pstatsJoin; // test assertion would be on here
 }
 
 
