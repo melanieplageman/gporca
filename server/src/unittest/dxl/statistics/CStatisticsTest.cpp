@@ -25,6 +25,7 @@
 #include "naucrates/statistics/CStatisticsUtils.h"
 #include "naucrates/statistics/CStatisticsUtils.h"
 #include "naucrates/statistics/CLimitStatsProcessor.h"
+#include "naucrates/statistics/CGroupByStatsProcessor.h"
 
 #include "naucrates/base/CDatumGenericGPDB.h"
 #include "naucrates/base/CDatumInt4GPDB.h"
@@ -1010,7 +1011,7 @@ CStatisticsTest::EresUnittest_CStatisticsBasic()
 	pdrgpulGC->Append(GPOS_NEW(pmp) ULONG(2));
 
 	DrgPul *pdrgpulAgg = GPOS_NEW(pmp) DrgPul(pmp);
-	CStatistics *pstats4 = pstats->PstatsGroupBy(pmp, pdrgpulGC, pdrgpulAgg, NULL /*pbsKeys*/);
+	CStatistics *pstats4 = CGroupByStatsProcessor::PstatsGroupBy(pmp, pstats, pdrgpulGC, pdrgpulAgg, NULL /*pbsKeys*/);
 
 	GPOS_TRACE(GPOS_WSZ_LIT("pstats4 = pstats group by"));
 	CCardinalityTestUtils::PrintStats(pmp, pstats4);

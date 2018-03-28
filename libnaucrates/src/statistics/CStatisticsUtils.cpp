@@ -1476,7 +1476,7 @@ DrgPdouble *
 CStatisticsUtils::PdrgPdoubleNDV
 	(
 	IMemoryPool *pmp,
-	CStatisticsConfig *pstatsconf,
+	const CStatisticsConfig *pstatsconf,
 	const IStatistics *pstats,
 	CColRefSet *pcrsGrpCols,
 	CBitSet *pbsKeys // keys derived during optimization
@@ -1605,7 +1605,7 @@ CDouble
 CStatisticsUtils::DMaxGroupsFromSource
 	(
 	IMemoryPool *pmp,
-	CStatisticsConfig *pstatsconf,
+	const CStatisticsConfig *pstatsconf,
 	CStatistics *pstatsInput,
 	const DrgPul *pdrgpulPerSrc
 	)
@@ -1658,7 +1658,7 @@ CStatisticsUtils::DGroups
 	(
 	IMemoryPool *pmp,
 	IStatistics *pstats,
-	CStatisticsConfig *pstatsconf,
+	const CStatisticsConfig *pstatsconf,
 	DrgPul *pdrgpulGC,
 	CBitSet *pbsKeys // keys derived during optimization
 	)
@@ -1701,7 +1701,7 @@ CStatisticsUtils::DGroups
 CDouble
 CStatisticsUtils::DNumOfDistinctVal
 	(
-	CStatisticsConfig *pstatsconf,
+	const CStatisticsConfig *pstatsconf,
 	DrgPdouble *pdrgpdNDV
 	)
 {

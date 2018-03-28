@@ -255,10 +255,6 @@ namespace gpnaucrates
 			virtual
 			CStatistics *PstatsLSJoin(IMemoryPool *pmp, const IStatistics *pstatsInner, DrgPstatspredjoin *pdrgpstatspredjoin) const;
 
-			// group by
-			virtual
-			CStatistics *PstatsGroupBy(IMemoryPool *pmp, DrgPul *pdrgpulGC, DrgPul *pdrgpulAgg, CBitSet *pbsKeys) const;
-
 			// project
 			virtual
 			CStatistics *PstatsProject(IMemoryPool *pmp, DrgPul *pdrgpul, HMUlDatum *phmuldatum) const;
@@ -341,6 +337,7 @@ namespace gpnaucrates
 			{
 				return m_ulNumPredicates;
 			}
+
 			CStatisticsConfig *PStatsConf() const
 			{
 				return	m_pstatsconf;

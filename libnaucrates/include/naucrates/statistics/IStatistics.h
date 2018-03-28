@@ -199,17 +199,6 @@ namespace gpnaucrates
 							)
 							const = 0;
 
-			// group by
-			virtual
-			IStatistics *PstatsGroupBy
-							(
-							IMemoryPool *pmp,
-							DrgPul *pdrgpulGC,
-							DrgPul *pdrgpulAgg,
-							CBitSet *pbsKeys
-							)
-							const = 0;
-
 			// union all
 			virtual
 			IStatistics *PstatsUnionAll
