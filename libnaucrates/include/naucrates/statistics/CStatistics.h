@@ -155,7 +155,13 @@ namespace gpnaucrates
 				return m_phmuldoubleWidth;
 			}
 
-		// actual number of rows
+			virtual
+			HMUlHist *PHMUlHist() const
+			{
+				return m_phmulhist;;
+			}
+
+			// actual number of rows
 			virtual
 			CDouble DRows() const;
 
@@ -271,10 +277,6 @@ namespace gpnaucrates
 							DrgPul *pdrgpulInput2
 							)
 							const;
-
-			// limit
-			virtual
-			CStatistics *PstatsLimit(IMemoryPool *pmp, CDouble dLimitRows) const;
 
 			// return required props associated with stats object
 			virtual

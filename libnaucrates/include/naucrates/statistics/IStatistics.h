@@ -225,15 +225,6 @@ namespace gpnaucrates
 						)
 						const = 0;
 
-			// limit
-			virtual
-			IStatistics *PstatsLimit
-						(
-						IMemoryPool *pmp,
-						CDouble dLimitRows
-						)
-						const = 0;
-
 			// return required props associated with stats object
 			virtual
 			CReqdPropRelational *Prprel(IMemoryPool *pmp) const = 0;

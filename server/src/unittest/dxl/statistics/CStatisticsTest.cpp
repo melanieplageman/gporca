@@ -23,6 +23,8 @@
 #include "naucrates/statistics/CHistogram.h"
 #include "naucrates/statistics/CStatistics.h"
 #include "naucrates/statistics/CStatisticsUtils.h"
+#include "naucrates/statistics/CStatisticsUtils.h"
+#include "naucrates/statistics/CLimitStatsProcessor.h"
 
 #include "naucrates/base/CDatumGenericGPDB.h"
 #include "naucrates/base/CDatumInt4GPDB.h"
@@ -1032,7 +1034,7 @@ CStatisticsTest::EresUnittest_CStatisticsBasic()
 	GPOS_TRACE(GPOS_WSZ_LIT("pstats6 = pstats1 union all pstats1"));
 	CCardinalityTestUtils::PrintStats(pmp, pstats6);
 
-	CStatistics *pstats7 = pstats->PstatsLimit(pmp, CDouble(4.0));
+	CStatistics *pstats7 = CLimitStatsProcessor::PstatsLimit(pmp, pstats, CDouble(4.0));
 
 	GPOS_TRACE(GPOS_WSZ_LIT("pstats7 = pstats limit 4"));
 	CCardinalityTestUtils::PrintStats(pmp, pstats7);
