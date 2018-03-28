@@ -342,11 +342,10 @@ CJoinStatsProcessor::PstatsJoinDriver
 	pdrgpd->Release();
 	pbsJoinColIds->Release();
 
-	HMUlDouble *phmuldoubleWidthResult = GPOS_NEW(pmp) HMUlDouble(pmp);
-	CStatisticsUtils::AddWidthInfo(pmp, pstatsOuter->PHMUlDoubleWidth(), phmuldoubleWidthResult);
+	HMUlDouble *phmuldoubleWidthResult = pstatsOuter->CopyWidths(pmp);
 	if (!fSemiJoin)
 	{
-		CStatisticsUtils::AddWidthInfo(pmp, pstatsInner->PHMUlDoubleWidth(), phmuldoubleWidthResult);
+		pstatsInner->CopyWidthsInto(pmp, phmuldoubleWidthResult);
 	}
 
 	// create an output stats object

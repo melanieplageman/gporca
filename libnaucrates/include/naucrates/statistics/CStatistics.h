@@ -150,16 +150,13 @@ namespace gpnaucrates
 			~CStatistics();
 
 			virtual
-			HMUlDouble *PHMUlDoubleWidth() const
-			{
-				return m_phmuldoubleWidth;
-			}
+			HMUlDouble *CopyWidths(IMemoryPool *pmp) const;
 
 			virtual
-			HMUlHist *PHMUlHist() const
-			{
-				return m_phmulhist;;
-			}
+			void CopyWidthsInto(IMemoryPool *pmp, HMUlDouble *phmuldouble) const;
+
+			virtual
+			HMUlHist *CopyHistograms(IMemoryPool *pmp) const;
 
 			// actual number of rows
 			virtual

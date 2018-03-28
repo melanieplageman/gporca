@@ -852,6 +852,65 @@ CStatistics::PstatsUnionAll
 	return pstatsUnionAll;
 }
 
+HMUlDouble *
+CStatistics::CopyWidths
+	(
+	IMemoryPool *pmp
+	)
+	const
+{
+	HMUlDouble *phmuldoubleCoopy = GPOS_NEW(pmp) HMUlDouble(pmp);
+	CStatisticsUtils::AddWidthInfo(pmp, m_phmuldoubleWidth, phmuldoubleCoopy);
+
+	return phmuldoubleCoopy;
+}
+
+void
+CStatistics::CopyWidthsInto
+	(
+	IMemoryPool *pmp,
+	HMUlDouble *phmuldouble
+	)
+	const
+{
+	CStatisticsUtils::AddWidthInfo(pmp, m_phmuldoubleWidth, phmuldouble);
+}
+
+HMUlHist *
+CStatistics::CopyHistograms
+	(
+	IMemoryPool *pmp
+	)
+	const
+{
+	// create hash map from colid -> histogram for resultant structure
+	HMUlHist *phmulhistCopy = GPOS_NEW(pmp) HMUlHist(pmp);
+
+	BOOL fEmpty = FEmpty();
+
+	HMIterUlHist hmiterulhist(m_phmulhist);
+	while (hmiterulhist.FAdvance())
+	{
+		ULONG ulColId = *(hmiterulhist.Pk());
+		const CHistogram *phist = hmiterulhist.Pt();
+		CHistogram *phistCopy = NULL;
+		if (fEmpty)
+		{
+			phistCopy =  GPOS_NEW(pmp) CHistogram(GPOS_NEW(pmp) DrgPbucket(pmp), false /* fWellDefined */);
+		}
+		else
+		{
+			phistCopy = phist->PhistCopy(pmp);
+		}
+
+		phmulhistCopy->FInsert(GPOS_NEW(pmp) ULONG(ulColId), phistCopy);
+	}
+
+	return phmulhistCopy;
+}
+
+
+
 //	return required props associated with statistics object
 CReqdPropRelational *
 CStatistics::Prprel

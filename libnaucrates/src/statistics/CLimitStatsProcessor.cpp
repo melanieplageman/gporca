@@ -29,36 +29,20 @@ CLimitStatsProcessor::PstatsLimit
 {
 	GPOS_ASSERT(NULL != pstatsInput);
 
-	// create hash map from colid -> histogram for resultant structure
-	HMUlHist *phmulhistNew = GPOS_NEW(pmp) HMUlHist(pmp);
+	// copy the hash map from colid -> histogram for resultant structure
+	HMUlHist *phmulhistLimit = pstatsInput->CopyHistograms(pmp);;
 
 	CDouble dRowsLimit = CStatistics::DMinRows;
-	if (pstatsInput->FEmpty())
+	if (!pstatsInput->FEmpty())
 	{
-		CHistogramUtils::AddEmptyHistogram(pmp, phmulhistNew, pstatsInput->PHMUlHist());
-	}
-	else
-	{
-		HMIterUlHist hmiterulhist(pstatsInput->PHMUlHist());
-		while (hmiterulhist.FAdvance())
-		{
-			ULONG ulColId = *(hmiterulhist.Pk());
-			const CHistogram *phist = hmiterulhist.Pt();
-			CStatisticsUtils::AddHistogram(pmp, ulColId, phist, phmulhistNew);
-		}
-
 		dRowsLimit = std::max(CStatistics::DMinRows, dLimitCount);
 	}
-
-	HMUlDouble *phmuldWidth = pstatsInput->PHMUlDoubleWidth();
-	phmuldWidth->AddRef();
-
 	// create an output stats object
 	CStatistics *pstatsLimit = GPOS_NEW(pmp) CStatistics
 											(
 											pmp,
-											phmulhistNew,
-											phmuldWidth,
+											phmulhistLimit,
+											pstatsInput->CopyWidths(pmp),
 											dRowsLimit,
 											pstatsInput->FEmpty(),
 											pstatsInput->UlNumberOfPredicates()
