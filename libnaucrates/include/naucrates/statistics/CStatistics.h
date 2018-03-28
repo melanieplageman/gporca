@@ -255,10 +255,6 @@ namespace gpnaucrates
 			virtual
 			CStatistics *PstatsLSJoin(IMemoryPool *pmp, const IStatistics *pstatsInner, DrgPstatspredjoin *pdrgpstatspredjoin) const;
 
-			// project
-			virtual
-			CStatistics *PstatsProject(IMemoryPool *pmp, DrgPul *pdrgpul, HMUlDatum *phmuldatum) const;
-
 			// union all
 			virtual
 			CStatistics *PstatsUnionAll

@@ -189,16 +189,6 @@ namespace gpnaucrates
 						)
 						const = 0;
 
-			// project
-			virtual
-			IStatistics *PstatsProject
-							(
-							IMemoryPool *pmp,
-							DrgPul *pdrgpul,
-							HMUlDatum *phmuldatum
-							)
-							const = 0;
-
 			// union all
 			virtual
 			IStatistics *PstatsUnionAll
