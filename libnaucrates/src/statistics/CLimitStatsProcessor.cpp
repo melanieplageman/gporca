@@ -6,7 +6,7 @@
 //		CLimitStatsProcessor.cpp
 //
 //	@doc:
-//		Statistics helper routines for processing all join types
+//		Statistics helper routines for processing limit operations
 //---------------------------------------------------------------------------
 
 #include "gpopt/operators/ops.h"
