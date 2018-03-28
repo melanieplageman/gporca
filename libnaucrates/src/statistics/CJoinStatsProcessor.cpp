@@ -91,6 +91,7 @@ CJoinStatsProcessor::JoinHistograms
 		// min of the two rows.
 		*pdScaleFactor = std::min(dRows1, dRows2);
 	}
+		// TODO: need to still join histograms for newly supported
 	else if (CHistogram::FSupportsJoinPred(escmpt))
 	{
 		CHistogram *phistJoin = phist1->PhistJoinNormalized
@@ -222,6 +223,7 @@ CJoinStatsProcessor::PstatsJoinArray
 		pdrgpcrsOutput->Append(pstatsCurrent->Pcrs(pmp));
 
 		CStatsPred *pstatspredUnsupported = NULL;
+		// TODO: add a test which tested this and makes sure that for unsupported IJ pred with eq we still return null
 		DrgPstatspredjoin *pdrgpstatspredjoin = CStatsPredUtils::PdrgpstatspredjoinExtract
 				(
 						pmp,
@@ -354,6 +356,7 @@ CJoinStatsProcessor::PstatsJoinDriver
 	dRowsJoin = CStatistics::DMinRows;
 	if (!fEmptyOutput)
 	{
+		// TODO: pdrgpd can't be null for previously unsupported equality inner join
 		dRowsJoin = DJoinCardinality(pstatsconf, pstatsOuter->DRows(), pstatsInner->DRows(), pdrgpd, eStatsJoinType);
 	}
 

@@ -1069,6 +1069,7 @@ CStatsPredUtils::PstatsjoinExtract
 	const CColRef *pcrRight = NULL;
 	CStatsPred::EStatsCmpType escmpt = CStatsPred::EstatscmptOther;
 
+	// TODO: don't add unsupported for inner join with equality to list of unsupported
 	BOOL fSupportedScIdentComparison = FCmpColsIgnoreCast(pexprJoinPred, &pcrLeft, &escmpt, &pcrRight);
 	if (fSupportedScIdentComparison && CStatsPred::EstatscmptOther != escmpt)
 	{
