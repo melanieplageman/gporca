@@ -27,6 +27,7 @@
 #include "naucrates/statistics/CLimitStatsProcessor.h"
 #include "naucrates/statistics/CGroupByStatsProcessor.h"
 #include "naucrates/statistics/CUnionAllStatsProcessor.h"
+#include "naucrates/statistics/CFilterStatsProcessor.h"
 
 #include "naucrates/base/CDatumGenericGPDB.h"
 #include "naucrates/base/CDatumInt4GPDB.h"
@@ -757,7 +758,7 @@ CStatisticsTest::EresUnittest_CStatisticsCompare
 	GPOS_TRACE(GPOS_WSZ_LIT("Statistics before"));
 	CCardinalityTestUtils::PrintStats(pmp, pstatsInput);
 
-	CStatistics *pstatsOutput = pstatsInput->PstatsFilter(pmp, pstatspred, true /* fCapNdvs */);
+	CStatistics *pstatsOutput = CFilterStatsProcessor::PstatsFilter(pmp, pstatsInput, pstatspred, true /* fCapNdvs */);
 
 	GPOS_TRACE(GPOS_WSZ_LIT("Statistics after"));
 	CCardinalityTestUtils::PrintStats(pmp, pstatsOutput);
@@ -802,7 +803,7 @@ CStatisticsTest::EresUnittest_CStatisticsCompare
 	
 	if (fApplyTwice && GPOS_OK == eres)
 	{
-		CStatistics *pstatsOutput2 = pstatsOutput->PstatsFilter(pmp, pstatspred, true /* fCapNdvs */);
+		CStatistics *pstatsOutput2 = CFilterStatsProcessor::PstatsFilter(pmp, pstatsOutput, pstatspred, true /* fCapNdvs */);
 		pstatsOutput2->DRows();
 		GPOS_TRACE(GPOS_WSZ_LIT("Statistics after another filter"));
 		CCardinalityTestUtils::PrintStats(pmp, pstatsOutput2);
@@ -976,7 +977,7 @@ CStatisticsTest::EresUnittest_CStatisticsBasic()
 	DrgPstatspred *pdrgpstatspred = Pdrgpstatspred1(pmp);
 
 	CStatsPredConj *pstatspred = GPOS_NEW(pmp) CStatsPredConj(pdrgpstatspred);
-	CStatistics *pstats1 = pstats->PstatsFilter(pmp, pstatspred, true /* fCapNdvs */);
+	CStatistics *pstats1 = CFilterStatsProcessor::PstatsFilter(pmp, pstats, pstatspred, true /* fCapNdvs */);
 	pstats1->DRows();
 
 	GPOS_TRACE(GPOS_WSZ_LIT("pstats1 after filter"));
@@ -2043,7 +2044,7 @@ CStatisticsTest::EresUnittest_CStatisticsAccumulateCard()
 	CStatsPredDisj *pstatspredDisj = GPOS_NEW(pmp) CStatsPredDisj(pdrgpstatspred);
 
 	// apply filter and print resulting stats
-	CStatistics *pstats1 = pstats->PstatsFilter(pmp, pstatspredDisj, true /* fCapNdvs */);
+	CStatistics *pstats1 = CFilterStatsProcessor::PstatsFilter(pmp, pstats, pstatspredDisj, true /* fCapNdvs */);
 	CDouble dRows1 = pstats1->DRows();
 	GPOS_TRACE(GPOS_WSZ_LIT("\n\nStats after disjunctive filter [Col0=5 OR Col1=200 OR Col2=200]:\n"));
 	CCardinalityTestUtils::PrintStats(pmp, pstats1);
@@ -2057,7 +2058,7 @@ CStatisticsTest::EresUnittest_CStatisticsAccumulateCard()
 	CStatsPredConj *pstatspredConj1 = GPOS_NEW(pmp) CStatsPredConj(pdrgpstatspred1);
 
 	// apply filter and print resulting stats
-	CStatistics *pstats2 = pstats->PstatsFilter(pmp, pstatspredConj1, true /* fCapNdvs */);
+	CStatistics *pstats2 = CFilterStatsProcessor::PstatsFilter(pmp, pstats, pstatspredConj1, true /* fCapNdvs */);
 	CDouble dRows2 = pstats2->DRows();
 	GPOS_TRACE(GPOS_WSZ_LIT("\n\nStats after point filter [Col0=5]:\n"));
 	CCardinalityTestUtils::PrintStats(pmp, pstats2);
@@ -2076,7 +2077,7 @@ CStatisticsTest::EresUnittest_CStatisticsAccumulateCard()
 	CStatsPredConj *pstatspredConj2 = GPOS_NEW(pmp) CStatsPredConj(pdrgpstatspred2);
 
 	// apply filter and print resulting stats
-	CStatistics *pstats3 = pstats->PstatsFilter(pmp, pstatspredConj2, true /* fCapNdvs */);
+	CStatistics *pstats3 = CFilterStatsProcessor::PstatsFilter(pmp, pstats, pstatspredConj2, true /* fCapNdvs */);
 	CDouble dRows3 = pstats3->DRows();
 	GPOS_TRACE(GPOS_WSZ_LIT("\n\nStats after conjunctive filter [Col0=5 AND Col1=200 AND Col2=200]:\n"));
 	CCardinalityTestUtils::PrintStats(pmp, pstats3);
@@ -2092,7 +2093,7 @@ CStatisticsTest::EresUnittest_CStatisticsAccumulateCard()
 	CStatsPredDisj *pstatspredDisj1 = GPOS_NEW(pmp) CStatsPredDisj(pdrgpstatspred3);
 
 	// apply filter and print resulting stats
-	CStatistics *pstats4 = pstats->PstatsFilter(pmp, pstatspredDisj1, true /* fCapNdvs */);
+	CStatistics *pstats4 = CFilterStatsProcessor::PstatsFilter(pmp, pstats, pstatspredDisj1, true /* fCapNdvs */);
 	CDouble dRows4 = pstats4->DRows();
 	GPOS_TRACE(GPOS_WSZ_LIT("\n\nStats after disjunctive filter [Col1=200 OR Col2=200]:\n"));
 	CCardinalityTestUtils::PrintStats(pmp, pstats4);
@@ -2109,7 +2110,7 @@ CStatisticsTest::EresUnittest_CStatisticsAccumulateCard()
 	CStatsPredConj *pstatspredConj3 = GPOS_NEW(pmp) CStatsPredConj(pdrgpstatspred4);
 
 	// apply filter and print resulting stats
-	CStatistics *pstats5 = pstats->PstatsFilter(pmp, pstatspredConj3, true /* fCapNdvs */);
+	CStatistics *pstats5 = CFilterStatsProcessor::PstatsFilter(pmp, pstats, pstatspredConj3, true /* fCapNdvs */);
 	CDouble dRows5 = pstats5->DRows();
 	GPOS_TRACE(GPOS_WSZ_LIT("\n\nStats after conjunctive filter [Col0=5 AND Col1=200]:\n"));
 	CCardinalityTestUtils::PrintStats(pmp, pstats5);

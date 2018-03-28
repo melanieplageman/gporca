@@ -117,13 +117,6 @@ namespace gpnaucrates
 			static
 			const ULONG ulStatsEstimationNoRisk;
 
-
-
-			// cap the total number of distinct values (NDV) in buckets to the number of rows
-			static
-			void CapNDVs(CDouble dRows, HMUlHist *phmulhist);
-
-
 			// helper method to add histograms where the column ids have been remapped
 			static
 			void AddHistogramsWithRemap(IMemoryPool *pmp, HMUlHist *phmulhistSrc, HMUlHist *phmulhistDest, HMUlCr *phmulcr, BOOL fMustExist);
@@ -227,10 +220,6 @@ namespace gpnaucrates
 			{
 				m_ulStatsEstimationRisk = ulRisk;
 			}
-
-			// create new statistics structure after applying the filter
-			virtual
-			CStatistics *PstatsFilter(IMemoryPool *pmp, CStatsPred *pstatspred, BOOL fCapNdvs) const;
 
 			// inner join with another stats structure
 			virtual
@@ -399,6 +388,10 @@ namespace gpnaucrates
 			// add upper bound ndvs information for a given set of columns
 			static
 			void CreateAndInsertUpperBoundNDVs(IMemoryPool *pmp, CStatistics *pstats, DrgPul *pdrgpulColIds, CDouble dRows);
+
+			// cap the total number of distinct values (NDV) in buckets to the number of rows
+			static
+			void CapNDVs(CDouble dRows, HMUlHist *phmulhist);
 	}; // class CStatistics
 
 }

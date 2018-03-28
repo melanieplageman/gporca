@@ -1090,8 +1090,8 @@ CHistogram::PhistJoinEquality
 	CDouble dDistinctRemain(0.0);
 	CDouble dFreqRemain(0.0);
 
-	BOOL fNDVBasedJoinCardEstimation1 = CHistogramUtils::FNDVBasedCardEstimation(this);
-	BOOL fNDVBasedJoinCardEstimation2 = CHistogramUtils::FNDVBasedCardEstimation(phist);
+	BOOL fNDVBasedJoinCardEstimation1 = FNDVBasedCardEstimation(this);
+	BOOL fNDVBasedJoinCardEstimation2 = FNDVBasedCardEstimation(phist);
 
 	if (fNDVBasedJoinCardEstimation1 || fNDVBasedJoinCardEstimation2)
 	{
@@ -2016,6 +2016,50 @@ CHistogram::PhistDefaultBoolColStats
 						true /*fColStatsMissing */
 						);
 }
+
+// check if the join cardinality estimation can be done based on NDV alone
+BOOL
+CHistogram::FNDVBasedCardEstimation
+	(
+	const CHistogram *phist
+	)
+{
+	GPOS_ASSERT(NULL != phist);
+
+	if (0 == phist->UlBuckets())
+	{
+		// no buckets, so join cardinality estimation is based solely on NDV remain
+		return true;
+	}
+
+	const IBucket *pbucket = (*phist->Pdrgpbucket())[0];
+
+	IDatum *pdatum = pbucket->PpLower()->Pdatum();
+
+	IMDType::ETypeInfo eti = pdatum->Eti();
+	if (IMDType::EtiInt2 == eti ||
+		IMDType::EtiInt4 == eti ||
+		IMDType::EtiInt8 == eti ||
+		IMDType::EtiBool == eti ||
+		IMDType::EtiOid == eti )
+	{
+		return false;
+	}
+
+	BOOL fRes = true;
+	if (pdatum->FStatsMappable())
+	{
+		IDatumStatisticsMappable *pdatumMappable = (IDatumStatisticsMappable *) pdatum;
+
+		if (pdatumMappable->FHasStatsDoubleMapping())
+		{
+			fRes = false;
+		}
+	}
+
+	return fRes;
+}
+
 
 // EOF
 

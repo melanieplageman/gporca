@@ -149,6 +149,11 @@ namespace gpnaucrates
 					CDouble *pFreqRemain
 					);
 
+
+			// check if the cardinality estimation should be done only via NDVs
+			static
+			BOOL FNDVBasedCardEstimation(const CHistogram *phist);
+
 		public:
 
 			// ctors

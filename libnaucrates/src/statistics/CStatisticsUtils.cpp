@@ -24,6 +24,7 @@
 
 #include "naucrates/statistics/CStatisticsUtils.h"
 #include "naucrates/statistics/CJoinStatsProcessor.h"
+#include "naucrates/statistics/CFilterStatsProcessor.h"
 #include "naucrates/statistics/CStatistics.h"
 #include "naucrates/statistics/CStatsPredUtils.h"
 #include "naucrates/statistics/CStatsPredDisj.h"
@@ -1100,69 +1101,6 @@ CStatisticsUtils::PdatumNull
 	return pdatum;
 }
 
-
-
-
-//---------------------------------------------------------------------------
-//	@function:
-//		CStatisticsUtils::PstatsFilter
-//
-//	@doc:
-//		Derive statistics for filter operation based on given scalar expression
-//
-//---------------------------------------------------------------------------
-IStatistics *
-CStatisticsUtils::PstatsFilter
-	(
-	IMemoryPool *pmp,
-	CExpressionHandle &exprhdl,
-	IStatistics *pstatsChild,
-	CExpression *pexprScalarLocal, // filter expression on local columns only
-	CExpression *pexprScalarOuterRefs, // filter expression involving outer references
-	DrgPstat *pdrgpstatOuter
-	)
-{
-	GPOS_ASSERT(NULL != pstatsChild);
-	GPOS_ASSERT(NULL != pexprScalarLocal);
-	GPOS_ASSERT(NULL != pexprScalarOuterRefs);
-	GPOS_ASSERT(NULL != pdrgpstatOuter);
-
-	CColRefSet *pcrsOuterRefs = exprhdl.Pdprel()->PcrsOuter();
-	
-	// TODO  June 13 2014, we currently only cap ndvs when we have a filter
-	// immediately on top of tables
-	BOOL fCapNdvs = (1 == exprhdl.Pdprel()->UlJoinDepth());
-
-	// extract local filter
-	CStatsPred *pstatspred = CStatsPredUtils::PstatspredExtract(pmp, pexprScalarLocal, pcrsOuterRefs);
-
-	// derive stats based on local filter
-	IStatistics *pstatsResult = pstatsChild->PstatsFilter(pmp, pstatspred, fCapNdvs);
-	pstatspred->Release();
-
-	if (exprhdl.FHasOuterRefs() && 0 < pdrgpstatOuter->UlLength())
-	{
-		// derive stats based on outer references
-		IStatistics *pstats = CJoinStatsProcessor::PstatsDeriveWithOuterRefs(pmp,
-																				 exprhdl,
-																				 pexprScalarOuterRefs,
-																				 pstatsResult,
-																				 pdrgpstatOuter,
-																				 IStatistics::EsjtInnerJoin
-																				);
-		pstatsResult->Release();
-		pstatsResult = pstats;
-	}
-
-	return pstatsResult;
-}
-
-
-
-
-
-
-
 //---------------------------------------------------------------------------
 //	@function:
 //		CStatisticsUtils::PstatsDynamicScan
@@ -1297,7 +1235,7 @@ CStatisticsUtils::PstatsIndexGet
 	IStatistics *pstatsBaseTable = CLogical::PstatsBaseTable(pmp, exprhdl, ptabdesc, pcrsUsed);
 	pcrsUsed->Release();
 
-	IStatistics *pstats = PstatsFilter(pmp, exprhdl, pstatsBaseTable, pexprLocal, pexprOuterRefs, pdrgpstatCtxt);
+	IStatistics *pstats = CFilterStatsProcessor::PstatsFilterForScalarExpr(pmp, exprhdl, pstatsBaseTable, pexprLocal, pexprOuterRefs, pdrgpstatCtxt);
 
 	pstatsBaseTable->Release();
 	pexprLocal->Release();
@@ -1342,7 +1280,7 @@ CStatisticsUtils::PstatsBitmapTableGet
 	pcrsUsed->Difference(pcrsOuter);
 	IStatistics *pstatsBaseTable = CLogical::PstatsBaseTable(pmp, exprhdl, ptabdesc, pcrsUsed);
 	pcrsUsed->Release();
-	IStatistics *pstats = PstatsFilter
+	IStatistics *pstats = CFilterStatsProcessor::PstatsFilterForScalarExpr
 							(
 							pmp,
 							exprhdl,

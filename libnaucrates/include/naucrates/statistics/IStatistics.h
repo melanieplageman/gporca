@@ -141,10 +141,6 @@ namespace gpnaucrates
 			virtual
 			CDouble DNDV(const CColRef *pcr) = 0;
 
-			// create new statistics structure after applying the filter
-			virtual
-			IStatistics *PstatsFilter(IMemoryPool *, CStatsPred *pstatspred, BOOL fCapNdvs) const = 0;
-
 			virtual
 			ULONG UlNumberOfPredicates() const = 0;
 

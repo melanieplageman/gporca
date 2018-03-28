@@ -312,20 +312,6 @@ namespace gpnaucrates
 			void PrintHistogramMap(IOstream &os, HMUlHist *phmulhist);
 #endif // GPOS_DEBUG
 
-
-
-			// derive statistics for filter operation based on given scalar expression
-			static
-			IStatistics *PstatsFilter
-				(
-				IMemoryPool *pmp,
-				CExpressionHandle &exprhdl,
-				IStatistics *pstatsChild,
-				CExpression *pexprScalarLocal, // filter expression on local columns only
-				CExpression *pexprScalarOuterRefs, // filter expression involving outer references
-				DrgPstat *pdrgpstatOuter
-				);
-
 			// derive statistics of dynamic scan based on part-selector stats in the given map
 			static
 			IStatistics *PstatsDynamicScan(IMemoryPool *pmp, CExpressionHandle &exprhdl, ULONG ulPartIndexId, CPartFilterMap *ppfm);
