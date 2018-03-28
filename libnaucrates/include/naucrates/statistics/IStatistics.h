@@ -189,18 +189,6 @@ namespace gpnaucrates
 						)
 						const = 0;
 
-			// union all
-			virtual
-			IStatistics *PstatsUnionAll
-						(
-						IMemoryPool *pmp,
-						const IStatistics *pistatsOther,
-						DrgPul *pdrgpulOutput,
-						DrgPul *pdrgpulInput1,
-						DrgPul *pdrgpulInput2
-						)
-						const = 0;
-
 			// return required props associated with stats object
 			virtual
 			CReqdPropRelational *Prprel(IMemoryPool *pmp) const = 0;

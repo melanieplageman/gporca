@@ -26,6 +26,7 @@
 #include "naucrates/statistics/CStatisticsUtils.h"
 #include "naucrates/statistics/CLimitStatsProcessor.h"
 #include "naucrates/statistics/CGroupByStatsProcessor.h"
+#include "naucrates/statistics/CUnionAllStatsProcessor.h"
 
 #include "naucrates/base/CDatumGenericGPDB.h"
 #include "naucrates/base/CDatumInt4GPDB.h"
@@ -195,7 +196,7 @@ CStatisticsTest::EresUnittest_UnionAll()
 		DrgPul *pdrgpulColIdInput1 = Pdrgpul(pmp, 1);
 		DrgPul *pdrgpulColIdInput2 = Pdrgpul(pmp, 2);
 
-		CStatistics *pstatsOutput = pstats1->PstatsUnionAll(pmp, pstats2, pdrgpulColIdOutput, pdrgpulColIdInput1, pdrgpulColIdInput2);
+		CStatistics *pstatsOutput = CUnionAllStatsProcessor::PstatsUnionAll(pmp, pstats1, pstats2, pdrgpulColIdOutput, pdrgpulColIdInput1, pdrgpulColIdInput2);
 
 		GPOS_ASSERT(NULL != pstatsOutput);
 
@@ -1030,7 +1031,7 @@ CStatisticsTest::EresUnittest_CStatisticsBasic()
 	pdrgpulColIds->AddRef();
 	pdrgpulColIds->AddRef();
 
-	CStatistics *pstats6 = pstats->PstatsUnionAll(pmp, pstats, pdrgpulColIds, pdrgpulColIds, pdrgpulColIds);
+	CStatistics *pstats6 = CUnionAllStatsProcessor::PstatsUnionAll(pmp, pstats, pstats, pdrgpulColIds, pdrgpulColIds, pdrgpulColIds);
 
 	GPOS_TRACE(GPOS_WSZ_LIT("pstats6 = pstats1 union all pstats1"));
 	CCardinalityTestUtils::PrintStats(pmp, pstats6);

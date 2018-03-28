@@ -6,7 +6,7 @@
 //		CProjectStatsProcessor.h
 //
 //	@doc:
-//		Compute statistics for group by operation
+//		Compute statistics for project operation
 //---------------------------------------------------------------------------
 #ifndef GPNAUCRATES_CProjectStatsProcessor_H
 #define GPNAUCRATES_CProjectStatsProcessor_H
