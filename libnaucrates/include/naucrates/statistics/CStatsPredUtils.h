@@ -174,6 +174,15 @@ namespace gpopt
 				CStatsPred::EStatsCmpType *pescmpt,
 				const CColRef **pcr2
 				);
+		
+							static
+			BOOL FCmpColsIgnoreCastAndFuncs
+				(
+				CExpression *pexpr,
+				const CColRef **pcr1,
+				CStatsPred::EStatsCmpType *pescmpt,
+				const CColRef **pcr2
+				);
 
 		public:
 

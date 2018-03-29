@@ -61,6 +61,15 @@ namespace gpnaucrates
 				 IStatistics::EStatsJoinType eStatsJoinType,
 				 BOOL fIgnoreLasjHistComputation
 				 );
+		
+			static
+			CDouble GetUnsupportedPredJoinScaleFactor
+				(
+						CDouble dDistinctValuesOuter,
+						CDouble dDistinctValuesInner,
+						CDouble dRows1,
+						CDouble dRows2
+				);
 
 		public:
 

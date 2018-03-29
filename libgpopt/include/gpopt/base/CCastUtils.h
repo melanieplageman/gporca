@@ -40,6 +40,9 @@ namespace gpopt
 			// Else return NULL.
 			static
 			const CColRef *PcrExtractFromScIdOrCastScId(CExpression *pexpr);
+		
+						static
+			const CColRef *PcrExtractFromScIdOrCastScIdorFunc(CExpression *pexpr);
 
 			// cast the input column reference to the destination mdid
 			static

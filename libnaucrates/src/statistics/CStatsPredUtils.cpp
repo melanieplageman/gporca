@@ -378,6 +378,58 @@ CStatsPredUtils::FCmpColsIgnoreCast
 	return true;
 }
 
+BOOL
+CStatsPredUtils::FCmpColsIgnoreCastAndFuncs
+	(
+	CExpression *pexpr,
+	const CColRef **ppcrLeft,
+	CStatsPred::EStatsCmpType *pescmpt,
+	const CColRef **ppcrRight
+	)
+{
+	GPOS_ASSERT(NULL != ppcrLeft);
+	GPOS_ASSERT(NULL != ppcrRight);
+	COperator *pop = pexpr->Pop();
+
+	BOOL fScalarCmp = (COperator::EopScalarCmp == pop->Eopid());
+	if (!fScalarCmp)
+	{
+		return false;
+	}
+
+	CExpression *pexprLeft = NULL;
+	CExpression *pexprRight = NULL;
+
+	GPOS_ASSERT(fScalarCmp);
+
+	// Comparison semantics for stats purposes is looser
+	// than regular comparison.
+	CScalarCmp *popScCmp = CScalarCmp::PopConvert(pop);
+	
+	// Comparison semantics for stats purposes is looser
+	// than regular comparison.
+	(*pescmpt) = CStatsPredUtils::Estatscmpt(popScCmp->PmdidOp());
+	
+	if (*pescmpt == CStatsPred::EstatscmptEq)
+	{
+		(*pescmpt) = CStatsPred::EstatscmptEqNDV;
+		
+		pexprLeft = (*pexpr)[0];
+		pexprRight = (*pexpr)[1];
+		
+		(*ppcrLeft) = CCastUtils::PcrExtractFromScIdOrCastScIdorFunc(pexprLeft);
+		(*ppcrRight) = CCastUtils::PcrExtractFromScIdOrCastScIdorFunc(pexprRight);
+		
+		if (NULL == *ppcrLeft || NULL == *ppcrRight)
+		{
+			// failed to extract a scalar ident
+			return false;
+		}
+		
+		return true;
+	}
+	return false;
+}
 
 //---------------------------------------------------------------------------
 //	@function:
@@ -1080,6 +1132,31 @@ CStatsPredUtils::PstatsjoinExtract
 			return NULL;
 		}
 
+		ULONG ulIndexLeft = CUtils::UlPcrIndexContainingSet(pdrgpcrsOutput, pcrLeft);
+		ULONG ulIndexRight = CUtils::UlPcrIndexContainingSet(pdrgpcrsOutput, pcrRight);
+
+		if (ULONG_MAX != ulIndexLeft && ULONG_MAX != ulIndexRight && ulIndexLeft != ulIndexRight)
+		{
+			if (ulIndexLeft < ulIndexRight)
+			{
+				return GPOS_NEW(pmp) CStatsPredJoin(pcrLeft->UlId(), escmpt, pcrRight->UlId());
+			}
+
+			return GPOS_NEW(pmp) CStatsPredJoin(pcrRight->UlId(), escmpt, pcrLeft->UlId());
+		}
+	}
+	
+	BOOL fSupportedScIdentNDVComparision = FCmpColsIgnoreCastAndFuncs(pexprJoinPred, &pcrLeft, &escmpt, &pcrRight);
+	if (fSupportedScIdentNDVComparision && CStatsPred::EstatscmptEqNDV == escmpt)
+	{
+		if (!IMDType::FStatsComparable(pcrLeft->Pmdtype(), pcrRight->Pmdtype()))
+		{
+			// unsupported statistics comparison between the histogram boundaries of the columns
+			pexprJoinPred->AddRef();
+			pdrgpexprUnsupported->Append(pexprJoinPred);
+			return NULL;
+		}
+		
 		ULONG ulIndexLeft = CUtils::UlPcrIndexContainingSet(pdrgpcrsOutput, pcrLeft);
 		ULONG ulIndexRight = CUtils::UlPcrIndexContainingSet(pdrgpcrsOutput, pcrRight);
 

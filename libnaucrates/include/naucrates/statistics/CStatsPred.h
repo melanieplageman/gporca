@@ -52,6 +52,7 @@ namespace gpnaucrates
 				EstatscmptINDF,	// is not distinct from
 				EstatscmptLike,	// LIKE predicate comparison
 				EstatscmptNotLike,	// NOT LIKE predicate comparison
+				EstatscmptEqNDV,
 
 				EstatscmptOther
 			};

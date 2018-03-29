@@ -92,6 +92,9 @@ CJoinStatsProcessor::JoinHistograms
 	}
 	else if (CHistogram::FSupportsJoinPred(escmpt))
 	{
+	
+
+
 		CHistogram *phistJoin = phist1->PhistJoinNormalized
 				(
 				pmp,
@@ -116,6 +119,15 @@ CJoinStatsProcessor::JoinHistograms
 			}
 			return;
 		}
+		
+		
+		if (CStatsPred::EstatscmptEqNDV == escmpt)
+		{
+//			CHistogram *phistAfter = phist1->PhistJoin(pmp, CStatsPred::EstatscmptEq, phist2);
+//			*pdScaleFactor = phistAfter->DNormalize();
+			*pdScaleFactor = GetUnsupportedPredJoinScaleFactor(phist1->DDistinct(), phist2->DDistinct(), dRows1, dRows2);
+		}
+
 
 		// note that for IDF and Not Equality predicate, we do not generate histograms but
 		// just the scale factors.
@@ -133,6 +145,30 @@ CJoinStatsProcessor::JoinHistograms
 	*pphist2 = phist2->PhistCopy(pmp);
 }
 
+CDouble
+CJoinStatsProcessor::GetUnsupportedPredJoinScaleFactor
+		(
+				CDouble dDistinctValuesOuter,
+				CDouble dDistinctValuesInner,
+				CDouble dRows1,
+				CDouble dRows2
+		)
+{
+
+	CDouble pdScaleFactor = 1.0;
+
+	pdScaleFactor = CScaleFactorUtils::DDefaultScaleFactorJoin;
+
+	pdScaleFactor = std::max
+			(
+					std::max(CHistogram::DMinDistinct.DVal(), dDistinctValuesOuter.DVal()),
+					std::max(CHistogram::DMinDistinct.DVal(), dDistinctValuesInner.DVal())
+			);
+	CDouble dCartesianProduct = dRows1 * dRows2;
+	// bound scale factor by cross product
+	return std::min(pdScaleFactor.DVal(), dCartesianProduct.DVal());
+
+}
 //	derive statistics for the given join's predicate(s)
 IStatistics *
 CJoinStatsProcessor::PstatsJoinArray
