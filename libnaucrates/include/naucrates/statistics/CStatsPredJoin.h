@@ -28,7 +28,7 @@ namespace gpnaucrates
 	//		Join predicate used for join cardinality estimation
 	//---------------------------------------------------------------------------
 	class CStatsPredJoin : public CRefCount
-	{
+{
 		private:
 
 			// private copy ctor

@@ -164,6 +164,19 @@ namespace gpopt
 								DrgPexpr *pdrgpexprUnsupported
 								);
 
+			static
+			void
+			PstatsjoinExtractWIP
+			(
+			 IMemoryPool *pmp,
+			 CExpression *pexprJoinPred,
+			 DrgPcrs *pdrgpcrsOutput, // array of output columns of join's relational inputs
+			 CColRefSet *pcrsOuterRefs,
+			 DrgPexpr *pdrgpexprUnsupported,
+			 DrgPstatspredjoin *prgPstatspredjoinSupported,
+			 DrgPstatspredjoin *prgPstatspredjoinAll
+			 );
+
 			// is the expression a comparison of scalar idents (or casted scalar idents).
 			// If so, extract relevant info.
 			static
@@ -181,6 +194,8 @@ namespace gpopt
 			static
 			CStatsPred *PstatspredExtract(IMemoryPool *pmp, CExpression *pexprScalar, CColRefSet *pcrsOuterRefs);
 
+
+
 			// helper function to extract array of statistics join filter from an array of join predicates
 			static
 			DrgPstatspredjoin *PdrgpstatspredjoinExtract
@@ -191,6 +206,18 @@ namespace gpopt
 								CColRefSet *pcrsOuterRefs,
 								CStatsPred **ppstatspredUnsupported
 								);
+
+			static void
+			PdrgpstatspredjoinExtractWIP
+				(
+						IMemoryPool *pmp,
+						CExpression *pexprScalar,
+						DrgPcrs *pdrgpcrsOutput, // array of output columns of join's relational inputs
+						CColRefSet *pcrsOuterRefs,
+						CStatsPred **ppstatspredUnsupported,
+				 DrgPstatspredjoin *prgPstatspredjoinSupported,
+					 DrgPstatspredjoin *prgPstatspredjoinAll
+				);
 
 			// helper function to extract array of statistics join filter from an expression handle
 			static

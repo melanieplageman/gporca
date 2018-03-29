@@ -367,6 +367,7 @@ CStatsPredUtils::FCmpColsIgnoreCast
 	}
 
 	(*ppcrLeft) = CCastUtils::PcrExtractFromScIdOrCastScId(pexprLeft);
+	pexprLeft->DbgPrint();
 	(*ppcrRight) = CCastUtils::PcrExtractFromScIdOrCastScId(pexprRight);
 
 	if (NULL == *ppcrLeft || NULL == *ppcrRight)
@@ -1105,6 +1106,81 @@ CStatsPredUtils::PstatsjoinExtract
 	return NULL;
 }
 
+void
+CStatsPredUtils::PstatsjoinExtractWIP
+(
+	IMemoryPool *pmp,
+	CExpression *pexprJoinPred,
+	DrgPcrs *pdrgpcrsOutput, // array of output columns of join's relational inputs
+	CColRefSet *pcrsOuterRefs,
+	DrgPexpr *pdrgpexprUnsupported,
+	DrgPstatspredjoin *pdrgpstatspredjoinSupported,
+ DrgPstatspredjoin *pdrgpstatspredjoinAll
+	)
+{
+	GPOS_ASSERT(NULL != pexprJoinPred);
+	GPOS_ASSERT(NULL != pdrgpcrsOutput);
+	GPOS_ASSERT(NULL != pdrgpexprUnsupported);
+	GPOS_ASSERT(NULL != pdrgpstatspredjoinAll);
+
+	CColRefSet *pcrsUsed = CDrvdPropScalar::Pdpscalar(pexprJoinPred->PdpDerive())->PcrsUsed();
+
+	if (pcrsOuterRefs->FSubset(pcrsUsed))
+	{
+		return;
+	}
+
+	CStatsPredJoin *pStatsPredJoin = NULL;
+	const CColRef *pcrLeft = NULL;
+	const CColRef *pcrRight = NULL;
+	CStatsPred::EStatsCmpType escmpt = CStatsPred::EstatscmptOther;
+
+	// TODO: don't add unsupported for inner join with equality to list of unsupported
+	BOOL fSupportedScIdentComparison = FCmpColsIgnoreCast(pexprJoinPred, &pcrLeft, &escmpt, &pcrRight);
+	BOOL fSemiSupportedScIdentComparison = FCmpColsIgnoreCast(pexprJoinPred, &pcrLeft, &escmpt, &pcrRight);
+	if ((fSupportedScIdentComparison || fSemiSupportedScIdentComparison) && CStatsPred::EstatscmptOther != escmpt)
+	{
+		if (!IMDType::FStatsComparable(pcrLeft->Pmdtype(), pcrRight->Pmdtype()))
+		{
+			// unsupported statistics comparison between the histogram boundaries of the columns
+			pexprJoinPred->AddRef();
+			pdrgpexprUnsupported->Append(pexprJoinPred);
+			return;
+		}
+
+		ULONG ulIndexLeft = CUtils::UlPcrIndexContainingSet(pdrgpcrsOutput, pcrLeft);
+		ULONG ulIndexRight = CUtils::UlPcrIndexContainingSet(pdrgpcrsOutput, pcrRight);
+
+		if (ULONG_MAX != ulIndexLeft && ULONG_MAX != ulIndexRight && ulIndexLeft != ulIndexRight)
+		{
+			if (ulIndexLeft < ulIndexRight)
+			{
+				pStatsPredJoin = GPOS_NEW(pmp) CStatsPredJoin(pcrLeft->UlId(), escmpt, pcrRight->UlId());
+			}
+			else
+			{
+
+				pStatsPredJoin = GPOS_NEW(pmp) CStatsPredJoin(pcrRight->UlId(), escmpt, pcrLeft->UlId());
+			}
+		}
+	}
+	if (pStatsPredJoin != NULL)
+	{
+		if (fSupportedScIdentComparison)
+			pdrgpstatspredjoinSupported->Append(pStatsPredJoin);
+		pdrgpstatspredjoinAll->Append(pStatsPredJoin);
+		return;
+	}
+
+	if (CColRefSet::FCovered(pdrgpcrsOutput, pcrsUsed))
+	{
+		// unsupported join predicate
+		pexprJoinPred->AddRef();
+		pdrgpexprUnsupported->Append(pexprJoinPred);
+	}
+
+	return;
+}
 
 //---------------------------------------------------------------------------
 //	@function:
@@ -1172,7 +1248,59 @@ CStatsPredUtils::PdrgpstatspredjoinExtract
 	return pdrgpstatspredjoin;
 }
 
+void
+CStatsPredUtils::PdrgpstatspredjoinExtractWIP
+(
+	IMemoryPool *pmp,
+	CExpression *pexprScalar,
+	DrgPcrs *pdrgpcrsOutput, // array of output columns of join's relational inputs
+	CColRefSet *pcrsOuterRefs,
+	CStatsPred **ppstatspredUnsupported,
+	DrgPstatspredjoin *pdrgpstatspredjoinSupported,
+	DrgPstatspredjoin *pdrgpstatspredjoinAll
+	)
+{
+	GPOS_ASSERT(NULL != pexprScalar);
+	GPOS_ASSERT(NULL != pdrgpcrsOutput);
+	GPOS_ASSERT(NULL != pdrgpstatspredjoinAll);
 
+	DrgPexpr *pdrgpexprUnsupported = GPOS_NEW(pmp) DrgPexpr(pmp);
+
+	// extract all the conjuncts
+	DrgPexpr *pdrgpexprConjuncts = CPredicateUtils::PdrgpexprConjuncts(pmp, pexprScalar);
+	const ULONG ulSize = pdrgpexprConjuncts->UlLength();
+	for (ULONG ul = 0; ul < ulSize; ul++)
+	{
+		CExpression *pexprPred = (*pdrgpexprConjuncts) [ul];
+		CStatsPredUtils::PstatsjoinExtractWIP
+		(
+		 pmp,
+		 pexprPred,
+		 pdrgpcrsOutput,
+		 pcrsOuterRefs,
+		 pdrgpexprUnsupported,
+		 pdrgpstatspredjoinSupported,
+		 pdrgpstatspredjoinAll
+		 );
+	}
+
+	const ULONG ulUnsupported = pdrgpexprUnsupported->UlLength();
+	if (1 == ulUnsupported)
+	{
+		*ppstatspredUnsupported = CStatsPredUtils::PstatspredExtract(pmp, (*pdrgpexprUnsupported)[0], pcrsOuterRefs);
+	}
+	else if (1 < ulUnsupported)
+	{
+		pdrgpexprUnsupported->AddRef();
+		CExpression *pexprConj = CPredicateUtils::PexprConjDisj(pmp, pdrgpexprUnsupported, true /* fConjunction */);
+		*ppstatspredUnsupported = CStatsPredUtils::PstatspredExtract(pmp, pexprConj, pcrsOuterRefs);
+		pexprConj->Release();
+	}
+
+	// clean up
+	pdrgpexprUnsupported->Release();
+	pdrgpexprConjuncts->Release();
+}
 //---------------------------------------------------------------------------
 //	@function:
 //		CStatsPredUtils::Pdrgpstatspredjoin

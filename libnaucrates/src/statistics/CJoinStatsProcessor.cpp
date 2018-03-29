@@ -223,20 +223,43 @@ CJoinStatsProcessor::PstatsJoinArray
 		pdrgpcrsOutput->Append(pstatsCurrent->Pcrs(pmp));
 
 		CStatsPred *pstatspredUnsupported = NULL;
+		DrgPstatspredjoin *pdrgpstatspredjoinSupported = GPOS_NEW(pmp) DrgPstatspredjoin(pmp);
+		DrgPstatspredjoin *pdrgpstatspredjoinAll = GPOS_NEW(pmp) DrgPstatspredjoin(pmp);
 		// TODO: add a test which tested this and makes sure that for unsupported IJ pred with eq we still return null
-		DrgPstatspredjoin *pdrgpstatspredjoin = CStatsPredUtils::PdrgpstatspredjoinExtract
+//		DrgPstatspredjoin *pdrgpstatspredjoin = CStatsPredUtils::PdrgpstatspredjoinExtract
+//				(
+//						pmp,
+//						pexprScalar,
+//						pdrgpcrsOutput,
+//						pcrsOuterRefs,
+//						&pstatspredUnsupported
+//				);
+
+		CStatsPredUtils::PdrgpstatspredjoinExtractWIP
 				(
 						pmp,
 						pexprScalar,
 						pdrgpcrsOutput,
 						pcrsOuterRefs,
-						&pstatspredUnsupported
+						&pstatspredUnsupported,
+				 		pdrgpstatspredjoinSupported,
+						pdrgpstatspredjoinAll
 				);
+
 		IStatistics *pstatsNew = NULL;
-		pstatsNew = GetJoinStats(pmp, fLeftOuterJoin, dRowsOuter, pstats, pstatsCurrent, pdrgpstatspredjoin,
+		if (fLeftOuterJoin)
+			pstatsNew = GetJoinStats(pmp, fLeftOuterJoin, dRowsOuter, pstats, pstatsCurrent, pdrgpstatspredjoinSupported,
 								 pstatspredUnsupported);
+		else
+		{
+			pstatspredUnsupported->Release();
+			pstatsNew = GetJoinStats(pmp, fLeftOuterJoin, dRowsOuter, pstats, pstatsCurrent, pdrgpstatspredjoinAll,
+									 NULL);
+
+		}
 		pdrgpcrsOutput->Release();
-		pdrgpstatspredjoin->Release();
+		pdrgpstatspredjoinSupported->Release();
+		pdrgpstatspredjoinAll->Release();
 	}
 
 	// clean up
