@@ -136,14 +136,6 @@ namespace gpnaucrates
 			static
 			GPOS_RESULT EresUnittest();
 
-			// join of histograms with NDVRemain information
-			static
-			GPOS_RESULT EresUnittest_JoinNDVRemain();
-
-			// join buckets tests
-			static
-			GPOS_RESULT EresUnittest_Join();
-
 			// union all tests
 			static
 			GPOS_RESULT EresUnittest_UnionAll();
