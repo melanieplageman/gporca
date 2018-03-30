@@ -21,6 +21,7 @@
 #include "naucrates/statistics/CStatistics.h"
 #include "naucrates/statistics/CStatisticsUtils.h"
 #include "naucrates/statistics/CLeftAntiSemiJoinStatsProcessor.h"
+#include "naucrates/statistics/CJoinStatsProcessor.h"
 #include "naucrates/statistics/CScaleFactorUtils.h"
 #include "naucrates/statistics/CHistogramUtils.h"
 
@@ -651,6 +652,11 @@ CHistogram::PhistJoinNormalized
 	const
 {
 	GPOS_ASSERT(NULL != phistOther);
+	if (CStatsPred::EstatscmptEqNDV == escmpt)
+	{
+		*pdScaleFactor = CJoinStatsProcessor::GetUnsupportedPredJoinScaleFactor(DDistinct(), phistOther->DDistinct(), dRows, dRowsOther);
+		return PhistJoinEquality(pmp, phistOther);
+	}
 
 	BOOL fEqOrINDF = (CStatsPred::EstatscmptEq == escmpt || CStatsPred::EstatscmptINDF == escmpt);
 	if (!fEqOrINDF)
@@ -662,7 +668,7 @@ CHistogram::PhistJoinNormalized
 			*pdScaleFactor = DInEqualityJoinScaleFactor(pmp, dRows, phistOther, dRowsOther);
 		}
 
-		return PhistJoin(pmp, escmpt, phistOther);
+		return PhistJoinEquality(pmp, phistOther);
 	}
 
 	// if either histogram is not well-defined, the result is not well defined
@@ -1097,12 +1103,12 @@ CHistogram::PhistJoinEquality
 	{
 		// compute the number of non-null distinct values in the input histograms
 		CDouble dNDV1 = this->DDistinct();
-		CDouble dFreqRemain1 = this->DFrequency();
-		CDouble dNullFreq1 = this->DNullFreq();
+		CDouble dFreqRemain1 = this->DFrequency(); // total frequency from buckets + null freq
+		CDouble dNullFreq1 = this->DNullFreq(); //
 		if (CStatistics::DEpsilon < dNullFreq1)
 		{
-			dNDV1 = std::max(CDouble(0.0), (dNDV1 - 1.0));
-			dFreqRemain1 = dFreqRemain1 - dNullFreq1;
+			dNDV1 = std::max(CDouble(0.0), (dNDV1 - 1.0)); // if a null, remove that from distinct value
+			dFreqRemain1 = dFreqRemain1 - dNullFreq1; // sum of frequency from buckets
 		}
 
 		CDouble dNDV2 = phist->DDistinct();

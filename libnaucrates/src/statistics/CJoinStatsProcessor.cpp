@@ -105,7 +105,7 @@ CJoinStatsProcessor::JoinHistograms
 				pdScaleFactor
 				);
 
-		if (CStatsPred::EstatscmptEq == escmpt || CStatsPred::EstatscmptINDF == escmpt)
+		if (CStatsPred::EstatscmptEq == escmpt || CStatsPred::EstatscmptINDF == escmpt || CStatsPred::EstatscmptEqNDV == escmpt)
 		{
 			if (phist1->FScaledNDV())
 			{
@@ -120,14 +120,6 @@ CJoinStatsProcessor::JoinHistograms
 			return;
 		}
 		
-		
-		if (CStatsPred::EstatscmptEqNDV == escmpt)
-		{
-//			CHistogram *phistAfter = phist1->PhistJoin(pmp, CStatsPred::EstatscmptEq, phist2);
-//			*pdScaleFactor = phistAfter->DNormalize();
-			*pdScaleFactor = GetUnsupportedPredJoinScaleFactor(phist1->DDistinct(), phist2->DDistinct(), dRows1, dRows2);
-		}
-
 
 		// note that for IDF and Not Equality predicate, we do not generate histograms but
 		// just the scale factors.
@@ -350,7 +342,9 @@ CJoinStatsProcessor::PstatsJoinDriver
 						fIgnoreLasjHistComputation
 				);
 
-		fEmptyOutput = FEmptyJoinStats(pstatsOuter->FEmpty(), fEmptyOutput, phistOuter, phistInner, phistOuterAfter, eStatsJoinType);
+		fEmptyOutput = FEmptyJoinStats(pstatsOuter->FEmpty(),
+									   fEmptyOutput,
+									   phistOuter, phistInner, phistOuterAfter, eStatsJoinType);
 
 		CStatisticsUtils::AddHistogram(pmp, ulColId1, phistOuterAfter, phmulhistJoin);
 		if (!fSemiJoin)

@@ -62,14 +62,7 @@ namespace gpnaucrates
 				 BOOL fIgnoreLasjHistComputation
 				 );
 		
-			static
-			CDouble GetUnsupportedPredJoinScaleFactor
-				(
-						CDouble dDistinctValuesOuter,
-						CDouble dDistinctValuesInner,
-						CDouble dRows1,
-						CDouble dRows2
-				);
+
 
 		public:
 
@@ -86,6 +79,14 @@ namespace gpnaucrates
 				 BOOL fIgnoreLasjHistComputation
 				 );
 
+				static
+				CDouble GetUnsupportedPredJoinScaleFactor
+				(
+						CDouble dDistinctValuesOuter,
+						CDouble dDistinctValuesInner,
+						CDouble dRows1,
+						CDouble dRows2
+				);
 			static
 			IStatistics *PstatsJoinArray
 				(
