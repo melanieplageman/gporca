@@ -67,6 +67,42 @@ CTableDescriptor::CTableDescriptor
 	m_pdrgpbsKeys = GPOS_NEW(m_pmp) DrgPbs(m_pmp);
 }
 
+// ctor with MDAccessor
+CTableDescriptor::CTableDescriptor
+(
+	IMemoryPool *pmp,
+	CMDAccessor *,
+	IMDId *pmdid,
+	const CName &name,
+	BOOL fConvertHashToRandom,
+	IMDRelation::Ereldistrpolicy ereldistrpolicy,
+	IMDRelation::Erelstoragetype erelstoragetype,
+	ULONG ulExecuteAsUser
+	)
+:
+	m_pmp(pmp),
+	m_pmdid(pmdid),
+	m_name(pmp, name),
+	m_pdrgpcoldesc(NULL),
+	m_ereldistrpolicy(ereldistrpolicy),
+	m_erelstoragetype(erelstoragetype),
+	m_pdrgpcoldescDist(NULL),
+	m_fConvertHashToRandom(fConvertHashToRandom),
+	m_pdrgpulPart(NULL),
+	m_pdrgpbsKeys(NULL),
+	m_ulPartitions(0),
+	m_ulExecuteAsUser(ulExecuteAsUser),
+	m_fHasPartialIndexes(false)
+{
+	GPOS_ASSERT(NULL != pmp);
+	GPOS_ASSERT(pmdid->FValid());
+
+	m_pdrgpcoldesc = GPOS_NEW(m_pmp) DrgPcoldesc(m_pmp);
+	m_pdrgpcoldescDist = GPOS_NEW(m_pmp) DrgPcoldesc(m_pmp);
+	m_pdrgpulPart = GPOS_NEW(m_pmp) DrgPul(m_pmp);
+	m_pdrgpbsKeys = GPOS_NEW(m_pmp) DrgPbs(m_pmp);
+}
+
 
 //---------------------------------------------------------------------------
 //	@function:

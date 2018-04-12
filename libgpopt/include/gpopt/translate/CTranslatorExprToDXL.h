@@ -645,7 +645,7 @@ namespace gpopt
 			// translate a window frame
 			CDXLWindowFrame *Pdxlwf(CWindowFrame *pwf);
 
-			CDXLTableDescr *Pdxltabdesc(const CTableDescriptor *ptabdesc, const DrgPcr *pdrgpcrOutput);
+
 
 			// compute physical properties like operator cost from the expression
 			CDXLPhysicalProperties *Pdxlprop(const CExpression *pexpr);
@@ -848,6 +848,14 @@ namespace gpopt
 			// translate a scalar expression into a DXL scalar node
 			// if the expression is not a scalar, an UnsupportedOp exception is raised
 			CDXLNode *PdxlnScalar(CExpression *pexpr);
+
+			static CDXLTableDescr *Pdxltabdesc
+				(
+				IMemoryPool *pmp,
+				CColumnFactory *pcf,
+				const CTableDescriptor *ptabdesc,
+				const DrgPcr *pdrgpcrOutput
+				);
 	};
 }
 

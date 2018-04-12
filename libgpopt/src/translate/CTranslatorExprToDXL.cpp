@@ -457,7 +457,7 @@ CTranslatorExprToDXL::PdxlnTblScan
 	DrgPcr *pdrgpcrOutput = popTblScan->PdrgpcrOutput();
 	
 	// translate table descriptor
-	CDXLTableDescr *pdxltabdesc = Pdxltabdesc(popTblScan->Ptabdesc(), pdrgpcrOutput);
+	CDXLTableDescr *pdxltabdesc = Pdxltabdesc(m_pmp, m_pcf, popTblScan->Ptabdesc(), pdrgpcrOutput);
 
 	// construct plan costs, if there are not passed as a parameter
 	if (NULL == pdxlprop)
@@ -568,7 +568,7 @@ CTranslatorExprToDXL::PdxlnIndexScan
 	DrgPcr *pdrgpcrOutput = popIs->PdrgpcrOutput();
 
 	// translate table descriptor
-	CDXLTableDescr *pdxltabdesc = Pdxltabdesc(popIs->Ptabdesc(), pdrgpcrOutput);
+	CDXLTableDescr *pdxltabdesc = Pdxltabdesc(m_pmp, m_pcf, popIs->Ptabdesc(), pdrgpcrOutput);
 
 	// create index descriptor
 	CIndexDescriptor *pindexdesc = popIs->Pindexdesc();
@@ -831,7 +831,7 @@ CTranslatorExprToDXL::PdxlnBitmapTableScan
 	CPhysicalBitmapTableScan *pop = CPhysicalBitmapTableScan::PopConvert(pexprBitmapTableScan->Pop());
 
 	// translate table descriptor
-	CDXLTableDescr *pdxltabdesc = Pdxltabdesc(pop->Ptabdesc(), pop->PdrgpcrOutput());
+	CDXLTableDescr *pdxltabdesc = Pdxltabdesc(m_pmp, m_pcf, pop->Ptabdesc(), pop->PdrgpcrOutput());
 
 	CDXLPhysicalBitmapTableScan *pdxlop = GPOS_NEW(m_pmp) CDXLPhysicalBitmapTableScan(m_pmp, pdxltabdesc);
 	CDXLNode *pdxlnBitmapTableScan = GPOS_NEW(m_pmp) CDXLNode(m_pmp, pdxlop);
@@ -942,7 +942,7 @@ CTranslatorExprToDXL::PdxlnDynamicTableScan
 	DrgPcr *pdrgpcrOutput = popDTS->PdrgpcrOutput();
 	
 	// translate table descriptor
-	CDXLTableDescr *pdxltabdesc = Pdxltabdesc(popDTS->Ptabdesc(), pdrgpcrOutput);
+	CDXLTableDescr *pdxltabdesc = Pdxltabdesc(m_pmp, m_pcf, popDTS->Ptabdesc(), pdrgpcrOutput);
 
 	// construct plan costs
 	CDXLPhysicalProperties *pdxlpropDTS = Pdxlprop(pexprDTS);
@@ -1052,7 +1052,7 @@ CTranslatorExprToDXL::PdxlnDynamicBitmapTableScan
 	CPhysicalDynamicBitmapTableScan *pop = CPhysicalDynamicBitmapTableScan::PopConvert(pexprScan->Pop());
 	DrgPcr *pdrgpcrOutput = pop->PdrgpcrOutput();
 
-	CDXLTableDescr *pdxltabdesc = Pdxltabdesc(pop->Ptabdesc(), pdrgpcrOutput);
+	CDXLTableDescr *pdxltabdesc = Pdxltabdesc(m_pmp, m_pcf, pop->Ptabdesc(), pdrgpcrOutput);
 	CDXLPhysicalDynamicBitmapTableScan *pdxlopScan =
 			GPOS_NEW(m_pmp) CDXLPhysicalDynamicBitmapTableScan
 						(
@@ -1135,7 +1135,7 @@ CTranslatorExprToDXL::PdxlnDynamicIndexScan
 	DrgPcr *pdrgpcrOutput = popDIS->PdrgpcrOutput();
 	
 	// translate table descriptor
-	CDXLTableDescr *pdxltabdesc = Pdxltabdesc(popDIS->Ptabdesc(), pdrgpcrOutput);
+	CDXLTableDescr *pdxltabdesc = Pdxltabdesc(m_pmp, m_pcf, popDIS->Ptabdesc(), pdrgpcrOutput);
 
 	// create index descriptor
 	CIndexDescriptor *pindexdesc = popDIS->Pindexdesc();
@@ -2924,7 +2924,7 @@ CTranslatorExprToDXL::PdxlnProjectBoolConst
 
 	CDXLDatumBool *pdxldatum = GPOS_NEW(m_pmp) CDXLDatumBool(m_pmp, pmdid, false /* fNull */,  fVal);
 	CDXLScalarConstValue *pdxlopConstValue = GPOS_NEW(m_pmp) CDXLScalarConstValue(m_pmp, pdxldatum);
-	CColRef *pcr = m_pcf->PcrCreate(pmdtypebool, IDefaultTypeModifier);
+	CColRef *pcr = m_pcf->PcrCreate(pmdtypebool, IDefaultTypeModifier, OidInvalidCollation);
 	CDXLNode *pdxlnPrEl = PdxlnProjElem(pcr, GPOS_NEW(m_pmp) CDXLNode(m_pmp, pdxlopConstValue));
 
 	CDXLScalarProjList *pdxlopPrL = GPOS_NEW(m_pmp) CDXLScalarProjList(m_pmp);
@@ -3218,7 +3218,7 @@ CTranslatorExprToDXL::PdxlnCorrelatedNLJoin
 		CMDName *pmdname = GPOS_NEW(m_pmp) CMDName(m_pmp, pcr->Name().Pstr());
 		IMDId *pmdid = pcr->Pmdtype()->Pmdid();
 		pmdid->AddRef();
-		CDXLColRef *pdxlcr = GPOS_NEW(m_pmp) CDXLColRef(m_pmp, pmdname, pcr->UlId(), pmdid, pcr->ITypeModifier());
+		CDXLColRef *pdxlcr = GPOS_NEW(m_pmp) CDXLColRef(m_pmp, pmdname, pcr->UlId(), pmdid, pcr->ITypeModifier(), pcr->OidCollation());
 		pdrgdxlcr->Append(pdxlcr);
 	}
 
@@ -3349,7 +3349,7 @@ CTranslatorExprToDXL::PdxlnBooleanScalarWithSubPlan
 	CDXLDatumBool *pdxldatum = GPOS_NEW(m_pmp) CDXLDatumBool(m_pmp, pmdid, false /* fNull */, true /* fVal */);
 	CDXLScalarConstValue *pdxlopConstValue = GPOS_NEW(m_pmp) CDXLScalarConstValue(m_pmp, pdxldatum);
 
-	CColRef *pcr = m_pcf->PcrCreate(pmdtypebool, IDefaultTypeModifier);
+	CColRef *pcr = m_pcf->PcrCreate(pmdtypebool, IDefaultTypeModifier, OidInvalidCollation);
 
 	CDXLNode *pdxlnPrEl = PdxlnProjElem(pcr, GPOS_NEW(m_pmp) CDXLNode(m_pmp, pdxlopConstValue));
 
@@ -5311,7 +5311,7 @@ CTranslatorExprToDXL::PdxlnDML
 
 	CDXLNode *pdxlnChild = Pdxln(pexprChild, pdrgpcrSource, pdrgpdsBaseTables, pulNonGatherMotions, pfDML, false /*fRemap*/, false /*fRoot*/);
 
-	CDXLTableDescr *pdxltabdesc = Pdxltabdesc(ptabdesc, NULL /*pdrgpcrOutput*/);
+	CDXLTableDescr *pdxltabdesc = Pdxltabdesc(m_pmp, m_pcf, ptabdesc, NULL /*pdrgpcrOutput*/);
 	DrgPul *pdrgpul = CUtils::Pdrgpul(m_pmp, pdrgpcrSource);
 
 	CDXLDirectDispatchInfo *pdxlddinfo = Pdxlddinfo(pexpr);
@@ -5396,7 +5396,7 @@ CTranslatorExprToDXL::PdxlnCTAS
 		const CColumnDescriptor *pcd = ptabdesc->Pcoldesc(ul);
 
 		CMDName *pmdnameCol = GPOS_NEW(m_pmp) CMDName(m_pmp, pcd->Name().Pstr());
-		CColRef *pcr = m_pcf->PcrCreate(pcd->Pmdtype(), pcd->ITypeModifier(), pcd->Name());
+		CColRef *pcr = m_pcf->PcrCreate(pcd->Pmdtype(), pcd->ITypeModifier(), pcd->OidCollation(), pcd->Name());
 
 		// use the col ref id for the corresponding output output column as 
 		// colid for the dxl column
@@ -5411,6 +5411,7 @@ CTranslatorExprToDXL::PdxlnCTAS
 											pcd->IAttno(),
 											pmdidColType,
 											pcr->ITypeModifier(),
+											pcr->OidCollation(),
 											false /* fdropped */,
 											pcd->UlWidth()
 											);
@@ -7161,6 +7162,8 @@ CTranslatorExprToDXL::PdxlnFilter
 CDXLTableDescr *
 CTranslatorExprToDXL::Pdxltabdesc
 	(
+	IMemoryPool *pmp,
+	CColumnFactory *pcf,
 	const CTableDescriptor *ptabdesc,
 	const DrgPcr *pdrgpcrOutput
 	)
@@ -7169,12 +7172,12 @@ CTranslatorExprToDXL::Pdxltabdesc
 	GPOS_ASSERT_IMP(NULL != pdrgpcrOutput, ptabdesc->UlColumns() == pdrgpcrOutput->UlLength());
 
 	// get tbl name
-	CMDName *pmdnameTbl = GPOS_NEW(m_pmp) CMDName(m_pmp, ptabdesc->Name().Pstr());
+	CMDName *pmdnameTbl = GPOS_NEW(pmp) CMDName(pmp, ptabdesc->Name().Pstr());
 
 	CMDIdGPDB *pmdid = CMDIdGPDB::PmdidConvert(ptabdesc->Pmdid());
 	pmdid->AddRef();
 
-	CDXLTableDescr *pdxltabdesc = GPOS_NEW(m_pmp) CDXLTableDescr(m_pmp, pmdid, pmdnameTbl, ptabdesc->UlExecuteAsUser());
+	CDXLTableDescr *pdxltabdesc = GPOS_NEW(pmp) CDXLTableDescr(pmp, pmdid, pmdnameTbl, ptabdesc->UlExecuteAsUser());
 
 	const ULONG ulColumns = ptabdesc->UlColumns();
 	// translate col descriptors
@@ -7184,7 +7187,7 @@ CTranslatorExprToDXL::Pdxltabdesc
 
 		GPOS_ASSERT(NULL != pcd);
 
-		CMDName *pmdnameCol = GPOS_NEW(m_pmp) CMDName(m_pmp, pcd->Name().Pstr());
+		CMDName *pmdnameCol = GPOS_NEW(pmp) CMDName(pmp, pcd->Name().Pstr());
 
 		// output col ref for the current col descrs
 		CColRef *pcr = NULL;
@@ -7194,7 +7197,7 @@ CTranslatorExprToDXL::Pdxltabdesc
 		}
 		else
 		{
-			pcr = m_pcf->PcrCreate(pcd->Pmdtype(), pcd->ITypeModifier(), pcd->Name());
+			pcr = pcf->PcrCreate(pcd->Pmdtype(), pcd->ITypeModifier(), pcd->OidCollation(), pcd->Name());
 		}
 
 		// use the col ref id for the corresponding output output column as 
@@ -7202,14 +7205,15 @@ CTranslatorExprToDXL::Pdxltabdesc
 		CMDIdGPDB *pmdidColType = CMDIdGPDB::PmdidConvert(pcr->Pmdtype()->Pmdid());
 		pmdidColType->AddRef();
 
-		CDXLColDescr *pdxlcd = GPOS_NEW(m_pmp) CDXLColDescr
+		CDXLColDescr *pdxlcd = GPOS_NEW(pmp) CDXLColDescr
 											(
-											m_pmp,
+											pmp,
 											pmdnameCol,
 											pcr->UlId(),
 											pcd->IAttno(),
 											pmdidColType,
 											pcr->ITypeModifier(),
+											pcr->OidCollation(),
 											false /* fdropped */,
 											pcd->UlWidth()
 											);

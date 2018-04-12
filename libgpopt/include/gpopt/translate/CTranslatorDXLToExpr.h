@@ -185,6 +185,7 @@ namespace gpopt
 						const CColRef *pcr,
 						const IMDType *pmdtype,
 						INT iTypeModifier,
+						OID oidCollation,
 						BOOL fStoreMapping,
 						ULONG ulColId
 						);
@@ -356,7 +357,7 @@ namespace gpopt
 			CExpression *Pexpr(const CDXLNode *pdxln);
 			
 			// update table descriptor's distribution columns from the MD cache object 
-			void AddDistributionColumns
+			static void AddDistributionColumns
 				(
 				CTableDescriptor *ptabdesc, 
 				const IMDRelation *pmdrel, 
@@ -428,6 +429,9 @@ namespace gpopt
 				GPOS_ASSERT(NULL != m_pdrgpmdname);
 				return m_pdrgpmdname;
 			}
+		// construct a table descriptor from DXL
+		static CTableDescriptor *Ptabdesc(IMemoryPool *pmp, CMDAccessor *pmda, CDXLTableDescr *pdxltabdesc);
+
 	};
 }
 

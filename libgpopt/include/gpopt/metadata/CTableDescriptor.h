@@ -107,7 +107,20 @@ namespace gpopt
 				IMDRelation::Erelstoragetype erelstoragetype,
 				ULONG ulExecuteAsUser
 				);
-				
+
+			// ctor only used in test
+			CTableDescriptor
+				(
+				 IMemoryPool *,
+				 CMDAccessor *,
+				 IMDId *pmdid,
+				 const CName &,
+				 BOOL fConvertHashToRandom,
+				 IMDRelation::Ereldistrpolicy ereldistrpolicy,
+				 IMDRelation::Erelstoragetype erelstoragetype,
+				 ULONG ulExecuteAsUser
+				 );
+
 			// dtor
 			virtual
 			~CTableDescriptor();
