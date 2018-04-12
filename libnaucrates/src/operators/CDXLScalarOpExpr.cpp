@@ -47,6 +47,25 @@ CDXLScalarOpExpr::CDXLScalarOpExpr
 
 }
 
+CDXLScalarOpExpr::CDXLScalarOpExpr
+(
+	IMemoryPool *pmp,
+	IMDId *pmdidOp,
+	IMDId *pmdidReturnType,
+	OID oidCollation,
+	const CWStringConst *pstrOpName
+	)
+	:
+	CDXLScalar(pmp),
+	m_pmdid(pmdidOp),
+	m_pmdidReturnType(pmdidReturnType),
+	m_oidCollation(oidCollation),
+	m_pstrOpName(pstrOpName)
+{
+	GPOS_ASSERT(m_pmdid->FValid());
+
+}
+
 //---------------------------------------------------------------------------
 //	@function:
 //		CDXLScalarOpExpr::~CDXLScalarOpExpr
@@ -130,6 +149,12 @@ IMDId *
 CDXLScalarOpExpr::PmdidReturnType() const
 {
 	return m_pmdidReturnType;
+}
+
+OID
+CDXLScalarOpExpr::OidCollation() const
+{
+	return m_oidCollation;
 }
 
 //---------------------------------------------------------------------------
