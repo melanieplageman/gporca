@@ -206,7 +206,12 @@ CDXLScalarOpExpr::SerializeToDXL
 	{
 		m_pmdidReturnType->Serialize(pxmlser, CDXLTokens::PstrToken(EdxltokenOpType));
 	}
-	
+
+	if (OidInvalidCollation != OidCollation())
+	{
+		pxmlser->AddAttribute(CDXLTokens::PstrToken(EdxltokenCollation), OidCollation());
+	}
+
 	pdxln->SerializeChildrenToDXL(pxmlser);
 	pxmlser->CloseElement(CDXLTokens::PstrToken(EdxltokenNamespacePrefix), pstrElemName);
 
