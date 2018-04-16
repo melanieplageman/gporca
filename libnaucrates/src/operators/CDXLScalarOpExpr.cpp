@@ -22,31 +22,6 @@ using namespace gpopt;
 using namespace gpdxl;
 using namespace gpmd;
 
-//---------------------------------------------------------------------------
-//	@function:
-//		CDXLScalarOpExpr::CDXLScalarOpExpr
-//
-//	@doc:
-//		Constructs a scalar OpExpr node
-//
-//---------------------------------------------------------------------------
-CDXLScalarOpExpr::CDXLScalarOpExpr
-	(
-	IMemoryPool *pmp,
-	IMDId *pmdidOp,
-	IMDId *pmdidReturnType,
-	const CWStringConst *pstrOpName
-	)
-	:
-	CDXLScalar(pmp),
-	m_pmdid(pmdidOp),
-	m_pmdidReturnType(pmdidReturnType),
-	m_pstrOpName(pstrOpName)
-{
-	GPOS_ASSERT(m_pmdid->FValid());
-
-}
-
 CDXLScalarOpExpr::CDXLScalarOpExpr
 (
 	IMemoryPool *pmp,

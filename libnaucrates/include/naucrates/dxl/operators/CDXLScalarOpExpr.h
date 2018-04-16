@@ -57,15 +57,6 @@ namespace gpdxl
 				OID oidCollation,
 				const CWStringConst *pstrOpName
 				);
-			
-			// ctor for missing collation oid (for backwards compatibility)
-			CDXLScalarOpExpr
-				(
-				IMemoryPool *pmp,
-				IMDId *pmdidOp,
-				IMDId *pmdidReturnType,
-				const CWStringConst *pstrOpName
-				);
 
 			virtual
 			~CDXLScalarOpExpr();
