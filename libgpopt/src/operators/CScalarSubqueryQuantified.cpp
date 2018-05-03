@@ -314,7 +314,10 @@ CScalarSubqueryQuantified::PexprSubqueryPred
 	const CWStringConst *pstr = popSqQuantified->PstrOp();
 
 	pmdidOp->AddRef();
-	CExpression *pexprPredicate = CUtils::PexprScalarCmp(m_pmp, pexprNewScalar, pcr, *pstr, pmdidOp);
+	/* FIXME COLLATION */
+	OID oidResultCollation = OidInvalidCollation;
+	OID oidInputCollation = OidInvalidCollation;
+	CExpression *pexprPredicate = CUtils::PexprScalarCmp(m_pmp, pexprNewScalar, pcr, oidResultCollation, oidInputCollation, *pstr, pmdidOp);
 
 	return pexprPredicate;
 }

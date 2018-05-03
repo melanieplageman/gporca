@@ -510,7 +510,11 @@ CRange::PexprEquality
 	m_pdatumLeft->AddRef();
 	CExpression *pexprVal = GPOS_NEW(pmp) CExpression(pmp, GPOS_NEW(pmp) CScalarConst(pmp, m_pdatumLeft));
 
-	return CUtils::PexprScalarCmp(pmp, pcr, pexprVal, IMDType::EcmptEq);
+	/* FIXME COLLATION */
+	OID oidResultCollation = OidInvalidCollation;
+	OID oidInputCollation = OidInvalidCollation;
+
+	return CUtils::PexprScalarCmp(pmp, pcr, pexprVal, oidResultCollation, oidInputCollation, IMDType::EcmptEq);
 }
 
 //---------------------------------------------------------------------------
@@ -551,7 +555,11 @@ CRange::PexprScalarCompEnd
 		ecmpt = ecmptExcl;
 	}
 
-	return CUtils::PexprScalarCmp(pmp, pcr, pexprVal, ecmpt);
+	/* FIXME COLLATION */
+	OID oidResultCollation = OidInvalidCollation;
+	OID oidInputCollation = OidInvalidCollation;
+
+	return CUtils::PexprScalarCmp(pmp, pcr, pexprVal, oidResultCollation, oidInputCollation, ecmpt);
 }
 
 //---------------------------------------------------------------------------

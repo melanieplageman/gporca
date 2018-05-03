@@ -709,8 +709,12 @@ CEngineTest::EresUnittest_BuildMemoWithCTE()
 
 	CColRefSet *pcrsRight = CDrvdPropRelational::Pdprel(pexprGet->PdpDerive())->PcrsOutput();
 	CColRef *pcrRight =  pcrsRight->PcrAny();
+	/* FIXME COLLATION */
+	OID oidResultCollation = OidInvalidCollation;
+	OID oidInputCollation = OidInvalidCollation;
 
-	CExpression *pexprScalar = CUtils::PexprScalarEqCmp(pmp, pcrLeft, pcrRight);
+
+	CExpression *pexprScalar = CUtils::PexprScalarEqCmp(pmp, pcrLeft, pcrRight, oidResultCollation, oidInputCollation);
 
 	CExpression *pexpr = GPOS_NEW(pmp) CExpression
 									(

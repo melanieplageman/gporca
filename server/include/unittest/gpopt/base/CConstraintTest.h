@@ -122,6 +122,8 @@ namespace gpopt
 							CMDAccessor *pmda,
 							CColRef *pcr,
 							IMDType::ECmpType ecmpt,
+							OID oidResultCollation,
+							OID oidInputCollation,
 							LINT lVal
 							);
 

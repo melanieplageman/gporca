@@ -41,17 +41,21 @@ namespace gpdxl
 						
 			// private copy ctor
 			CDXLScalarDistinctComp(CDXLScalarDistinctComp&);
+
 			
 		public:
 			// ctor/dtor		
 			CDXLScalarDistinctComp
 				(
 				IMemoryPool *pmp,
-				IMDId *pmdidOp
+				IMDId *pmdidOp,
+				OID oidCollation,
+				OID oidInputCollation
 				);
 						
 			// ident accessors
 			Edxlopid Edxlop() const;
+
 			
 			// name of the DXL operator
 			const CWStringConst *PstrOpName() const;

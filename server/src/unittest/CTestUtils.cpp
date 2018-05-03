@@ -514,7 +514,11 @@ CTestUtils::PexprLogicalSelect
 	CColRefSet *pcrs = CDrvdPropRelational::Pdprel(pexpr->PdpDerive())->PcrsOutput();
 	CColRef *pcrLeft =  pcrs->PcrAny();
 	CColRef *pcrRight = pcrs->PcrAny();
-	CExpression *pexprPredicate = CUtils::PexprScalarEqCmp(pmp, pcrLeft, pcrRight);
+	/* FIXME COLLATION */
+	OID oidResultCollation = OidInvalidCollation;
+	OID oidInputCollation = OidInvalidCollation;
+
+	CExpression *pexprPredicate = CUtils::PexprScalarEqCmp(pmp, pcrLeft, pcrRight, oidResultCollation, oidInputCollation);
 
 	return CUtils::PexprLogicalSelect(pmp, pexpr, pexprPredicate);
 }
@@ -577,10 +581,14 @@ CTestUtils::PexprLogicalSelectWithContradiction
 	CColRef *pcr =  pcrs->PcrAny();
 
 	CExpression *pexprConstFirst = CUtils::PexprScalarConstInt4(pmp, 3 /*iVal*/);
-	CExpression *pexprPredFirst = CUtils::PexprScalarEqCmp(pmp, pcr, pexprConstFirst);
+	/* FIXME COLLATION */
+	OID oidResultCollation = OidInvalidCollation;
+	OID oidInputCollation = OidInvalidCollation;
+
+	CExpression *pexprPredFirst = CUtils::PexprScalarEqCmp(pmp, pcr, pexprConstFirst, oidResultCollation, oidInputCollation);
 
 	CExpression *pexprConstSecond = CUtils::PexprScalarConstInt4(pmp, 5 /*iVal*/);
-	CExpression *pexprPredSecond = CUtils::PexprScalarEqCmp(pmp, pcr, pexprConstSecond);
+	CExpression *pexprPredSecond = CUtils::PexprScalarEqCmp(pmp, pcr, pexprConstSecond, oidResultCollation, oidInputCollation);
 
 	CExpression *pexprPredicate = CPredicateUtils::PexprConjunction(pmp, pexprPredFirst, pexprPredSecond);
 	pexprPredFirst->Release();
@@ -615,13 +623,19 @@ CTestUtils::PexprLogicalSelectPartitioned
 	GPOS_ASSERT(1 == pdrgpcr->UlLength());
 	CColRef *pcrPartKey = (*pdrgpcr)[0];
 
+	/* FIXME COLLATION */
+	OID oidResultCollation = OidInvalidCollation;
+	OID oidInputCollation = OidInvalidCollation;
+
 	// construct a comparison pk = 5
 	INT iVal = 5;
 	CExpression *pexprScalar = CUtils::PexprScalarEqCmp
 										(
 										pmp,
 										CUtils::PexprScalarIdent(pmp, pcrPartKey),
-										CUtils::PexprScalarConstInt4(pmp, iVal)
+										CUtils::PexprScalarConstInt4(pmp, iVal),
+										oidResultCollation,
+										oidInputCollation
 										);
 
 	return CUtils::PexprLogicalSelect
@@ -652,7 +666,11 @@ CTestUtils::PexprLogicalAssert
 	CColRefSet *pcrs = CDrvdPropRelational::Pdprel(pexprGet->PdpDerive())->PcrsOutput();
 	CColRef *pcrLeft =  pcrs->PcrAny();
 	CColRef *pcrRight = pcrs->PcrAny();
-	CExpression *pexprPredicate = CUtils::PexprScalarEqCmp(pmp, pcrLeft, pcrRight);
+	/* FIXME COLLATION */
+	OID oidResultCollation = OidInvalidCollation;
+	OID oidInputCollation = OidInvalidCollation;
+
+	CExpression *pexprPredicate = CUtils::PexprScalarEqCmp(pmp, pcrLeft, pcrRight, oidResultCollation, oidInputCollation);
 	
 	CWStringConst *pstrErrMsg = CXformUtils::PstrErrorMessage(pmp, gpos::CException::ExmaSQL, gpos::CException::ExmiSQLTest, GPOS_WSZ_LIT("Test msg"));
 	CExpression *pexprAssertConstraint = GPOS_NEW(pmp) CExpression
@@ -809,7 +827,11 @@ CTestUtils::PexprScIdentCmpScIdent
 	CColRefSet *pcrsRight = CDrvdPropRelational::Pdprel(pexprRight->PdpDerive())->PcrsOutput();
 	CColRef *pcrRight =  pcrsRight->PcrAny();
 
-	CExpression *pexprPred = CUtils::PexprScalarCmp(pmp, pcrLeft, pcrRight, ecmpt);
+	/* FIXME COLLATION */
+	OID oidResultCollation = OidInvalidCollation;
+	OID oidInputCollation = OidInvalidCollation;
+
+	CExpression *pexprPred = CUtils::PexprScalarCmp(pmp, pcrLeft, pcrRight, oidResultCollation, oidInputCollation, ecmpt);
 
 	return pexprPred;
 }
@@ -838,7 +860,10 @@ CTestUtils::PexprScIdentCmpConst
 	CColRef *pcrLeft =  pcrs->PcrAny();
 	CExpression *pexprUl = CUtils::PexprScalarConstInt4(pmp, ulVal);
 
-	CExpression *pexprPred = CUtils::PexprScalarCmp(pmp, pcrLeft, pexprUl, ecmpt);
+	/* FIXME COLLATION */
+	OID oidResultCollation = OidInvalidCollation;
+	OID oidInputCollation = OidInvalidCollation;
+	CExpression *pexprPred = CUtils::PexprScalarCmp(pmp, pcrLeft, pexprUl, oidResultCollation, oidInputCollation, ecmpt);
 
 	return pexprPred;
 }
@@ -1163,7 +1188,11 @@ CTestUtils::PexprLogicalSelectOnOuterJoin
 
 	const CColRef *pcrOuter = CDrvdPropRelational::Pdprel(pexprOuter->PdpDerive())->PcrsOutput()->PcrAny();
 	const CColRef *pcrInner = CDrvdPropRelational::Pdprel(pexprInner->PdpDerive())->PcrsOutput()->PcrAny();
-	CExpression *pexprOuterJoinPred = CUtils::PexprScalarEqCmp(pmp, pcrOuter, pcrInner);
+	/* FIXME COLLATION */
+	OID oidResultCollation = OidInvalidCollation;
+	OID oidInputCollation = OidInvalidCollation;
+
+	CExpression *pexprOuterJoinPred = CUtils::PexprScalarEqCmp(pmp, pcrOuter, pcrInner, oidResultCollation, oidInputCollation);
 	CExpression *pexprOuterJoin =
 			GPOS_NEW(pmp) CExpression
 				(
@@ -1173,7 +1202,7 @@ CTestUtils::PexprLogicalSelectOnOuterJoin
 				pexprInner,
 				pexprOuterJoinPred
 				);
-	CExpression *pexprPred = CUtils::PexprScalarEqCmp(pmp, pcrInner, CUtils::PexprScalarConstInt4(pmp, 5 /*iVal*/));
+	CExpression *pexprPred = CUtils::PexprScalarEqCmp(pmp, pcrInner, CUtils::PexprScalarConstInt4(pmp, 5 /*iVal*/), oidResultCollation, oidInputCollation);
 
 	return CUtils::PexprLogicalSelect(pmp, pexprOuterJoin, pexprPred);
 }
@@ -1518,8 +1547,12 @@ CTestUtils::PexprLeftOuterJoinOnNAryJoin
 	// get a random column from NAry join output
 	CColRef *pcrRight = CDrvdPropRelational::Pdprel(pexprNAryJoin->PdpDerive())->PcrsOutput()->PcrAny();
 
-	CExpression *pexprPred1 = CUtils::PexprScalarEqCmp(pmp, pcrLeft1, pcrRight);
-	CExpression *pexprPred2 = CUtils::PexprScalarEqCmp(pmp, pcrLeft2, pcrRight);
+	/* FIXME COLLATION */
+	OID oidResultCollation = OidInvalidCollation;
+	OID oidInputCollation = OidInvalidCollation;
+
+	CExpression *pexprPred1 = CUtils::PexprScalarEqCmp(pmp, pcrLeft1, pcrRight, oidResultCollation, oidInputCollation);
+	CExpression *pexprPred2 = CUtils::PexprScalarEqCmp(pmp, pcrLeft2, pcrRight, oidResultCollation, oidInputCollation);
 	CExpression *pexprPred = CPredicateUtils::PexprConjunction(pmp, pexprPred1, pexprPred2);
 	pexprPred1->Release();
 	pexprPred2->Release();
@@ -1560,14 +1593,18 @@ CTestUtils::PexprNAryJoinOnLeftOuterJoin
 	// get a random column from LOJ inner child output
 	CColRef *pcrRight = CDrvdPropRelational::Pdprel(pexprLOJInnerChild->PdpDerive())->PcrsOutput()->PcrAny();
 
-	CExpression *pexprPred = CUtils::PexprScalarEqCmp(pmp, pcrLeft, pcrRight);
+	/* FIXME COLLATION */
+	OID oidResultCollation = OidInvalidCollation;
+	OID oidInputCollation = OidInvalidCollation;
+
+	CExpression *pexprPred = CUtils::PexprScalarEqCmp(pmp, pcrLeft, pcrRight, oidResultCollation, oidInputCollation);
 	CExpression *pexprLOJ = GPOS_NEW(pmp) CExpression (pmp, GPOS_NEW(pmp) CLogicalLeftOuterJoin(pmp), pexprLOJOuterChild, pexprLOJInnerChild, pexprPred);
 
 	// replace NAry-Join scalar predicate with LOJ expression
 	pdrgpexpr->Replace(pdrgpexpr->UlLength() - 1, pexprLOJ);
 
 	// create new scalar predicate for NAry join
-	CExpression *pexprNewPred = CUtils::PexprScalarEqCmp(pmp, pcrNAryJoin, pcrRight);
+	CExpression *pexprNewPred = CUtils::PexprScalarEqCmp(pmp, pcrNAryJoin, pcrRight, oidResultCollation, oidInputCollation);
 	pdrgpexpr->Append(CPredicateUtils::PexprConjunction(pmp, pexprScalar, pexprNewPred));
 	pexprNAryJoin->Release();
 	pexprNewPred->Release();
@@ -2117,8 +2154,12 @@ CTestUtils::PexprLogicalSelectWithEqPredicateOverDynamicGet
 	CColRef *pcr = CUtils::PcrExtractPartKey(pdrgpdrgpcr, 0 /*ulLevel*/);
 	CExpression *pexprScalarIdent = CUtils::PexprScalarIdent(pmp, pcr);
 	
+	/* FIXME COLLATION */
+	OID oidResultCollation = OidInvalidCollation;
+	OID oidInputCollation = OidInvalidCollation;
+
 	CExpression *pexprConst = CUtils::PexprScalarConstInt4(pmp, 5 /*iVal*/);
-	CExpression *pexprScalar = CUtils::PexprScalarEqCmp(pmp, pexprScalarIdent, pexprConst);
+	CExpression *pexprScalar = CUtils::PexprScalarEqCmp(pmp, pexprScalarIdent, pexprConst, oidResultCollation, oidInputCollation);
 	
 	return CUtils::PexprLogicalSelect(pmp, pexprDynamicGet, pexprScalar);
 }
@@ -2152,7 +2193,11 @@ CTestUtils::PexprLogicalSelectWithLTPredicateOverDynamicGet
 	CExpression *pexprScalarIdent = CUtils::PexprScalarIdent(pmp, pcr);
 	
 	CExpression *pexprConst = CUtils::PexprScalarConstInt4(pmp, 5 /*iVal*/);
-	CExpression *pexprScalar = CUtils::PexprScalarCmp(pmp, pexprScalarIdent, pexprConst, IMDType::EcmptL);
+
+	/* FIXME COLLATION */
+	OID oidResultCollation = OidInvalidCollation;
+	OID oidInputCollation = OidInvalidCollation;
+	CExpression *pexprScalar = CUtils::PexprScalarCmp(pmp, pexprScalarIdent, pexprConst, oidResultCollation, oidInputCollation, IMDType::EcmptL);
 	
 	return CUtils::PexprLogicalSelect(pmp, pexprDynamicGet, pexprScalar);
 }
@@ -2711,7 +2756,11 @@ CTestUtils::PexprLogicalNAryJoin
 			// get any two columns; one from each side
 			CColRef *pcrLeft = CDrvdPropRelational::Pdprel(pexprLeft->PdpDerive())->PcrsOutput()->PcrAny();
 			CColRef *pcrRight = CDrvdPropRelational::Pdprel(pexprRight->PdpDerive())->PcrsOutput()->PcrAny();
-			pdrgpexprPred->Append(CUtils::PexprScalarEqCmp(pmp, pcrLeft, pcrRight));
+			/* FIXME COLLATION */
+			OID oidResultCollation = OidInvalidCollation;
+			OID oidInputCollation = OidInvalidCollation;
+
+			pdrgpexprPred->Append(CUtils::PexprScalarEqCmp(pmp, pcrLeft, pcrRight, oidResultCollation, oidInputCollation));
 		}
 	}
 	pdrgpexpr->Append(CPredicateUtils::PexprConjunction(pmp, pdrgpexprPred));
@@ -2870,13 +2919,17 @@ CTestUtils::PexprScalarNestedPreds
 	CColRef *pcrLeft =  pcrs->PcrAny();
 	CExpression *pexprConstActual = CUtils::PexprScalarConstInt4(pmp, 3 /*iVal*/);
 
-	CExpression *pexprPredActual = CUtils::PexprScalarEqCmp(pmp, pcrLeft, pexprConstActual);
+	/* FIXME COLLATION is it okay to do this in test*/
+	OID oidResultCollation = OidInvalidCollation;
+	OID oidInputCollation = OidInvalidCollation;
+
+	CExpression *pexprPredActual = CUtils::PexprScalarEqCmp(pmp, pcrLeft, pexprConstActual, oidResultCollation, oidInputCollation);
 	CExpression *pexprPredExpected = NULL;
 
 	if (CScalarBoolOp::EboolopNot != eboolop)
 	{
 		CExpression *pexprConstExpected = CUtils::PexprScalarConstInt4(pmp, 5 /*iVal*/);
-		pexprPredExpected = CUtils::PexprScalarEqCmp(pmp, pcrLeft, pexprConstExpected);
+		pexprPredExpected = CUtils::PexprScalarEqCmp(pmp, pcrLeft, pexprConstExpected, oidResultCollation, oidInputCollation);
 	}
 
 	DrgPexpr *pdrgpexprActual = GPOS_NEW(pmp) DrgPexpr(pmp);
@@ -2956,7 +3009,11 @@ CTestUtils::EqualityPredicate
 	CColRef *pcrRight = pcrsRight->PcrAny();
 
 	// generate correlated predicate
-	CExpression *pexprCorrelation = CUtils::PexprScalarEqCmp(pmp, pcrLeft, pcrRight);
+	/* FIXME COLLATION */
+	OID oidResultCollation = OidInvalidCollation;
+	OID oidInputCollation = OidInvalidCollation;
+
+	CExpression *pexprCorrelation = CUtils::PexprScalarEqCmp(pmp, pcrLeft, pcrRight, oidResultCollation, oidInputCollation);
 
 	pdrgpexpr->Append(pexprCorrelation);
 }
@@ -4304,7 +4361,11 @@ CTestUtils::PexprScalarCmpIdentToConstant
 	CColRef *pcrAny =  pcrs->PcrAny();
 	CExpression *pexprConst =  CUtils::PexprScalarConstInt4(pmp, 10 /* iVal */);
 
-	return CUtils::PexprScalarEqCmp(pmp, pcrAny, pexprConst);
+	/* FIXME COLLATION */
+	OID oidResultCollation = OidInvalidCollation;
+	OID oidInputCollation = OidInvalidCollation;
+
+	return CUtils::PexprScalarEqCmp(pmp, pcrAny, pexprConst, oidResultCollation, oidInputCollation);
 }
 
 

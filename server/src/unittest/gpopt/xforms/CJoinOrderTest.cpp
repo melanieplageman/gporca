@@ -107,10 +107,12 @@ CJoinOrderTest::EresUnittest_Expand()
 	}
 	
 	pdrgpexprConj->Release();
-
+	/* FIXME COLLATION */
+	OID oidResultCollation = OidInvalidCollation;
+	OID oidInputCollation = OidInvalidCollation;
 	// single-table predicate
 	CColRefSet *pcrsOutput = CDrvdPropRelational::Pdprel((*pdrgpexpr)[ulArity - 2]->PdpDerive())->PcrsOutput();
-	CExpression *pexprSingleton = CUtils::PexprScalarEqCmp(pmp, pcrsOutput->PcrAny(), pcrsOutput->PcrAny());
+	CExpression *pexprSingleton = CUtils::PexprScalarEqCmp(pmp, pcrsOutput->PcrAny(), pcrsOutput->PcrAny(), oidResultCollation, oidInputCollation);
 	
 	pdrgpexprTest->Append(pexprSingleton);
 	

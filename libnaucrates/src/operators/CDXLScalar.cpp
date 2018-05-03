@@ -44,5 +44,11 @@ CDXLScalar::Edxloperatortype() const
 	return EdxloptypeScalar;
 }
 
+OID
+CDXLScalar::OidCollation() const
+{
+	return OidInvalidCollation;
+}
+
 
 // EOF

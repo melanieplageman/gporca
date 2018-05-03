@@ -136,7 +136,11 @@ namespace gpnaucrates
 		//	|  |--CScalarIdent "column_0002" (2)
 		//	|  +--CScalarConst (10)
 		//	+--CScalarIdent "column_0000" (0)
-		CExpression *pScalarCmp = CUtils::PexprScalarEqCmp(pmp, pexprScOp, pexprScalarIdentRight);
+		/* FIXME COLLATION */
+		OID oidResultCollation = OidInvalidCollation;
+		OID oidInputCollation = OidInvalidCollation;
+
+		CExpression *pScalarCmp = CUtils::PexprScalarEqCmp(pmp, pexprScOp, pexprScalarIdentRight, oidResultCollation, oidInputCollation);
 
 		IStatistics *pstatsJoin = CJoinStatsProcessor::PstatsJoinArray(pmp, pdrgpstat, pScalarCmp,
 																	   IStatistics::EsjtInnerJoin);
@@ -199,7 +203,11 @@ namespace gpnaucrates
 		//	|  |--CScalarIdent "column_0002" (2)
 		//	|  +--CScalarIdent "column_0001" (1)
 		//	+--CScalarIdent "column_0000" (0)
-		CExpression *pScalarCmp = CUtils::PexprScalarEqCmp(pmp, pexprScOp, pexprScalarIdentRight);
+		/* FIXME COLLATION */
+		OID oidResultCollation = OidInvalidCollation;
+		OID oidInputCollation = OidInvalidCollation;
+
+		CExpression *pScalarCmp = CUtils::PexprScalarEqCmp(pmp, pexprScOp, pexprScalarIdentRight, oidResultCollation, oidInputCollation);
 		IStatistics *pstatsJoin = CJoinStatsProcessor::PstatsJoinArray(pmp, pdrgpstat, pScalarCmp,
 																	   IStatistics::EsjtInnerJoin);
 
@@ -263,6 +271,7 @@ namespace gpnaucrates
 		CExpression *pScalarCmp = CUtils::PexprScalarCmp(pmp,
 														 pexprScOp,
 														 pexprScalarIdentRight,
+														 OidInvalidCollation, OidInvalidCollation, /* FIXME COLLATION */ /* is it okay to have defaults for the test */
 														 IMDType::EcmptLEq
 		);
 

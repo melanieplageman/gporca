@@ -352,7 +352,10 @@ CPhysicalPartitionSelector::PexprPartPred
 		if (NULL != m_pdrgpdrgpcr)
 		{
 			CColRef *pcrPartKey = (*(*m_pdrgpdrgpcr)[ulPartLevel])[0];
-			return CUtils::PexprScalarEqCmp(pmp, pcrPartKey, pexpr);
+			/* FIXME COLLATION */
+			OID oidResultCollation = OidInvalidCollation;
+			OID oidInputCollation = OidInvalidCollation;
+			return CUtils::PexprScalarEqCmp(pmp, pcrPartKey, pexpr, oidResultCollation, oidInputCollation);
 		}
 		else
 		{

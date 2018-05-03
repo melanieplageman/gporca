@@ -1984,7 +1984,11 @@ CPredicateUtils::ExtractIndexPredicates
 		if (CUtils::FScalarIdentBoolType(pexprCond))
 		{
 			// expression is a column identifier of boolean type: convert to "col = true"
-			pexprCond = CUtils::PexprScalarEqCmp(pmp, pexprCond, CUtils::PexprScalarConstBool(pmp, true /*fVal*/, false /*fNull*/));
+			/* FIXME COLLATION */
+			OID oidResultCollation = OidInvalidCollation;
+			OID oidInputCollation = OidInvalidCollation;
+
+			pexprCond = CUtils::PexprScalarEqCmp(pmp, pexprCond, CUtils::PexprScalarConstBool(pmp, true /*fVal*/, false /*fNull*/), oidResultCollation, oidInputCollation);
 		}
 		else if (FNot(pexprCond) && CUtils::FScalarIdentBoolType((*pexprCond)[0]))
 		{
@@ -1992,7 +1996,11 @@ CPredicateUtils::ExtractIndexPredicates
 			CExpression *pexprScId = (*pexprCond)[0];
 			pexprCond->Release();
 			pexprScId->AddRef();
-			pexprCond = CUtils::PexprScalarEqCmp(pmp, pexprScId, CUtils::PexprScalarConstBool(pmp, false /*fVal*/, false /*fNull*/));
+
+			/* FIXME COLLATION */
+			OID oidResultCollation = OidInvalidCollation;
+			OID oidInputCollation = OidInvalidCollation;
+			pexprCond = CUtils::PexprScalarEqCmp(pmp, pexprScId, CUtils::PexprScalarConstBool(pmp, false /*fVal*/, false /*fNull*/), oidResultCollation, oidInputCollation);
 		}
 		else
 		{
@@ -2088,7 +2096,11 @@ CPredicateUtils::PexprInverseComparison
 	(*pexprCmp)[1]->AddRef();
 	pmdidInverseOp->AddRef();
 
-	return CUtils::PexprScalarCmp(pmp, (*pexprCmp)[0], (*pexprCmp)[1], *pstrFirst, pmdidInverseOp);
+	/* FIXME COLLATION */
+	OID oidResultCollation = OidInvalidCollation;
+	OID oidInputCollation = OidInvalidCollation;
+
+	return CUtils::PexprScalarCmp(pmp, (*pexprCmp)[0], (*pexprCmp)[1], oidResultCollation, oidInputCollation, *pstrFirst, pmdidInverseOp);
 }
 
 // convert predicates of the form (true = (a Cmp b)) into (a Cmp b);

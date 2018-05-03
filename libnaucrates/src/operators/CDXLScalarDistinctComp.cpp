@@ -29,10 +29,12 @@ using namespace gpdxl;
 CDXLScalarDistinctComp::CDXLScalarDistinctComp
 	(
 	IMemoryPool *pmp,
-	IMDId *pmdidOp
+	IMDId *pmdidOp,
+	OID oidCollation,
+	OID oidInputCollation
 	)
 	:
-	CDXLScalarComp(pmp, pmdidOp, GPOS_NEW(pmp) CWStringConst(pmp, CDXLTokens::PstrToken(EdxltokenEq)->Wsz()))
+	CDXLScalarComp(pmp, pmdidOp, GPOS_NEW(pmp) CWStringConst(pmp, CDXLTokens::PstrToken(EdxltokenEq)->Wsz()), oidCollation, oidInputCollation)
 {
 }
 
@@ -87,6 +89,16 @@ CDXLScalarDistinctComp::SerializeToDXL
 	pxmlser->OpenElement(CDXLTokens::PstrToken(EdxltokenNamespacePrefix), pstrElemName);
 
 	m_pmdid->Serialize(pxmlser, CDXLTokens::PstrToken(EdxltokenOpNo));
+
+	if (OidInvalidCollation != OidCollation())
+	{
+		pxmlser->AddAttribute(CDXLTokens::PstrToken(EdxltokenCollation), OidCollation());
+	}
+
+	if (OidInvalidCollation != OidInputCollation())
+	{
+		pxmlser->AddAttribute(CDXLTokens::PstrToken(EdxltokenInputCollation), OidInputCollation());
+	}
 	
 	pdxln->SerializeChildrenToDXL(pxmlser);
 	pxmlser->CloseElement(CDXLTokens::PstrToken(EdxltokenNamespacePrefix), pstrElemName);	

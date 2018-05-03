@@ -627,7 +627,8 @@ CTranslatorExprToDXLUtils::PdxlnPartialScanTestRange
 																pmp,
 																pmdidEq,
 																GPOS_NEW(pmp) CWStringConst(pmp, pmdidEq->Wsz()),
-																Edxlarraycomptypeany
+																Edxlarraycomptypeany,
+																OidInvalidCollation /* FIXME COLLATION */ /* collation and partitions? */
 																),
 													pdxlnScalar,
 													pdxlnPartList
@@ -753,7 +754,7 @@ CTranslatorExprToDXLUtils::PdxlnRangePointPredicate
 	pmdidCmpExl->AddRef();
 	
 	CWStringConst *pstrCmpExcl = GPOS_NEW(pmp) CWStringConst(pmp, pmda->Pmdscop(pmdidCmpExl)->Mdname().Pstr()->Wsz());
-	CDXLNode *pdxlnPredicateExclusive = GPOS_NEW(pmp) CDXLNode(pmp, GPOS_NEW(pmp) CDXLScalarComp(pmp, pmdidCmpExl, pstrCmpExcl), pdxlnPoint, pdxlnPartBound);
+	CDXLNode *pdxlnPredicateExclusive = GPOS_NEW(pmp) CDXLNode(pmp, GPOS_NEW(pmp) CDXLScalarComp(pmp, pmdidCmpExl, pstrCmpExcl, OidInvalidCollation, OidInvalidCollation /* FIXME COLLATION */ /* not sure what should go here */), pdxlnPoint, pdxlnPartBound);
 	
 	// generate a predicate of the form "point <= col and colIncluded" / "point >= col and colIncluded"
 	pmdidCmpIncl->AddRef();
@@ -761,7 +762,17 @@ CTranslatorExprToDXLUtils::PdxlnRangePointPredicate
 	CWStringConst *pstrCmpIncl = GPOS_NEW(pmp) CWStringConst(pmp, pmda->Pmdscop(pmdidCmpIncl)->Mdname().Pstr()->Wsz());
 	pdxlnPartBound->AddRef();
 	pdxlnPoint->AddRef();
-	CDXLNode *pdxlnCmpIncl = GPOS_NEW(pmp) CDXLNode(pmp, GPOS_NEW(pmp) CDXLScalarComp(pmp, pmdidCmpIncl, pstrCmpIncl), pdxlnPoint, pdxlnPartBound);
+	CDXLNode *pdxlnCmpIncl = GPOS_NEW(pmp) CDXLNode(pmp, GPOS_NEW(pmp) CDXLScalarComp
+																					(
+																					pmp,
+																					pmdidCmpIncl,
+																					pstrCmpIncl,
+																					OidInvalidCollation,
+																					OidInvalidCollation /* FIXME COLLATION */ /* not sure what should go here */
+																					),
+																		pdxlnPoint,
+																		pdxlnPartBound
+																		);
 
 	CDXLNode *pdxlnPartBoundInclusion = GPOS_NEW(pmp) CDXLNode
 										(
@@ -925,7 +936,8 @@ CTranslatorExprToDXLUtils::PdxlnListFilterScCmp
 															pmp,
 															pmdidScCmp,
 															GPOS_NEW(pmp) CWStringConst(pmp, pstrScCmp->Wsz()),
-															Edxlarraycomptypeany
+															Edxlarraycomptypeany,
+															OidInvalidCollation /* FIXME COLLATION */
 															),
 												pdxlnOther,
 												pdxlnPartKey
@@ -960,7 +972,9 @@ CTranslatorExprToDXLUtils::PdxlnRangeFilterScCmp
 	IMDId *pmdidTypeOther,
 	IMDId *pmdidTypeCastExpr,
 	IMDId *pmdidCastFunc,
-	OID oidResultCollation,
+	OID oidCastResultCollation,
+	OID oidScCmpResultCollation,
+	OID oidScCmpInputCollation,
 	IMDType::ECmpType ecmpt,
 	ULONG ulPartLevel
 	)
@@ -976,7 +990,9 @@ CTranslatorExprToDXLUtils::PdxlnRangeFilterScCmp
 				pmdidTypeOther,
 				pmdidTypeCastExpr,
 				pmdidCastFunc,
-				oidResultCollation,
+				oidCastResultCollation,
+				oidScCmpResultCollation,
+				oidScCmpInputCollation,
 				ulPartLevel
 				);
 	}
@@ -998,7 +1014,8 @@ CTranslatorExprToDXLUtils::PdxlnRangeFilterScCmp
 		ecmptScCmp = IMDType::EcmptG;
 	}
 	
-	CDXLNode *pdxlnPredicateExclusive = PdxlnCmp(pmp, pmda, ulPartLevel, fLowerBound, pdxlnScalar, ecmptScCmp, pmdidTypePartKey, pmdidTypeOther, pmdidTypeCastExpr, pmdidCastFunc, oidResultCollation);
+	/* FIXME COLLATION */
+	CDXLNode *pdxlnPredicateExclusive = PdxlnCmp(pmp, pmda, ulPartLevel, fLowerBound, pdxlnScalar, ecmptScCmp, pmdidTypePartKey, pmdidTypeOther, pmdidTypeCastExpr, pmdidCastFunc, oidCastResultCollation, oidScCmpResultCollation, oidScCmpInputCollation);
 	
 	if (IMDType::EcmptLEq != ecmpt && IMDType::EcmptGEq != ecmpt)
 	{
@@ -1007,7 +1024,7 @@ CTranslatorExprToDXLUtils::PdxlnRangeFilterScCmp
 	}
 	
 	pdxlnScalar->AddRef();
-	CDXLNode *pdxlnInclusiveCmp = PdxlnCmp(pmp, pmda, ulPartLevel, fLowerBound, pdxlnScalar, ecmpt, pmdidTypePartKey, pmdidTypeOther, pmdidTypeCastExpr, pmdidCastFunc, oidResultCollation);
+	CDXLNode *pdxlnInclusiveCmp = PdxlnCmp(pmp, pmda, ulPartLevel, fLowerBound, pdxlnScalar, ecmpt, pmdidTypePartKey, pmdidTypeOther, pmdidTypeCastExpr, pmdidCastFunc, oidCastResultCollation, oidScCmpResultCollation, oidScCmpInputCollation);
 	CDXLNode *pdxlnInclusiveBoolPredicate = GPOS_NEW(pmp) CDXLNode(pmp, GPOS_NEW(pmp) CDXLScalarPartBoundInclusion(pmp, ulPartLevel, fLowerBound));
 
 	CDXLNode *pdxlnPredicateInclusive = GPOS_NEW(pmp) CDXLNode(pmp, GPOS_NEW(pmp) CDXLScalarBoolExpr(pmp, Edxland), pdxlnInclusiveCmp, pdxlnInclusiveBoolPredicate);
@@ -1034,13 +1051,15 @@ CTranslatorExprToDXLUtils::PdxlnRangeFilterEqCmp
 	IMDId *pmdidTypeOther,
 	IMDId *pmdidTypeCastExpr,
 	IMDId *pmdidCastFunc,
-	OID oidResultCollation,
+	OID oidCastResultCollation,
+	OID oidScCmpResultCollation,
+	OID oidScCmpInputCollation,
 	ULONG ulPartLevel
 	)
 {
-	CDXLNode *pdxlnPredicateMin = PdxlnRangeFilterPartBound(pmp, pmda, pdxlnScalar, pmdidTypePartKey, pmdidTypeOther, pmdidTypeCastExpr, pmdidCastFunc, oidResultCollation, ulPartLevel, true /*fLowerBound*/, IMDType::EcmptL);
+	CDXLNode *pdxlnPredicateMin = PdxlnRangeFilterPartBound(pmp, pmda, pdxlnScalar, pmdidTypePartKey, pmdidTypeOther, pmdidTypeCastExpr, pmdidCastFunc, oidCastResultCollation, oidScCmpResultCollation, oidScCmpInputCollation, ulPartLevel, true /*fLowerBound*/, IMDType::EcmptL);
 	pdxlnScalar->AddRef();
-	CDXLNode *pdxlnPredicateMax = PdxlnRangeFilterPartBound(pmp, pmda, pdxlnScalar, pmdidTypePartKey, pmdidTypeOther, pmdidTypeCastExpr, pmdidCastFunc, oidResultCollation, ulPartLevel, false /*fLowerBound*/, IMDType::EcmptG);
+	CDXLNode *pdxlnPredicateMax = PdxlnRangeFilterPartBound(pmp, pmda, pdxlnScalar, pmdidTypePartKey, pmdidTypeOther, pmdidTypeCastExpr, pmdidCastFunc, oidCastResultCollation, oidScCmpResultCollation, oidScCmpInputCollation, ulPartLevel, false /*fLowerBound*/, IMDType::EcmptG);
 		
 	// return the conjunction of the predicate for the lower and upper bounds
 	return GPOS_NEW(pmp) CDXLNode(pmp, GPOS_NEW(pmp) CDXLScalarBoolExpr(pmp, Edxland), pdxlnPredicateMin, pdxlnPredicateMax);
@@ -1066,7 +1085,9 @@ CTranslatorExprToDXLUtils::PdxlnRangeFilterPartBound
 	IMDId *pmdidTypeOther,
 	IMDId *pmdidTypeCastExpr,
 	IMDId *pmdidCastFunc,
-	OID oidResultCollation,
+	OID oidCastResultCollation,
+	OID oidScCmpResultCollation,
+	OID oidScCmpInputCollation,
 	ULONG ulPartLevel,
 	ULONG fLowerBound,
 	IMDType::ECmpType ecmpt
@@ -1080,10 +1101,10 @@ CTranslatorExprToDXLUtils::PdxlnRangeFilterPartBound
 		ecmptInc = IMDType::EcmptGEq;
 	}
 
-	CDXLNode *pdxlnPredicateExclusive = PdxlnCmp(pmp, pmda, ulPartLevel, fLowerBound, pdxlnScalar, ecmpt, pmdidTypePartKey, pmdidTypeOther, pmdidTypeCastExpr, pmdidCastFunc, oidResultCollation);
+	CDXLNode *pdxlnPredicateExclusive = PdxlnCmp(pmp, pmda, ulPartLevel, fLowerBound, pdxlnScalar, ecmpt, pmdidTypePartKey, pmdidTypeOther, pmdidTypeCastExpr, pmdidCastFunc, oidCastResultCollation, oidScCmpResultCollation, oidScCmpInputCollation);
 
 	pdxlnScalar->AddRef();
-	CDXLNode *pdxlnInclusiveCmp = PdxlnCmp(pmp, pmda, ulPartLevel, fLowerBound, pdxlnScalar, ecmptInc, pmdidTypePartKey, pmdidTypeOther, pmdidTypeCastExpr, pmdidCastFunc, oidResultCollation);
+	CDXLNode *pdxlnInclusiveCmp = PdxlnCmp(pmp, pmda, ulPartLevel, fLowerBound, pdxlnScalar, ecmptInc, pmdidTypePartKey, pmdidTypeOther, pmdidTypeCastExpr, pmdidCastFunc, oidCastResultCollation, oidScCmpResultCollation, oidScCmpInputCollation);
 	
 	CDXLNode *pdxlnInclusiveBoolPredicate = GPOS_NEW(pmp) CDXLNode(pmp, GPOS_NEW(pmp) CDXLScalarPartBoundInclusion(pmp, ulPartLevel, fLowerBound));
 	
@@ -1208,7 +1229,9 @@ CTranslatorExprToDXLUtils::PdxlnCmp
 	IMDId *pmdidTypeExpr,
 	IMDId *pmdidTypeCastExpr,
 	IMDId *pmdidCastFunc,
-	OID oidResultCollation
+	OID oidCastResultCollation,
+	OID oidScCmpResultCollation,
+	OID oidScCmpInputCollation
 	)
 {
 	IMDId *pmdidScCmp = NULL;
@@ -1227,7 +1250,7 @@ CTranslatorExprToDXLUtils::PdxlnCmp
 	
 	pmdidScCmp->AddRef();
 	
-	CDXLScalarComp *pdxlopCmp = GPOS_NEW(pmp) CDXLScalarComp(pmp, pmdidScCmp, GPOS_NEW(pmp) CWStringConst(pmp, pstrScCmp->Wsz()));
+	CDXLScalarComp *pdxlopCmp = GPOS_NEW(pmp) CDXLScalarComp(pmp, pmdidScCmp, GPOS_NEW(pmp) CWStringConst(pmp, pstrScCmp->Wsz()), oidScCmpResultCollation, oidScCmpInputCollation);
 	CDXLNode *pdxlnScCmp = GPOS_NEW(pmp) CDXLNode(pmp, pdxlopCmp);
 	
 	pmdidTypePartKey->AddRef();
@@ -1247,8 +1270,8 @@ CTranslatorExprToDXLUtils::PdxlnCmp
 															pmp,
 															pmdidTypeCastExpr,
 															pmdidCastFunc,
-															oidResultCollation,
-															OidInvalidCollation /* input collation is only needed when a cast is created from a function expression*/
+															oidCastResultCollation,
+															OidInvalidCollation /* input collation is only needed when a cast is created from a function expression */
 															),
 										 pdxlnPartBound
 										 );

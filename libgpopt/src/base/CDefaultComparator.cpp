@@ -76,7 +76,16 @@ CDefaultComparator::FEvalComparison
 	CExpression *pexpr1 = GPOS_NEW(pmp) CExpression(pmp, GPOS_NEW(pmp) CScalarConst(pmp, pdatum1Copy));
 	IDatum *pdatum2Copy = pdatum2->PdatumCopy(pmp);
 	CExpression *pexpr2 = GPOS_NEW(pmp) CExpression(pmp, GPOS_NEW(pmp) CScalarConst(pmp, pdatum2Copy));
-	CExpression *pexprComp = CUtils::PexprScalarCmp(pmp, pexpr1, pexpr2, ecmpt);
+	OID oidResultCollation = OidInvalidCollation;
+	OID oidInputCollation = OidInvalidCollation;
+	// if collations are the same, set the input and output collations for the scalar compare using the shared collation
+	/* FIXME COLLATION */ /* is this right? */
+	if (pdatum1->OidCollation() == pdatum2->OidCollation()) 
+	{
+		oidResultCollation = pdatum1->OidCollation();
+		oidInputCollation = pdatum1->OidCollation();
+	}
+	CExpression *pexprComp = CUtils::PexprScalarCmp(pmp, pexpr1, pexpr2, oidResultCollation, oidInputCollation, ecmpt);
 
 	CExpression *pexprResult = m_pceeval->PexprEval(pexprComp);
 	pexprComp->Release();

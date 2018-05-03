@@ -225,7 +225,11 @@ CExpressionPreprocessor::PexprSimplifyQuantifiedSubqueries
 			pmdid->AddRef();
 			pexprScalar->AddRef();
 
-			return CUtils::PexprScalarCmp(pmp, pexprScalar, pexprSubquery, *pstr, pmdid);
+			/* FIXME COLLATION */
+			OID oidResultCollation = OidInvalidCollation;
+			OID oidInputCollation = OidInvalidCollation;
+
+			return CUtils::PexprScalarCmp(pmp, pexprScalar, pexprSubquery, oidResultCollation, oidInputCollation, *pstr, pmdid);
 		}
 	}
 
@@ -1084,7 +1088,11 @@ CExpressionPreprocessor::PexprConjEqualityPredicates
 				break;
 			}
 
-			pdrgpexpr->Append(CUtils::PexprScalarEqCmp(pmp, pcrLeft, pcrRight));
+			/* FIXME COLLATION */
+			OID oidResultCollation = OidInvalidCollation;
+			OID oidInputCollation = OidInvalidCollation;
+
+			pdrgpexpr->Append(CUtils::PexprScalarEqCmp(pmp, pcrLeft, pcrRight, oidResultCollation, oidInputCollation));
 			ulPreds++;
 		}
 	}
@@ -2034,7 +2042,11 @@ CExpressionPreprocessor::ConvertInToSimpleExists
 	pexprRight->AddRef();
 	pexprLeft->AddRef();
 
-	CExpression *pexprScalarOp = CUtils::PexprScalarCmp(pmp, pexprLeft, pexprRight, *pstr, pmdid);
+	/* FIXME COLLATION */
+	OID oidResultCollation = OidInvalidCollation;
+	OID oidInputCollation = OidInvalidCollation;
+
+	CExpression *pexprScalarOp = CUtils::PexprScalarCmp(pmp, pexprLeft, pexprRight, oidResultCollation, oidInputCollation, *pstr, pmdid);
 
 	// EXISTS subquery becomes the logical projects relational child.
 	CExpression *pexprSubqOfExists = (*pexprLogicalProject)[0];

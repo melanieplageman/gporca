@@ -83,13 +83,19 @@ namespace gpopt
 		DrgPcr *pdrgpcr = (*pdrgpdrgpcr)[0];
 		GPOS_ASSERT(1 == pdrgpcr->UlLength());
 		CColRef *pcrPartKey = (*pdrgpcr)[0];
-		
+
+		/* FIXME COLLATION */
+		OID oidResultCollation = OidInvalidCollation;
+		OID oidInputCollation = OidInvalidCollation;
+
 		// construct a comparison pk = a
 		CExpression *pexprScalar = CUtils::PexprScalarEqCmp
 											(
 											pmp,
 											CUtils::PexprScalarIdent(pmp, pcr),
-											CUtils::PexprScalarIdent(pmp, pcrPartKey)
+											CUtils::PexprScalarIdent(pmp, pcrPartKey),
+											oidResultCollation,
+											oidInputCollation
 											);
 		
 		if (fOuterPartitioned)
@@ -126,7 +132,11 @@ namespace gpopt
 
 		CDrvdPropRelational *pdprelRight = CDrvdPropRelational::Pdprel(pexprRight->PdpDerive());
 		CColRef *pcrRight = pdprelRight->PcrsOutput()->PcrAny();
-		CExpression *pexprEquality = CUtils::PexprScalarEqCmp(pmp, pcrLeft, pcrRight);
+		/* FIXME COLLATION */
+		OID oidResultCollation = OidInvalidCollation;
+		OID oidInputCollation = OidInvalidCollation;
+
+		CExpression *pexprEquality = CUtils::PexprScalarEqCmp(pmp, pcrLeft, pcrRight, oidResultCollation, oidInputCollation);
 
 		return CUtils::PexprLogicalJoin<T>(pmp, pexprLeft, pexprRight, pexprEquality);
 	}

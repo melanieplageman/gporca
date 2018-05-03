@@ -69,7 +69,9 @@ namespace gpopt
 				IMDId *pmdidTypeExpr,
 				IMDId *pmdidTypeCastExpr,
 				IMDId *pmdidCastFunc,
-				OID oidResultCollation
+				OID oidCastResultCollation,
+				OID oidScCmpResultCollation,
+				OID oidScCmpInputCollation
 				);
 			
 			
@@ -325,7 +327,9 @@ namespace gpopt
 				IMDId *pmdidTypeOther,
 				IMDId *pmdidTypeCastExpr,
 				IMDId *pmdidCastFunc,
-				OID oidResultCollation,
+				OID oidCastResultCollation,
+				OID oidScCmpResultCollation,
+				OID oidScCmpInputCollation,
 				IMDType::ECmpType ecmpt,
 				ULONG ulPartLevel
 				);
@@ -341,7 +345,9 @@ namespace gpopt
 				IMDId *pmdidTypeOther,
 				IMDId *pmdidTypeCastExpr,
 				IMDId *pmdidCastFunc,
-				OID oidResultCollation,
+				OID oidCastResultCollation,
+				OID oidScCmpResultCollation,
+				OID oidScCmpInputCollation,
 				ULONG ulPartLevel
 				);
 			
@@ -356,7 +362,9 @@ namespace gpopt
 				IMDId *pmdidTypeOther,
 				IMDId *pmdidTypeCastExpr,
 				IMDId *pmdidCastFunc,
-				OID oidResultCollation,
+				OID oidCastResultCollation,
+				OID oidScCmpResultCollation,
+				OID oidScCmpInputCollation,
 				ULONG ulPartLevel,
 				ULONG fLowerBound,
 				IMDType::ECmpType ecmpt

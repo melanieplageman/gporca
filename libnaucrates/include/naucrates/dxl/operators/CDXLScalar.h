@@ -49,6 +49,9 @@ namespace gpdxl
 			~CDXLScalar(){};
 			
 			Edxloptype Edxloperatortype() const;
+
+			virtual
+			OID OidCollation() const;
 			
 			// does the operator return a boolean result
 			virtual

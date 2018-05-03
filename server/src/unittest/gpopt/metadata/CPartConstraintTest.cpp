@@ -185,8 +185,12 @@ CPartConstraintTest::PcnstrInterval
 
 	// AND
 	DrgPexpr *pdrgpexpr = GPOS_NEW(pmp) DrgPexpr(pmp);
-	pdrgpexpr->Append(CUtils::PexprScalarCmp(pmp, pcr, pexprConstLeft, IMDType::EcmptGEq));
-	pdrgpexpr->Append(CUtils::PexprScalarCmp(pmp, pcr, pexprConstRight, IMDType::EcmptL));
+	/* FIXME COLLATION */
+	OID oidResultCollation = OidInvalidCollation;
+	OID oidInputCollation = OidInvalidCollation;
+
+	pdrgpexpr->Append(CUtils::PexprScalarCmp(pmp, pcr, pexprConstLeft, oidResultCollation, oidInputCollation, IMDType::EcmptGEq));
+	pdrgpexpr->Append(CUtils::PexprScalarCmp(pmp, pcr, pexprConstRight, oidResultCollation, oidInputCollation, IMDType::EcmptL));
 
 	CExpression *pexpr = CUtils::PexprScalarBoolOp(pmp, CScalarBoolOp::EboolopAnd, pdrgpexpr);
 	CConstraint *pcnstr = CConstraintInterval::PciIntervalFromScalarExpr(pmp, pexpr, pcr);

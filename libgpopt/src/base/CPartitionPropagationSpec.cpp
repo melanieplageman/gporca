@@ -232,12 +232,16 @@ CPartitionPropagationSpec::PexprFilter
 {
 	CExpression *pexprScalar = m_ppfm->Pexpr(ulScanId);
 	GPOS_ASSERT(NULL != pexprScalar);
+	/* FIXME COLLATION */
+	OID oidResultCollation = OidInvalidCollation;
+	OID oidInputCollation = OidInvalidCollation;
 
 	if (CUtils::FScalarIdent(pexprScalar))
 	{
 		// condition of the form "pkey": translate into pkey = true
 		pexprScalar->AddRef();
-		pexprScalar = CUtils::PexprScalarEqCmp(pmp, pexprScalar, CUtils::PexprScalarConstBool(pmp, true /*fVal*/, false /*fNull*/));
+
+		pexprScalar = CUtils::PexprScalarEqCmp(pmp, pexprScalar, CUtils::PexprScalarConstBool(pmp, true /*fVal*/, false /*fNull*/), oidResultCollation, oidInputCollation);
 	}
 	else if (CPredicateUtils::FNot(pexprScalar) && CUtils::FScalarIdent((*pexprScalar)[0]))
 	{
@@ -245,7 +249,7 @@ CPartitionPropagationSpec::PexprFilter
 		CExpression *pexprId = (*pexprScalar)[0];
 		pexprId->AddRef();
 
-		pexprScalar = CUtils::PexprScalarEqCmp(pmp, pexprId, CUtils::PexprScalarConstBool(pmp, false /*fVal*/, false /*fNull*/));
+		pexprScalar = CUtils::PexprScalarEqCmp(pmp, pexprId, CUtils::PexprScalarConstBool(pmp, false /*fVal*/, false /*fNull*/), oidResultCollation, oidInputCollation);
 	}
 	else
 	{

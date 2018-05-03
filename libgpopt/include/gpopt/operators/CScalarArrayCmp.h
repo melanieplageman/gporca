@@ -55,6 +55,8 @@ namespace gpopt
 			
 			// array compare type
 			EArrCmpType m_earrccmpt;
+
+			OID m_oidInputCollation;
 			
 			// does operator return NULL on NULL input?
 			BOOL m_fReturnsNullOnNullInput;
@@ -74,7 +76,8 @@ namespace gpopt
 				IMemoryPool *pmp,
 				IMDId *pmdidOp,
 				const CWStringConst *pstrOp,
-				EArrCmpType earrcmpt
+				EArrCmpType earrcmpt,
+				OID oidInputCollation
 				);
 
 			// dtor
@@ -98,6 +101,8 @@ namespace gpopt
 			{
 				return m_earrccmpt;
 			}
+
+			OID OidInputCollation() const;
 			
 			// return a string for operator name
 			virtual 

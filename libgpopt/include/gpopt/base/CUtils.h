@@ -124,35 +124,35 @@ namespace gpopt
 			
 			// generate a comparison expression for two column references
 			static
-			CExpression *PexprScalarCmp(IMemoryPool *pmp, const CColRef *pcrLeft, const CColRef *pcrRight, CWStringConst strOp, IMDId *pmdidOp);
+			CExpression *PexprScalarCmp(IMemoryPool *pmp, const CColRef *pcrLeft, const CColRef *pcrRight, OID oidResultCollation /* the intended result collation for the scalar comparison (will often be 0 because it is likely a boolean) */, OID oidInputCollation, CWStringConst strOp, IMDId *pmdidOp);
 	
 			// generate a comparison expression for a column reference and an expression
 			static
-			CExpression *PexprScalarCmp(IMemoryPool *pmp, const CColRef *pcrLeft, CExpression *pexprRight, CWStringConst strOp, IMDId *pmdidOp);
+			CExpression *PexprScalarCmp(IMemoryPool *pmp, const CColRef *pcrLeft, CExpression *pexprRight, OID oidResultCollation, OID oidInputCollation, CWStringConst strOp, IMDId *pmdidOp);
 
 			// generate a comparison expression for an expression and a column reference
 			static
-			CExpression *PexprScalarCmp(IMemoryPool *pmp, CExpression *pexprLeft, const CColRef *pcrRight, CWStringConst strOp, IMDId *pmdidOp);
+			CExpression *PexprScalarCmp(IMemoryPool *pmp, CExpression *pexprLeft, const CColRef *pcrRight, OID oidResultCollation, OID oidInputCollation, CWStringConst strOp, IMDId *pmdidOp);
 
 			// generate a comparison expression for two expressions
 			static
-			CExpression *PexprScalarCmp(IMemoryPool *pmp, CExpression *pexprLeft, CExpression *pexprRight, CWStringConst strOp, IMDId *pmdidOp);
+			CExpression *PexprScalarCmp(IMemoryPool *pmp, CExpression *pexprLeft, CExpression *pexprRight, OID oidResultCollation, OID oidInputCollation, CWStringConst strOp, IMDId *pmdidOp);
 
 			// generate a comparison expression for a column reference and an expression
 			static
-			CExpression *PexprScalarCmp(IMemoryPool *pmp, const CColRef *pcrLeft, CExpression *pexprRight, IMDType::ECmpType ecmpt);
+			CExpression *PexprScalarCmp(IMemoryPool *pmp, const CColRef *pcrLeft, CExpression *pexprRight, OID oidResultCollation, OID oidInputCollation, IMDType::ECmpType ecmpt);
 
 			// generate a comparison expression between two column references
 			static
-			CExpression *PexprScalarCmp(IMemoryPool *pmp, const CColRef *pcrLeft, const CColRef *pcrRight, IMDType::ECmpType ecmpt);
+			CExpression *PexprScalarCmp(IMemoryPool *pmp, const CColRef *pcrLeft, const CColRef *pcrRight, OID oidResultCollation, OID oidInputCollation, IMDType::ECmpType ecmpt);
 
 			// generate a comparison expression between an expression and a column reference
 			static
-			CExpression *PexprScalarCmp(IMemoryPool *pmp, CExpression *pexprLeft, const CColRef *pcrRight, IMDType::ECmpType ecmpt);
+			CExpression *PexprScalarCmp(IMemoryPool *pmp, CExpression *pexprLeft, const CColRef *pcrRight, OID oidResultCollation, OID oidInputCollation, IMDType::ECmpType ecmpt);
 
 			// generate a comparison expression for two expressions
 			static
-			CExpression *PexprScalarCmp(IMemoryPool *pmp, CExpression *pexprLeft, CExpression *pexprRight, IMDType::ECmpType ecmpt);
+			CExpression *PexprScalarCmp(IMemoryPool *pmp, CExpression *pexprLeft, CExpression *pexprRight, OID oidResultCollation, OID oidInputCollation, IMDType::ECmpType ecmpt);
 
 			// generate a comparison against Zero
 			static
@@ -160,19 +160,19 @@ namespace gpopt
 
 			// generate an equality comparison expression for column references
 			static
-			CExpression *PexprScalarEqCmp(IMemoryPool *pmp, const CColRef *pcrLeft, const CColRef *pcrRight);
+			CExpression *PexprScalarEqCmp(IMemoryPool *pmp, const CColRef *pcrLeft, const CColRef *pcrRight, OID oidResultCollation, OID oidInputCollation);
 			
 			// generate an equality comparison expression for two expressions
 			static
-			CExpression *PexprScalarEqCmp(IMemoryPool *pmp, CExpression *pexprLeft, CExpression *pexprRight);
+			CExpression *PexprScalarEqCmp(IMemoryPool *pmp, CExpression *pexprLeft, CExpression *pexprRight, OID oidResultCollation, OID oidInputCollation);
 						
 			// generate an equality comparison expression for a column reference and an expression
 			static
-			CExpression *PexprScalarEqCmp(IMemoryPool *pmp, const CColRef *pcrLeft, CExpression *pexprRight);
+			CExpression *PexprScalarEqCmp(IMemoryPool *pmp, const CColRef *pcrLeft, CExpression *pexprRight, OID oidResultCollation, OID oidInputCollation);
 
 			// generate an equality comparison expression for an expression and a column reference
 			static
-			CExpression *PexprScalarEqCmp(IMemoryPool *pmp, CExpression *pexprLeft, const CColRef *pcrRight);
+			CExpression *PexprScalarEqCmp(IMemoryPool *pmp, CExpression *pexprLeft, const CColRef *pcrRight, OID oidResultCollation, OID oidInputCollation);
 
 			// generate an array comparison expression for a column reference and an expression
 			static

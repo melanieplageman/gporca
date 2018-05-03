@@ -652,12 +652,15 @@ CSubqueryHandler::FCreateOuterApplyForScalarSubquery
 			// count(*) subquery using CXformSimplifySubquery
 			pmdidInt8->AddRef();
 			/* FIXME COLLATION */ /* not sure if we should be putting something other than default invalid value here */
+			/* FIXME COLLATION */
+			OID oidScCmpResultCollation = OidInvalidCollation;
+			OID oidScCmpInputCollation = OidInvalidCollation;
 			*ppexprResidualScalar =
 				GPOS_NEW(pmp) CExpression
 					(
 					pmp,
 					GPOS_NEW(pmp) CScalarIf(pmp, pmdidInt8, OidInvalidCollation), // assuming return type of Int8, there is no valid collation
-					CUtils::PexprScalarEqCmp(pmp, pcrComputed, CUtils::PexprScalarConstInt8(pmp, -1 /*fVal*/)),
+					CUtils::PexprScalarEqCmp(pmp, pcrComputed, CUtils::PexprScalarConstInt8(pmp, -1 /*fVal*/), oidScCmpResultCollation, oidScCmpInputCollation),
 					CUtils::PexprScalarConstInt8(pmp, 0 /*fVal*/, true /*fNull*/),
 					pexprCoalesce
 					);
@@ -1481,7 +1484,10 @@ CSubqueryHandler::PexprScalarIf
 	}
 
 	// quantified subquery
-	CExpression *pexprEquality = CUtils::PexprScalarEqCmp(pmp, pcrSum, pcrCount);
+	/* FIXME COLLATION */
+	OID oidResultCollation = OidInvalidCollation;
+	OID oidInputCollation = OidInvalidCollation;
+	CExpression *pexprEquality = CUtils::PexprScalarEqCmp(pmp, pcrSum, pcrCount, oidResultCollation, oidInputCollation);
 	CExpression *pexprSumIsNotNull = CUtils::PexprIsNotNull(pmp, CUtils::PexprScalarIdent(pmp, pcrSum));
 	pmdid->AddRef();
 	pmdid->AddRef();

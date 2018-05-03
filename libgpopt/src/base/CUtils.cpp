@@ -230,12 +230,22 @@ CUtils::PexprScalarCmp
 	IMemoryPool *pmp,
 	const CColRef *pcrLeft,
 	const CColRef *pcrRight,
+	OID oidInputCollation,
+	OID oidResultCollation,
 	CWStringConst strOp,
 	IMDId *pmdidOp
 	)
 {
 	GPOS_ASSERT(NULL != pcrLeft);
 	GPOS_ASSERT(NULL != pcrRight);
+
+	// If the collation of the left and right columns are the same, then choose one arbitrarily to be the input collation for the scalar comparison
+	// Otherwise, the result collation is not collatable
+	/* FIXME COLLATION */ /* should we just do this in the caller? */
+	if (pcrLeft->OidCollation() == pcrRight->OidCollation())
+	{
+		oidInputCollation = pcrLeft->OidCollation();
+	}
 
 	IMDType::ECmpType ecmpt = Ecmpt(pmdidOp);
 	if (IMDType::EcmptOther != ecmpt)
@@ -245,17 +255,25 @@ CUtils::PexprScalarCmp
 
 		if (FCmpOrCastedCmpExists(pmdidLeft, pmdidRight, ecmpt))
 		{
-			CExpression *pexprScCmp = PexprScalarCmp(pmp, pcrLeft, pcrRight, ecmpt);
+			CExpression *pexprScCmp = PexprScalarCmp(pmp, pcrLeft, pcrRight, oidResultCollation, oidInputCollation, ecmpt);
 			pmdidOp->Release();
 
 			return pexprScCmp;
 		}
 	}
 
+
 	return GPOS_NEW(pmp) CExpression
 						(
 						pmp,
-						GPOS_NEW(pmp) CScalarCmp(pmp, pmdidOp, GPOS_NEW(pmp) CWStringConst(pmp, strOp.Wsz()), Ecmpt(pmdidOp)),
+						GPOS_NEW(pmp) CScalarCmp(
+												pmp,
+												pmdidOp,
+												GPOS_NEW(pmp) CWStringConst(pmp, strOp.Wsz()),
+												Ecmpt(pmdidOp),
+												oidResultCollation,
+												oidInputCollation
+												),
 						PexprScalarIdent(pmp, pcrLeft),
 						PexprScalarIdent(pmp, pcrRight)
 						);
@@ -298,12 +316,28 @@ CUtils::PexprScalarCmp
 	IMemoryPool *pmp,
 	const CColRef *pcrLeft,
 	CExpression *pexprRight,
+	OID oidInputCollation,
+	OID oidResultCollation,
 	CWStringConst strOp,
 	IMDId *pmdidOp
 	)
 {
 	GPOS_ASSERT(NULL != pcrLeft);
 	GPOS_ASSERT(NULL != pexprRight);
+
+
+	// If the collation of the expression and colref are the same, then choose one arbitrarily to be the input collation for the scalar comparison
+	// Otherwise, the result collation is not collatable
+
+	// CMDAccessor *pmda = COptCtxt::PoctxtFromTLS()->Pmda();
+	// OID oidExpTypeDefaultCollation = (pmda->Pmdtype(pmdidRight))->OidTypeCollation(); // gives us the default; we don't know what kind of scalar expression it is
+	OID oidExpTypeCollation = (CScalar::PopConvert(pexprRight->Pop()))->OidCollation(); /* FIXME COLLATION */ /* what if it has more than one collation */
+	OID oidColRefCollation = pcrLeft->OidCollation();
+	
+	if (oidExpTypeCollation == oidColRefCollation)
+	{
+		oidInputCollation = oidExpTypeCollation;
+	}
 
 	IMDType::ECmpType ecmpt = Ecmpt(pmdidOp);
 	if (IMDType::EcmptOther != ecmpt)
@@ -313,17 +347,18 @@ CUtils::PexprScalarCmp
 
 		if (FCmpOrCastedCmpExists(pmdidLeft, pmdidRight, ecmpt))
 		{
-			CExpression *pexprScCmp = PexprScalarCmp(pmp, pcrLeft, pexprRight, ecmpt);
+			CExpression *pexprScCmp = PexprScalarCmp(pmp, pcrLeft, pexprRight, oidResultCollation, oidInputCollation, ecmpt);
 			pmdidOp->Release();
 
 			return pexprScCmp;
 		}
 	}
 
+
 	return GPOS_NEW(pmp) CExpression
 						(
 						pmp,
-						GPOS_NEW(pmp) CScalarCmp(pmp, pmdidOp, GPOS_NEW(pmp) CWStringConst(pmp, strOp.Wsz()), Ecmpt(pmdidOp)),
+						GPOS_NEW(pmp) CScalarCmp(pmp, pmdidOp, GPOS_NEW(pmp) CWStringConst(pmp, strOp.Wsz()), Ecmpt(pmdidOp), oidResultCollation, oidInputCollation),
 						PexprScalarIdent(pmp, pcrLeft),
 						pexprRight
 						);
@@ -336,6 +371,8 @@ CUtils::PexprScalarCmp
 	IMemoryPool *pmp,
 	const CColRef *pcrLeft,
 	const CColRef *pcrRight,
+	OID oidResultCollation,
+	OID oidInputCollation,
 	IMDType::ECmpType ecmpt
 	)
 {
@@ -346,7 +383,7 @@ CUtils::PexprScalarCmp
 	CExpression *pexprLeft = PexprScalarIdent(pmp, pcrLeft);
 	CExpression *pexprRight = PexprScalarIdent(pmp, pcrRight);
 
-	return PexprScalarCmp(pmp, pexprLeft, pexprRight, ecmpt);
+	return PexprScalarCmp(pmp, pexprLeft, pexprRight, oidResultCollation, oidInputCollation, ecmpt);
 }
 
 // Generate a comparison expression over a column and an expression
@@ -356,6 +393,8 @@ CUtils::PexprScalarCmp
 	IMemoryPool *pmp,
 	const CColRef *pcrLeft,
 	CExpression *pexprRight,
+	OID oidResultCollation,
+	OID oidInputCollation,
 	IMDType::ECmpType ecmpt
 	)
 {
@@ -365,7 +404,7 @@ CUtils::PexprScalarCmp
 
 	CExpression *pexprLeft = PexprScalarIdent(pmp, pcrLeft);
 	
-	return PexprScalarCmp(pmp, pexprLeft, pexprRight, ecmpt);
+	return PexprScalarCmp(pmp, pexprLeft, pexprRight, oidResultCollation, oidInputCollation, ecmpt);
 }
 
 // Generate a comparison expression between an expression and a column
@@ -375,6 +414,8 @@ CUtils::PexprScalarCmp
 	IMemoryPool *pmp,
 	CExpression *pexprLeft,
 	const CColRef *pcrRight,
+	OID oidResultCollation,
+	OID oidInputCollation,
 	IMDType::ECmpType ecmpt
 	)
 {
@@ -384,7 +425,7 @@ CUtils::PexprScalarCmp
 
 	CExpression *pexprRight = PexprScalarIdent(pmp, pcrRight);
 
-	return PexprScalarCmp(pmp, pexprLeft, pexprRight, ecmpt);
+	return PexprScalarCmp(pmp, pexprLeft, pexprRight, oidResultCollation, oidInputCollation, ecmpt);
 }
 
 // Generate a comparison expression over an expression and a column
@@ -394,6 +435,8 @@ CUtils::PexprScalarCmp
 	IMemoryPool *pmp,
 	CExpression *pexprLeft,
 	const CColRef *pcrRight,
+	OID oidResultCollation,
+	OID oidInputCollation,
 	CWStringConst strOp,
 	IMDId *pmdidOp
 	)
@@ -409,17 +452,17 @@ CUtils::PexprScalarCmp
 
 		if (FCmpOrCastedCmpExists(pmdidLeft, pmdidRight, ecmpt))
 		{
-			CExpression *pexprScCmp = PexprScalarCmp(pmp, pexprLeft, pcrRight, ecmpt);
+			CExpression *pexprScCmp = PexprScalarCmp(pmp, pexprLeft, pcrRight, oidResultCollation, oidInputCollation, ecmpt);
 			pmdidOp->Release();
 	    
 			return pexprScCmp;
 		}
 	}
-	
+
 	return GPOS_NEW(pmp) CExpression
 						(
 						pmp,
-						GPOS_NEW(pmp) CScalarCmp(pmp, pmdidOp, GPOS_NEW(pmp) CWStringConst(pmp, strOp.Wsz()), ecmpt),
+						GPOS_NEW(pmp) CScalarCmp(pmp, pmdidOp, GPOS_NEW(pmp) CWStringConst(pmp, strOp.Wsz()), ecmpt, oidResultCollation, oidInputCollation),
 						pexprLeft,
 						PexprScalarIdent(pmp, pcrRight)
 						);
@@ -432,6 +475,8 @@ CUtils::PexprScalarCmp
 	IMemoryPool *pmp,
 	CExpression *pexprLeft,
 	CExpression *pexprRight,
+	OID oidResultCollation,
+	OID oidInputCollation,
 	CWStringConst strOp,
 	IMDId *pmdidOp
 	)
@@ -447,7 +492,7 @@ CUtils::PexprScalarCmp
 
 		if (FCmpOrCastedCmpExists(pmdidLeft, pmdidRight, ecmpt))
 		{
-			CExpression *pexprScCmp = PexprScalarCmp(pmp, pexprLeft, pexprRight, ecmpt);
+			CExpression *pexprScCmp = PexprScalarCmp(pmp, pexprLeft, pexprRight, oidResultCollation, oidInputCollation, ecmpt);
 			pmdidOp->Release();
 
 			return pexprScCmp;
@@ -457,19 +502,22 @@ CUtils::PexprScalarCmp
 	return GPOS_NEW(pmp) CExpression
 						(
 						pmp,
-						GPOS_NEW(pmp) CScalarCmp(pmp, pmdidOp, GPOS_NEW(pmp) CWStringConst(pmp, strOp.Wsz()), ecmpt),
+						GPOS_NEW(pmp) CScalarCmp(pmp, pmdidOp, GPOS_NEW(pmp) CWStringConst(pmp, strOp.Wsz()), ecmpt, oidResultCollation, oidInputCollation),
 						pexprLeft,
 						pexprRight
 						);
 }
 
 // Generate a comparison expression over two expressions
+/* FIXME COLLATION can we pass the original result and input collations into this since it makes new expressions? */
 CExpression *
 CUtils::PexprScalarCmp
 	(
 	IMemoryPool *pmp,
 	CExpression *pexprLeft,
 	CExpression *pexprRight,
+	OID oidResultCollation,
+	OID oidInputCollation,
 	IMDType::ECmpType ecmpt
 	)
 {
@@ -515,7 +563,7 @@ CUtils::PexprScalarCmp
 	CExpression *pexprResult = GPOS_NEW(pmp) CExpression
 					(
 					pmp,
-					GPOS_NEW(pmp) CScalarCmp(pmp, pmdidCmpOp, GPOS_NEW(pmp) CWStringConst(pmp, strCmpOpName.Wsz()), ecmpt),
+					GPOS_NEW(pmp) CScalarCmp(pmp, pmdidCmpOp, GPOS_NEW(pmp) CWStringConst(pmp, strCmpOpName.Wsz()), ecmpt, oidResultCollation, oidInputCollation),
 					pexprNewLeft,
 					pexprNewRight
 					);
@@ -529,13 +577,15 @@ CUtils::PexprScalarEqCmp
 	(
 	IMemoryPool *pmp,
 	const CColRef *pcrLeft,
-	const CColRef *pcrRight
+	const CColRef *pcrRight,
+	OID oidResultCollation,
+	OID oidInputCollation
 	)
 {
 	GPOS_ASSERT(NULL != pcrLeft);
 	GPOS_ASSERT(NULL != pcrRight);
 
-	return PexprScalarCmp(pmp, pcrLeft, pcrRight, IMDType::EcmptEq);
+	return PexprScalarCmp(pmp, pcrLeft, pcrRight, oidResultCollation, oidInputCollation, IMDType::EcmptEq);
 }
 
 // Generate an equality comparison expression over two expressions
@@ -544,13 +594,15 @@ CUtils::PexprScalarEqCmp
 	(
 	IMemoryPool *pmp,
 	CExpression *pexprLeft,
-	CExpression *pexprRight
+	CExpression *pexprRight,
+	OID oidResultCollation,
+	OID oidInputCollation
 	)
 {
 	GPOS_ASSERT(NULL != pexprLeft);
 	GPOS_ASSERT(NULL != pexprRight);
 
-	return PexprScalarCmp(pmp, pexprLeft, pexprRight, IMDType::EcmptEq);
+	return PexprScalarCmp(pmp, pexprLeft, pexprRight, oidResultCollation, oidInputCollation, IMDType::EcmptEq);
 }
 
 // Generate an equality comparison expression over a column reference and an expression
@@ -559,13 +611,15 @@ CUtils::PexprScalarEqCmp
 	(
 	IMemoryPool *pmp,
 	const CColRef *pcrLeft,
-	CExpression *pexprRight
+	CExpression *pexprRight,
+	OID oidResultCollation,
+	OID oidInputCollation
 	)
 {
 	GPOS_ASSERT(NULL != pcrLeft);
 	GPOS_ASSERT(NULL != pexprRight);
 
-	return PexprScalarCmp(pmp, pcrLeft, pexprRight, IMDType::EcmptEq);
+	return PexprScalarCmp(pmp, pcrLeft, pexprRight, oidResultCollation, oidInputCollation, IMDType::EcmptEq);
 }
 
 // Generate an equality comparison expression over an expression and a column reference
@@ -574,13 +628,15 @@ CUtils::PexprScalarEqCmp
 	(
 	IMemoryPool *pmp,
 	CExpression *pexprLeft,
-	const CColRef *pcrRight
+	const CColRef *pcrRight,
+	OID oidResultCollation,
+	OID oidInputCollation
 	)
 {
 	GPOS_ASSERT(NULL != pexprLeft);
 	GPOS_ASSERT(NULL != pcrRight);
 
-	return PexprScalarCmp(pmp, pexprLeft, pcrRight, IMDType::EcmptEq);
+	return PexprScalarCmp(pmp, pexprLeft, pcrRight, oidResultCollation, oidInputCollation, IMDType::EcmptEq);
 }
 
 // returns number of children or constants of it is all constants
@@ -795,10 +851,12 @@ CUtils::PexprScalarArrayCmp
 										pexprScalarChildren
 										);
 
+	/* FIXME COLLATION */
+	OID oidInputCollation = OidInvalidCollation;
 	return GPOS_NEW(pmp) CExpression
 				(
 				pmp,
-				GPOS_NEW(pmp) CScalarArrayCmp(pmp, pmdidCmpOp, GPOS_NEW(pmp) CWStringConst(pmp, strOp.Wsz()), earrcmptype),
+				GPOS_NEW(pmp) CScalarArrayCmp(pmp, pmdidCmpOp, GPOS_NEW(pmp) CWStringConst(pmp, strOp.Wsz()), earrcmptype, oidInputCollation),
 				CUtils::PexprScalarIdent(pmp, pcr),
 				pexprArray
 				);
@@ -828,7 +886,7 @@ CUtils::PexprCmpWithZero
 	return GPOS_NEW(pmp) CExpression
 						(
 						pmp,
-						GPOS_NEW(pmp) CScalarCmp(pmp, pmdidOp, GPOS_NEW(pmp) CWStringConst(pmp, strOpName.Wsz()), ecmptype),
+						GPOS_NEW(pmp) CScalarCmp(pmp, pmdidOp, GPOS_NEW(pmp) CWStringConst(pmp, strOpName.Wsz()), ecmptype, OidInvalidCollation, OidInvalidCollation /* FIXME COLLATION */),
 						pexprLeft,
 						CUtils::PexprScalarConstInt8(pmp, 0 /*iVal*/)
 						);
@@ -878,7 +936,7 @@ CUtils::PexprIDF
 	return GPOS_NEW(pmp) CExpression
 				(
 				pmp,
-				GPOS_NEW(pmp) CScalarIsDistinctFrom(pmp, pmdidEqOp, GPOS_NEW(pmp) CWStringConst(pmp, strEqOpName.Wsz())),
+				GPOS_NEW(pmp) CScalarIsDistinctFrom(pmp, pmdidEqOp, GPOS_NEW(pmp) CWStringConst(pmp, strEqOpName.Wsz()), OidInvalidCollation, OidInvalidCollation /* FIXME COLLATION */),
 				pexprNewLeft,
 				pexprNewRight
 				);

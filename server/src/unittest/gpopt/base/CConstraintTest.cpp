@@ -553,8 +553,12 @@ CConstraintTest::EresUnittest_CConstraintFromScalarExpr()
 
 	DrgPcrs *pdrgpcrs = NULL;
 
+	/* FIXME COLLATION */
+	OID oidResultCollation = OidInvalidCollation;
+	OID oidInputCollation = OidInvalidCollation;
+
 	// expression with 1 column
-	CExpression *pexpr = PexprScalarCmp(pmp, &mda, pcr1, IMDType::EcmptG, 15);
+	CExpression *pexpr = PexprScalarCmp(pmp, &mda, pcr1, IMDType::EcmptG, oidResultCollation, oidInputCollation, 15);
 	CConstraint *pcnstr = CConstraint::PcnstrFromScalarExpr(pmp, pexpr, &pdrgpcrs);
 	PrintConstraint(pmp, pcnstr);
 	PrintEquivClasses(pmp, pdrgpcrs);
@@ -565,8 +569,9 @@ CConstraintTest::EresUnittest_CConstraintFromScalarExpr()
 
 	// expression with 2 columns
 	DrgPexpr *pdrgpexpr = GPOS_NEW(pmp) DrgPexpr(pmp);
-	pdrgpexpr->Append(PexprScalarCmp(pmp, &mda, pcr1, IMDType::EcmptG, 15));
-	pdrgpexpr->Append(PexprScalarCmp(pmp, &mda, pcr2, IMDType::EcmptL, 20));
+	/* FIXME COLLATION */
+	pdrgpexpr->Append(PexprScalarCmp(pmp, &mda, pcr1, IMDType::EcmptG, oidResultCollation, oidInputCollation, 15));
+	pdrgpexpr->Append(PexprScalarCmp(pmp, &mda, pcr2, IMDType::EcmptL, oidResultCollation, oidInputCollation, 20));
 
 	CExpression *pexprAnd = CUtils::PexprScalarBoolOp(pmp, CScalarBoolOp::EboolopAnd, pdrgpexpr);
 	(void) pexprAnd->PdpDerive();
@@ -581,7 +586,7 @@ CConstraintTest::EresUnittest_CConstraintFromScalarExpr()
 	pexprAnd->Release();
 
 	// equality predicate with 2 columns
-	CExpression *pexprEq = CUtils::PexprScalarEqCmp(pmp, pcr1, pcr2);
+	CExpression *pexprEq = CUtils::PexprScalarEqCmp(pmp, pcr1, pcr2, oidResultCollation, oidInputCollation);
 	(void) pexprEq->PdpDerive();
 	CConstraint *pcnstrEq = CConstraint::PcnstrFromScalarExpr(pmp, pexprEq, &pdrgpcrs);
 	PrintConstraint(pmp, pcnstrEq);
@@ -974,7 +979,11 @@ CConstraintTest::EresUnittest_CIntervalFromScalarCmp
 
 	for (ULONG ul = 0; ul < GPOS_ARRAY_SIZE(rgecmpt); ul++)
 	{
-		CExpression *pexprScCmp = PexprScalarCmp(pmp, pmda, pcr, rgecmpt[ul], 4);
+		/* FIXME COLLATION */
+		OID oidResultCollation = OidInvalidCollation;
+		OID oidInputCollation = OidInvalidCollation;
+
+		CExpression *pexprScCmp = PexprScalarCmp(pmp, pmda, pcr, rgecmpt[ul], oidResultCollation, oidInputCollation, 4);
 		CConstraintInterval *pci = CConstraintInterval::PciIntervalFromScalarExpr(pmp, pexprScCmp, pcr);
 		PrintConstraint(pmp, pci);
 
@@ -1003,8 +1012,12 @@ CConstraintTest::EresUnittest_CIntervalFromScalarBoolOp
 {
 	// AND
 	DrgPexpr *pdrgpexpr = GPOS_NEW(pmp) DrgPexpr(pmp);
-	pdrgpexpr->Append(PexprScalarCmp(pmp, pmda, pcr, IMDType::EcmptL, 5));
-	pdrgpexpr->Append(PexprScalarCmp(pmp, pmda, pcr, IMDType::EcmptGEq, 0));
+	/* FIXME COLLATION */
+	OID oidResultCollation = OidInvalidCollation;
+	OID oidInputCollation = OidInvalidCollation;
+
+	pdrgpexpr->Append(PexprScalarCmp(pmp, pmda, pcr, IMDType::EcmptL, oidResultCollation, oidInputCollation, 5));
+	pdrgpexpr->Append(PexprScalarCmp(pmp, pmda, pcr, IMDType::EcmptGEq, oidResultCollation, oidInputCollation, 0));
 
 	CExpression *pexpr = CUtils::PexprScalarBoolOp(pmp, CScalarBoolOp::EboolopAnd, pdrgpexpr);
 	(void) pexpr->PdpDerive();
@@ -1017,8 +1030,9 @@ CConstraintTest::EresUnittest_CIntervalFromScalarBoolOp
 
 	// OR
 	pdrgpexpr = GPOS_NEW(pmp) DrgPexpr(pmp);
-	pdrgpexpr->Append(PexprScalarCmp(pmp, pmda, pcr, IMDType::EcmptL, 5));
-	pdrgpexpr->Append(PexprScalarCmp(pmp, pmda, pcr, IMDType::EcmptGEq, 10));
+	/* FIXME COLLATION */
+	pdrgpexpr->Append(PexprScalarCmp(pmp, pmda, pcr, IMDType::EcmptL, oidResultCollation, oidInputCollation, 5));
+	pdrgpexpr->Append(PexprScalarCmp(pmp, pmda, pcr, IMDType::EcmptGEq, oidResultCollation, oidInputCollation, 10));
 
 	pexpr = CUtils::PexprScalarBoolOp(pmp, CScalarBoolOp::EboolopOr, pdrgpexpr);
 	(void) pexpr->PdpDerive();
@@ -1060,6 +1074,8 @@ CConstraintTest::PexprScalarCmp
 	CMDAccessor *pmda,
 	CColRef *pcr,
 	IMDType::ECmpType ecmpt,
+	OID oidResultCollation,
+	OID oidInputCollation,
 	LINT lVal
 	)
 {
@@ -1073,7 +1089,7 @@ CConstraintTest::PexprScalarCmp
 
 	CWStringConst strOpName(mdname.Pstr()->Wsz());
 
-	CExpression *pexpr = CUtils::PexprScalarCmp(pmp, pcr, pexprConst, strOpName, pmdidOp);
+	CExpression *pexpr = CUtils::PexprScalarCmp(pmp, pcr, pexprConst, oidResultCollation, oidInputCollation, strOpName, pmdidOp);
 	(void) pexpr->PdpDerive();
 	return pexpr;
 }

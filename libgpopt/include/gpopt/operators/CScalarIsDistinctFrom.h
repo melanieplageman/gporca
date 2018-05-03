@@ -43,10 +43,12 @@ namespace gpopt
 				(
 				IMemoryPool *pmp,
 				IMDId *pmdidOp,
-				const CWStringConst *pstrOp
+				const CWStringConst *pstrOp,
+				OID oidCollation,
+				OID oidInputCollation
 				)
 				:
-				CScalarCmp(pmp, pmdidOp, pstrOp, IMDType::EcmptIDF)
+				CScalarCmp(pmp, pmdidOp, pstrOp, IMDType::EcmptIDF, oidCollation, oidInputCollation)
 			{
 				GPOS_ASSERT(pmdidOp->FValid());
 			}

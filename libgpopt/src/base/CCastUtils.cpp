@@ -302,7 +302,19 @@ CCastUtils::PexprAddCast
 
     if (CUtils::FScalarCmp(pexprPred))
     {
-        pexprNewPred = CUtils::PexprScalarCmp(pmp, pexprNewLeft, pexprNewRight, IMDType::EcmptEq);
+		/* FIXME COLLATION */
+		OID oidInputCollation = OidInvalidCollation;
+		IMDId *pmdidTypeNewLeft = CScalar::PopConvert(pexprNewLeft->Pop())->PmdidType();
+		IMDId *pmdidTypeNewRight = CScalar::PopConvert(pexprNewRight->Pop())->PmdidType();
+		OID oidCollationLeft = (pmda->Pmdtype(pmdidTypeNewLeft))->OidTypeCollation(); // default collation for this type
+		OID oidCollationRight = (pmda->Pmdtype(pmdidTypeNewRight))->OidTypeCollation(); // default collation for this type
+		if (oidCollationLeft == oidCollationRight)
+		{
+			oidInputCollation = oidCollationLeft; // if collations are the same, then pick arbitrarily for input collation
+		}
+
+		OID oidResultCollation = OidInvalidCollation; /* FIXME COLLATION */ /* because it will be bool? */
+        pexprNewPred = CUtils::PexprScalarCmp(pmp, pexprNewLeft, pexprNewRight, oidResultCollation, oidInputCollation, IMDType::EcmptEq);
     }
     else
     {

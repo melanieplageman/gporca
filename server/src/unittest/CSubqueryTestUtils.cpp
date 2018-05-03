@@ -122,7 +122,12 @@ CSubqueryTestUtils::PexprSelectWithAggSubquery
 	CExpression *pexprSubq = PexprSubqueryAgg(pmp, pexprOuter, pexprInner, fCorrelated);
 
 	// generate equality predicate
-	CExpression *pexprPredicate = CUtils::PexprScalarEqCmp(pmp, pcrLeft, pexprSubq);
+
+	/* FIXME COLLATION */
+	OID oidResultCollation = OidInvalidCollation;
+	OID oidInputCollation = OidInvalidCollation;
+
+	CExpression *pexprPredicate = CUtils::PexprScalarEqCmp(pmp, pcrLeft, pexprSubq, oidResultCollation, oidInputCollation);
 
 	return CUtils::PexprLogicalSelect(pmp, pexprOuter, pexprPredicate);
 }
@@ -155,7 +160,11 @@ CSubqueryTestUtils::PexprSelectWithAggSubqueryConstComparison
 	CExpression *pexprConst = CUtils::PexprScalarConstInt8(pmp, 0 /*iVal*/);
 
 	// generate equality predicate
-	CExpression *pexprPredicate = CUtils::PexprScalarEqCmp(pmp, pexprConst, pexprSubq);
+	/* FIXME COLLATION */
+	OID oidResultCollation = OidInvalidCollation;
+	OID oidInputCollation = OidInvalidCollation;
+
+	CExpression *pexprPredicate = CUtils::PexprScalarEqCmp(pmp, pexprConst, pexprSubq, oidResultCollation, oidInputCollation);
 
 	return CUtils::PexprLogicalSelect(pmp, pexprOuter, pexprPredicate);
 }
@@ -308,11 +317,14 @@ CSubqueryTestUtils::PexprSelectWithAggSubqueryOverJoin
 	CColRef *pcrInner = CDrvdPropRelational::Pdprel(pexprR->PdpDerive())->PcrsOutput()->PcrAny();
 	CColRef *pcrOuter = CDrvdPropRelational::Pdprel(pexprT->PdpDerive())->PcrsOutput()->PcrAny();
 
+	/* FIXME COLLATION */
+	OID oidResultCollation = OidInvalidCollation;
+	OID oidInputCollation = OidInvalidCollation;
 	CExpression *pexprPred = NULL;
 	if (fCorrelated)
 	{
 		// generate correlation predicate
-		pexprPred = CUtils::PexprScalarEqCmp(pmp, pcrInner, pcrOuter);
+		pexprPred = CUtils::PexprScalarEqCmp(pmp, pcrInner, pcrOuter, oidResultCollation, oidInputCollation);
 	}
 	else
 	{
@@ -329,7 +341,7 @@ CSubqueryTestUtils::PexprSelectWithAggSubqueryOverJoin
 	CExpression *pexprSubq =
 		GPOS_NEW(pmp) CExpression(pmp, GPOS_NEW(pmp) CScalarSubquery(pmp, pcrInner, false /*fGeneratedByExist*/, false /*fGeneratedByQuantified*/), pexprJoin);
 
-	CExpression *pexprPredOuter = CUtils::PexprScalarEqCmp(pmp, pcrOuter, pexprSubq);
+	CExpression *pexprPredOuter = CUtils::PexprScalarEqCmp(pmp, pcrOuter, pexprSubq, oidResultCollation, oidInputCollation);
 	return CUtils::PexprLogicalSelect(pmp, pexprT, pexprPredOuter);
 }
 
@@ -743,14 +755,18 @@ CSubqueryTestUtils::PexprSelectWithNestedCmpSubquery
 	CExpression *pexprLogical = (*pexprSelectWithSubquery)[0];
 	CExpression *pexprSubqueryPred = (*pexprSelectWithSubquery)[1];
 
+	/* FIXME COLLATION */
+	OID oidResultCollation = OidInvalidCollation;
+	OID oidInputCollation = OidInvalidCollation;
+
 	// generate a parent equality predicate
 	pexprSubqueryPred->AddRef();
 	CExpression *pexprPredicate1 =
-		CUtils::PexprScalarEqCmp(pmp, CUtils::PexprScalarConstBool(pmp, true /*fVal*/), pexprSubqueryPred);
+		CUtils::PexprScalarEqCmp(pmp, CUtils::PexprScalarConstBool(pmp, true /*fVal*/), pexprSubqueryPred, oidResultCollation, oidInputCollation);
 
 	// add another nesting level
 	CExpression *pexprPredicate =
-		CUtils::PexprScalarEqCmp(pmp, CUtils::PexprScalarConstBool(pmp, true /*fVal*/), pexprPredicate1);
+		CUtils::PexprScalarEqCmp(pmp, CUtils::PexprScalarConstBool(pmp, true /*fVal*/), pexprPredicate1, oidResultCollation, oidInputCollation);
 
 	pexprLogical->AddRef();
 	pexprSelectWithSubquery->Release();
@@ -791,10 +807,13 @@ CSubqueryTestUtils::PexprSelectWithCmpSubqueries
 
 	// generate another scalar subquery
 	CExpression *pexprScalarSubquery2 = PexprSubqueryAgg(pmp, pexprOuter, pexprT, fCorrelated);
+	/* FIXME COLLATION */
+	OID oidResultCollation = OidInvalidCollation;
+	OID oidInputCollation = OidInvalidCollation;
 
 	// generate equality predicate between both subqueries
 	CExpression *pexprPredicate =
-		CUtils::PexprScalarEqCmp(pmp, pexprScalarSubquery1, pexprScalarSubquery2);
+		CUtils::PexprScalarEqCmp(pmp, pexprScalarSubquery1, pexprScalarSubquery2, oidResultCollation, oidInputCollation);
 
 	return CUtils::PexprLogicalSelect(pmp, pexprOuter, pexprPredicate);
 }
@@ -822,7 +841,11 @@ CSubqueryTestUtils::PexprSelectWithNestedSubquery
 
 	CExpression *pexprSubq = GPOS_NEW(pmp) CExpression(pmp, GPOS_NEW(pmp) CScalarSubquery(pmp, pcrInner, false /*fGeneratedByExist*/, false /*fGeneratedByQuantified*/), pexprInner);
 
-	CExpression *pexprPred = CUtils::PexprScalarEqCmp(pmp, pcrOuter, pexprSubq);
+	/* FIXME COLLATION */
+	OID oidResultCollation = OidInvalidCollation;
+	OID oidInputCollation = OidInvalidCollation;
+
+	CExpression *pexprPred = CUtils::PexprScalarEqCmp(pmp, pcrOuter, pexprSubq, oidResultCollation, oidInputCollation);
 
 	return CUtils::PexprLogicalSelect(pmp, pexprOuter, pexprPred);
 }
@@ -937,7 +960,11 @@ CSubqueryTestUtils::PexprSelectWith2LevelsCorrSubquery
 
 		CColRef *pcrOuter = CDrvdPropRelational::Pdprel(pexpr->PdpDerive())->PcrsOutput()->PcrAny();
 		CColRef *pcrInner = CDrvdPropRelational::Pdprel(pexprInnerSelect->PdpDerive())->PcrsOutput()->PcrAny();
-		CExpression *pexprPred = CUtils::PexprScalarEqCmp(pmp, pcrOuter, pcrInner);
+		/* FIXME COLLATION */
+		OID oidResultCollation = OidInvalidCollation;
+		OID oidInputCollation = OidInvalidCollation;
+
+		CExpression *pexprPred = CUtils::PexprScalarEqCmp(pmp, pcrOuter, pcrInner, oidResultCollation, oidInputCollation);
 		pdrgpexpr->Append(pexprPred);
 	}
 
@@ -1024,7 +1051,11 @@ CSubqueryTestUtils::PexprSubquery
 	CColRef *pcrInner = CDrvdPropRelational::Pdprel(pexprInner->PdpDerive())->PcrsOutput()->PcrAny();
 
 	// generate a non-correlated predicate to be added to inner expression
-	CExpression *pexprNonCorrelated = CUtils::PexprScalarEqCmp(pmp, pcrInner, CUtils::PexprScalarConstInt4(pmp, 5 /*iVal*/));
+	/* FIXME COLLATION */
+	OID oidResultCollation = OidInvalidCollation;
+	OID oidInputCollation = OidInvalidCollation;
+
+	CExpression *pexprNonCorrelated = CUtils::PexprScalarEqCmp(pmp, pcrInner, CUtils::PexprScalarConstInt4(pmp, 5 /*iVal*/), oidResultCollation, oidInputCollation);
 
 	// predicate for the inner expression
 	CExpression *pexprPred = NULL;
@@ -1034,7 +1065,7 @@ CSubqueryTestUtils::PexprSubquery
 		CColRef *pcrOuter = CDrvdPropRelational::Pdprel(pexprOuter->PdpDerive())->PcrsOutput()->PcrAny();
 
 		// generate correlated predicate
-		CExpression *pexprCorrelated = CUtils::PexprScalarEqCmp(pmp, pcrOuter, pcrInner);
+		CExpression *pexprCorrelated = CUtils::PexprScalarEqCmp(pmp, pcrOuter, pcrInner, oidResultCollation, oidInputCollation);
 
 		// generate AND expression of correlated and non-correlated predicates
 		DrgPexpr *pdrgpexpr = GPOS_NEW(pmp) DrgPexpr(pmp);
@@ -1154,9 +1185,13 @@ CSubqueryTestUtils::PexprUndecorrelatableSubquery
 			GPOS_ASSERT(!"Invalid subquery type");
 	}
 
+	/* FIXME COLLATION */
+	OID oidResultCollation = OidInvalidCollation;
+	OID oidInputCollation = OidInvalidCollation;
+
 	// generate a regular predicate
 	CColRef *pcrOuter = CDrvdPropRelational::Pdprel(pexprOuter->PdpDerive())->PcrsOutput()->PcrAny();
-	CExpression *pexprPred = CUtils::PexprScalarEqCmp(pmp, pcrOuter, CUtils::PexprScalarConstInt4(pmp, 5 /*iVal*/));
+	CExpression *pexprPred = CUtils::PexprScalarEqCmp(pmp, pcrOuter, CUtils::PexprScalarConstInt4(pmp, 5 /*iVal*/), oidResultCollation, oidInputCollation);
 
 	// generate OR expression of  predicates
 	DrgPexpr *pdrgpexpr = GPOS_NEW(pmp) DrgPexpr(pmp);
@@ -1267,8 +1302,12 @@ CSubqueryTestUtils::PexprUndecorrelatableScalarSubquery
 
 	CExpression *pexprSubquery = GPOS_NEW(pmp) CExpression(pmp, GPOS_NEW(pmp) CScalarSubquery(pmp, pcrInner, false /*fGeneratedByExist*/, false /*fGeneratedByQuantified*/), pexprSelect);
 
+	/* FIXME COLLATION */
+	OID oidResultCollation = OidInvalidCollation;
+	OID oidInputCollation = OidInvalidCollation;
+
 	CColRef *pcrOuter = CDrvdPropRelational::Pdprel(pexprOuter->PdpDerive())->PcrsOutput()->PcrAny();
-	CExpression *pexprPred = CUtils::PexprScalarEqCmp(pmp, pcrOuter, pexprSubquery);
+	CExpression *pexprPred = CUtils::PexprScalarEqCmp(pmp, pcrOuter, pexprSubquery, oidResultCollation, oidInputCollation);
 
 	return CUtils::PexprLogicalSelect(pmp, pexprOuter, pexprPred);
 }
@@ -1389,11 +1428,15 @@ CSubqueryTestUtils::PexprSelectWithSubqueryBoolOp
 	// generate agg subquery
 	CExpression *pexprAggSubquery = PexprSubqueryAgg(pmp, pexprOuter, pexprInner, fCorrelated);
 
+	/* FIXME COLLATION */
+	OID oidResultCollation = OidInvalidCollation;
+	OID oidInputCollation = OidInvalidCollation;
+
 	// generate equality predicate involving a subquery
-	CExpression *pexprPred1 = CUtils::PexprScalarEqCmp(pmp, pcrLeft, pexprAggSubquery);
+	CExpression *pexprPred1 = CUtils::PexprScalarEqCmp(pmp, pcrLeft, pexprAggSubquery, oidResultCollation, oidInputCollation);
 
 	// generate a regular predicate
-	CExpression *pexprPred2 = CUtils::PexprScalarEqCmp(pmp, pcrLeft, CUtils::PexprScalarConstInt4(pmp, 5 /*iVal*/));
+	CExpression *pexprPred2 = CUtils::PexprScalarEqCmp(pmp, pcrLeft, CUtils::PexprScalarConstInt4(pmp, 5 /*iVal*/), oidResultCollation, oidInputCollation);
 
 	// generate ALL subquery
 	CExpression *pexprGet = CTestUtils::PexprLogicalGet(pmp);
@@ -1672,9 +1715,13 @@ CSubqueryTestUtils::PexprSelectWithTrimmableExistentialSubquery
 		pexprSubqueryExistential = GPOS_NEW(pmp) CExpression(pmp, GPOS_NEW(pmp) CScalarSubqueryNotExists(pmp), pexprGbAgg);
 	}
 
+	/* FIXME COLLATION */
+	OID oidResultCollation = OidInvalidCollation;
+	OID oidInputCollation = OidInvalidCollation;
+
 	// generate a regular predicate
 	CColRefSet *pcrs = CDrvdPropRelational::Pdprel(pexprOuter->PdpDerive())->PcrsOutput();
-	CExpression *pexprEqPred = CUtils::PexprScalarEqCmp(pmp, pcrs->PcrAny(), CUtils::PexprScalarConstInt4(pmp, 5 /*iVal*/));
+	CExpression *pexprEqPred = CUtils::PexprScalarEqCmp(pmp, pcrs->PcrAny(), CUtils::PexprScalarConstInt4(pmp, 5 /*iVal*/), oidResultCollation, oidInputCollation);
 
 	CExpression *pexprConjunction =
 		CPredicateUtils::PexprConjunction(pmp, pexprSubqueryExistential, pexprEqPred);

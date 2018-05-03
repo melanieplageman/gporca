@@ -667,7 +667,19 @@ CDXLOperatorFactory::PdxlopScalarCmp
 	
 	// parse op no and function id
 	IMDId *pmdidOpNo = PmdidFromAttrs(pmm, attrs, EdxltokenOpNo, EdxltokenScalarComp);
-	
+
+	OID oidCollation = OidValueFromAttrs
+			(
+					pmm,
+					attrs,
+					EdxltokenCollation,
+					EdxltokenScalarComp,
+					true,
+					OidInvalidCollation
+			);
+
+	OID oidInputCollation = OidValueFromAttrs(pmm, attrs, EdxltokenInputCollation, EdxltokenScalarComp, true, OidInvalidCollation);
+
 	// parse comparison operator from string
 	CWStringDynamic *pstrCompOpName = CDXLUtils::PstrFromXMLCh(pmm, xmlszCmpOp);
 
@@ -678,7 +690,7 @@ CDXLOperatorFactory::PdxlopScalarCmp
 	// cleanup
 	GPOS_DELETE(pstrCompOpName);
 	
-	return GPOS_NEW(pmp) CDXLScalarComp(pmp, pmdidOpNo, pstrCompOpNameCopy);
+	return GPOS_NEW(pmp) CDXLScalarComp(pmp, pmdidOpNo, pstrCompOpNameCopy, oidCollation, oidInputCollation);
 }
 
 //---------------------------------------------------------------------------
@@ -701,8 +713,10 @@ CDXLOperatorFactory::PdxlopDistinctCmp
 	
 	// parse operator and function id
 	IMDId *pmdidOpNo = PmdidFromAttrs(pmm, attrs, EdxltokenOpNo,EdxltokenScalarDistinctComp);
+	OID oidCollation = OidValueFromAttrs(pmm, attrs, EdxltokenCollation, EdxltokenScalarDistinctComp, true, OidInvalidCollation);
+	OID oidInputCollation = OidValueFromAttrs(pmm, attrs, EdxltokenInputCollation, EdxltokenScalarDistinctComp, true, OidInvalidCollation);
 
-	return GPOS_NEW(pmp) CDXLScalarDistinctComp(pmp, pmdidOpNo);
+	return GPOS_NEW(pmp) CDXLScalarDistinctComp(pmp, pmdidOpNo, oidCollation, oidInputCollation);
 }
 
 //---------------------------------------------------------------------------
@@ -800,6 +814,8 @@ CDXLOperatorFactory::PdxlopArrayComp
 							EdxltokenScalarArrayComp
 							);
 
+	OID oidInputCollation = OidValueFromAttrs(pmm, attrs, EdxltokenInputCollation, EdxltokenScalarArrayComp, true, OidInvalidCollation);
+
 	EdxlArrayCompType edxlarraycomptype = Edxlarraycomptypeany;
 
 	if (0 == XMLString::compareString(CDXLTokens::XmlstrToken(EdxltokenOpTypeAll), xmlszOpType))
@@ -821,7 +837,7 @@ CDXLOperatorFactory::PdxlopArrayComp
 	CWStringConst *pstrOpNameCopy = GPOS_NEW(pmp) CWStringConst(pmp, pstrOpName->Wsz());
 	GPOS_DELETE(pstrOpName);
 
-	return GPOS_NEW(pmp) CDXLScalarArrayComp(pmp, pmdidOpNo, pstrOpNameCopy, edxlarraycomptype);
+	return GPOS_NEW(pmp) CDXLScalarArrayComp(pmp, pmdidOpNo, pstrOpNameCopy, edxlarraycomptype, oidInputCollation);
 }
 
 //---------------------------------------------------------------------------

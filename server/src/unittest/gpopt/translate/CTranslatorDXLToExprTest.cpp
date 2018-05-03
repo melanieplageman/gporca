@@ -440,8 +440,10 @@ CTranslatorDXLToExprTest::EresUnittest_SelectQuery()
 
 		CColRef *pcrLeft =  (*pdrgpcr)[0];
 		CColRef *pcrRight = (*pdrgpcr)[1];
-
-		CExpression *pexprPredicate = CUtils::PexprScalarEqCmp(pmp, pcrLeft, pcrRight);
+		/* FIXME COLLATION */
+		OID oidResultCollation = OidInvalidCollation;
+		OID oidInputCollation = OidInvalidCollation;
+		CExpression *pexprPredicate = CUtils::PexprScalarEqCmp(pmp, pcrLeft, pcrRight, oidResultCollation, oidInputCollation);
 
 		CExpression *pexprExpected =  CUtils::PexprLogicalSelect(pmp, pexprLgGet, pexprPredicate);
 		pstrExpected = Pstr(pmp, pexprExpected);
@@ -495,8 +497,11 @@ CTranslatorDXLToExprTest::EresUnittest_SelectQueryWithConst()
 
 		CColRef *pcrLeft =  (*pdrgpcr)[0];
 		ULONG ulVal = 5;
+		/* FIXME COLLATION */
+		OID oidResultCollation = OidInvalidCollation;
+		OID oidInputCollation = OidInvalidCollation;
 		CExpression *pexprScConst = CUtils::PexprScalarConstInt4(pmp, ulVal);
-		CExpression *pexprScCmp = CUtils::PexprScalarEqCmp(pmp, pcrLeft, pexprScConst);
+		CExpression *pexprScCmp = CUtils::PexprScalarEqCmp(pmp, pcrLeft, pexprScConst, oidResultCollation, oidInputCollation);
 
 		CExpression *pexprExpected = CUtils::PexprLogicalSelect(pmp, pexprLgGet, pexprScCmp);
 		pstrExpected = Pstr(pmp, pexprExpected);
@@ -614,14 +619,16 @@ CTranslatorDXLToExprTest::EresUnittest_SelectQueryWithBoolExpr()
 
 		ULONG ulVal = 5;
 		CExpression *pexprScConst = CUtils::PexprScalarConstInt4(pmp, ulVal);
-
-		CExpression *pexprScCmp = CUtils::PexprScalarEqCmp(pmp, pcrLeft, pexprScConst);
+		/* FIXME COLLATION */
+		OID oidResultCollation = OidInvalidCollation;
+		OID oidInputCollation = OidInvalidCollation;
+		CExpression *pexprScCmp = CUtils::PexprScalarEqCmp(pmp, pcrLeft, pexprScConst, oidResultCollation, oidInputCollation);
 
 		// create a scalar compare for a = b
 		CColRef *pcrRight = (*pdrgpcr)[1];
 		DrgPexpr *pdrgpexprInput = GPOS_NEW(pmp) DrgPexpr(pmp, 2);
 		pdrgpexprInput->Append(pexprScCmp);
-		pexprScCmp = CUtils::PexprScalarEqCmp(pmp, pcrLeft, pcrRight);
+		pexprScCmp = CUtils::PexprScalarEqCmp(pmp, pcrLeft, pcrRight, oidResultCollation, oidInputCollation);
 
 		pdrgpexprInput->Append(pexprScCmp);
 		CExpression *pexprScBool = CUtils::PexprScalarBoolOp(pmp, CScalarBoolOp::EboolopAnd, pdrgpexprInput);
@@ -684,11 +691,13 @@ CTranslatorDXLToExprTest::EresUnittest_SelectQueryWithScalarOp()
 		ULONG ulVal = 2;
 		CExpression *pexprScConst = CUtils::PexprScalarConstInt4(pmp, ulVal);
 		CExpression *pexprScOp = CUtils::PexprScalarOp(pmp, pcrLeft, pexprScConst, CWStringConst(GPOS_WSZ_LIT("+")), OidInvalidCollation, OidInvalidCollation, GPOS_NEW(pmp) CMDIdGPDB(GPDB_INT4_ADD_OP));
-
+		/* FIXME COLLATION */
+		OID oidResultCollation = OidInvalidCollation;
+		OID oidInputCollation = OidInvalidCollation;
 		// create a scalar compare for a > b + 2
 		CColRef *pcrRight = (*pdrgpcr)[0];
 		CExpression *pexprScCmp =
-			CUtils::PexprScalarCmp(pmp, pcrRight, pexprScOp, CWStringConst(GPOS_WSZ_LIT(">")), GPOS_NEW(pmp) CMDIdGPDB(GPDB_INT4_GT_OP));
+			CUtils::PexprScalarCmp(pmp, pcrRight, pexprScOp, oidResultCollation, oidInputCollation, CWStringConst(GPOS_WSZ_LIT(">")), GPOS_NEW(pmp) CMDIdGPDB(GPDB_INT4_GT_OP));
 
 		CExpression *pexprExpected = CUtils::PexprLogicalSelect(pmp, pexprLgGet, pexprScCmp);
 		pstrExpected = Pstr(pmp, pexprExpected);

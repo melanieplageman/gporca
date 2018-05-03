@@ -39,14 +39,18 @@ CScalarCmp::CScalarCmp
 	IMemoryPool *pmp,
 	IMDId *pmdidOp,
 	const CWStringConst *pstrOp,
-	IMDType::ECmpType ecmpt
+	IMDType::ECmpType ecmpt,
+	OID oidCollation,
+	OID oidInputCollation
 	)
 	:
 	CScalar(pmp),
 	m_pmdidOp(pmdidOp),
 	m_pstrOp(pstrOp),
 	m_ecmpt(ecmpt),
-	m_fReturnsNullOnNullInput(false)
+	m_fReturnsNullOnNullInput(false),
+	m_oidCollation(oidCollation),
+	m_oidInputCollation(oidInputCollation)
 {
 	GPOS_ASSERT(pmdidOp->FValid());
 
@@ -82,6 +86,18 @@ IMDId *
 CScalarCmp::PmdidOp() const
 {
 	return m_pmdidOp;
+}
+
+OID
+CScalarCmp::OidCollation() const
+{
+	return m_oidCollation;
+}
+
+OID
+CScalarCmp::OidInputCollation() const
+{
+	return m_oidInputCollation;
 }
 
 //---------------------------------------------------------------------------
@@ -221,7 +237,7 @@ CScalarCmp::PopCommutedOp
 	IMDId *pmdid = PmdidCommuteOp(pmda, pop);
 	if (NULL != pmdid && pmdid->FValid())
 	{
-		return GPOS_NEW(pmp) CScalarCmp(pmp, pmdid, Pstr(pmp, pmda, pmdid), CUtils::Ecmpt(pmdid));
+		return GPOS_NEW(pmp) CScalarCmp(pmp, pmdid, Pstr(pmp, pmda, pmdid), CUtils::Ecmpt(pmdid), OidInvalidCollation, OidInvalidCollation /* FIXME COLLATION */ /* Add default */);
 	}
 	return NULL;
 }

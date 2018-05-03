@@ -347,12 +347,17 @@ CExpressionTest::EresUnittest_BitmapGet()
 	const IMDColumn *pmdcol = pmdrel->Pmdcol(0);
 	const IMDType *pmdtype = mda.Pmdtype(pmdcol->PmdidType());
 	CColRef *pcrFirst = pcf->PcrCreate(pmdtype, pmdcol->ITypeModifier(), pmdcol->ITypeModifier());
+	/* FIXME COLLATION */
+	OID oidResultCollation = OidInvalidCollation;
+	OID oidInputCollation = OidInvalidCollation;
 
 	CExpression *pexprIndexCond = CUtils::PexprScalarEqCmp
 								(
 								pmp,
 								pcrFirst,
-								CUtils::PexprScalarConstInt4(pmp, 20 /*iVal*/)
+								CUtils::PexprScalarConstInt4(pmp, 20 /*iVal*/),
+								oidResultCollation,
+								oidInputCollation
 								);
 
 	CMDIdGPDB *pmdid = GPOS_NEW(pmp) CMDIdGPDB(CMDIdGPDB::m_mdidUnknown);
@@ -378,7 +383,9 @@ CExpressionTest::EresUnittest_BitmapGet()
 								(
 								pmp,
 								pcrFirst,
-								CUtils::PexprScalarConstInt4(pmp, 20 /*iVal*/)
+								CUtils::PexprScalarConstInt4(pmp, 20 /*iVal*/),
+								oidResultCollation,
+								oidInputCollation
 								);
 
 	CExpression *pexprBitmapTableGet =
@@ -424,7 +431,9 @@ CExpressionTest::EresUnittest_BitmapGet()
 								(
 								pmp,
 								pcrFirst,
-								CUtils::PexprScalarConstInt4(pmp, 20 /*iVal*/)
+								CUtils::PexprScalarConstInt4(pmp, 20 /*iVal*/),
+								oidResultCollation,
+								oidInputCollation
 								);
 	CExpression *pexprBitmapIndex2 =
 			GPOS_NEW(pmp) CExpression

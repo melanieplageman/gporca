@@ -45,13 +45,15 @@ CScalarArrayCmp::CScalarArrayCmp
 	IMemoryPool *pmp,
 	IMDId *pmdidOp,
 	const CWStringConst *pstrOp,
-	EArrCmpType earrcmpt
+	EArrCmpType earrcmpt,
+	OID oidInputCollation
 	)
 	:
 	CScalar(pmp),
 	m_pmdidOp(pmdidOp),
 	m_pscOp(pstrOp),
 	m_earrccmpt(earrcmpt),
+	m_oidInputCollation(oidInputCollation),
 	m_fReturnsNullOnNullInput(false)
 {
 	GPOS_ASSERT(pmdidOp->FValid());
@@ -88,6 +90,12 @@ IMDId *
 CScalarArrayCmp::PmdidOp() const
 {
 	return m_pmdidOp;
+}
+
+OID
+CScalarArrayCmp::OidInputCollation() const
+{
+	return m_oidInputCollation;
 }
 
 //---------------------------------------------------------------------------
@@ -247,7 +255,10 @@ CScalarArrayCmp::PexprExpand
 
 		pmdidOp->AddRef();
 
-		CExpression *pexprCmp = CUtils::PexprScalarCmp(pmp, pexprIdent, pexprArrayElem, *pstrOpName, pmdidOp);
+		/* FIXME COLLATION */ /* Is this right? */
+		OID oidResultCollation = OidInvalidCollation; // Result collation is InvalidOid for a ScalarArrayOpExpr
+		OID oidInputCollation = popArrayCmp->OidInputCollation(); // all array elements must have the same collation
+		CExpression *pexprCmp = CUtils::PexprScalarCmp(pmp, pexprIdent, pexprArrayElem, oidResultCollation, oidInputCollation, *pstrOpName, pmdidOp);
 		pdrgpexpr->Append(pexprCmp);
 	}
 	GPOS_ASSERT(0 < pdrgpexpr->UlLength());

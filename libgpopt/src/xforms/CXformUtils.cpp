@@ -863,7 +863,11 @@ CXformUtils::SubqueryAnyToAgg
 
 		CExpression *pexprScalarIdentCount = CUtils::PexprScalarIdent(pmp, pcrCount);
 		CExpression *pexprCountEqZero = CUtils::PexprCmpWithZero(pmp, pexprScalarIdentCount, CScalarIdent::PopConvert(pexprScalarIdentCount->Pop())->PmdidType(), IMDType::EcmptEq);
-		CExpression *pexprCountEqSum = CUtils::PexprScalarEqCmp(pmp, pcrCount, pcrSum);
+		/* FIXME COLLATION */
+		OID oidResultCollation = OidInvalidCollation;
+		OID oidInputCollation = OidInvalidCollation;
+
+		CExpression *pexprCountEqSum = CUtils::PexprScalarEqCmp(pmp, pcrCount, pcrSum, oidResultCollation, oidInputCollation);
 
 		CMDAccessor *pmda = COptCtxt::PoctxtFromTLS()->Pmda();
 		const IMDTypeInt8 *pmdtypeint8 = pmda->PtMDType<IMDTypeInt8>();
@@ -1040,7 +1044,9 @@ CXformUtils::SubqueryAllToAgg
 
 	const CColRef *pcrSubquery = CScalarProjectElement::PopConvert((*(*pexprProjected)[1])[0]->Pop())->Pcr();
 	*ppexprNewSubquery = GPOS_NEW(pmp) CExpression(pmp, GPOS_NEW(pmp) CScalarSubquery(pmp, pcrSubquery, false /*fGeneratedByExist*/, true /*fGeneratedByQuantified*/), pexprProjected);
-	*ppexprNewScalar = CUtils::PexprScalarCmp(pmp, CUtils::PexprScalarIdent(pmp, pcrSubquery),CUtils::PexprScalarConstBool(pmp, true /*fVal*/), IMDType::EcmptEq);
+	OID oidResultCollation = OidInvalidCollation; /* FIXME COLLATION */ // is this right?
+	OID oidInputCollation = OidInvalidCollation; // because it is a bool and a scalar ident, their collation will not agree, so it is not collatable
+	*ppexprNewScalar = CUtils::PexprScalarCmp(pmp, CUtils::PexprScalarIdent(pmp, pcrSubquery),CUtils::PexprScalarConstBool(pmp, true /*fVal*/), oidResultCollation, oidInputCollation, IMDType::EcmptEq);
 }
 
 
@@ -1151,7 +1157,12 @@ CXformUtils::PexprInversePred
 	pexprScalar->AddRef();
 	pmdidInverseOp->AddRef();
 
-	return CUtils::PexprScalarCmp(pmp, pexprScalar, pcr, *pstrFirst, pmdidInverseOp);
+	//IMDId *pmdidScExp = CScalar::PopConvert(pexprScalar->Pop())->PmdidType();
+	//OID oidCollationScExp = (pmda->Pmdtype(pmdidScExp))->OidTypeCollation(); 
+	OID oidResultCollation = OidInvalidCollation;
+	OID oidInputCollation = OidInvalidCollation; /* FIXME COLLATION */
+
+	return CUtils::PexprScalarCmp(pmp, pexprScalar, pcr, oidResultCollation, oidInputCollation, *pstrFirst, pmdidInverseOp);
 }
 
 
@@ -1735,7 +1746,10 @@ CXformUtils::PexprAssertUpdateCardinality
 	// construct a select(Action='DEL')
 	CLogicalDML *popDML = CLogicalDML::PopConvert(pexprDML->Pop());
 	CExpression *pexprConstDel = CUtils::PexprScalarConstInt4(pmp, CLogicalDML::EdmlDelete /*iVal*/);
-	CExpression *pexprDelPredicate = CUtils::PexprScalarCmp(pmp, popDML->PcrAction(), pexprConstDel, IMDType::EcmptEq);
+	/* FIXME COLLATION */
+	OID oidResultCollation = OidInvalidCollation;
+	OID oidInputCollation = OidInvalidCollation;
+	CExpression *pexprDelPredicate = CUtils::PexprScalarCmp(pmp, popDML->PcrAction(), pexprConstDel, oidResultCollation, oidInputCollation, IMDType::EcmptEq);
 	CExpression *pexprSelectDeleted = GPOS_NEW(pmp) CExpression(pmp, GPOS_NEW(pmp) CLogicalSelect(pmp), pexprDML, pexprDelPredicate);
 	// construct a group by	
 	CColumnFactory *pcf = poctxt->Pcf();
@@ -1782,7 +1796,7 @@ CXformUtils::PexprAssertUpdateCardinality
 											(
 											pmp,
 											GPOS_NEW(pmp) CScalarAssertConstraint(pmp, pstrErrorMsg),
-											CUtils::PexprScalarCmp(pmp, pcrProjElem, pexprConst1, IMDType::EcmptEq)
+											CUtils::PexprScalarCmp(pmp, pcrProjElem, pexprConst1, oidResultCollation, oidInputCollation, IMDType::EcmptEq)
 											);
 	
 	CExpression *pexprAssertPredicate = GPOS_NEW(pmp) CExpression(pmp, GPOS_NEW(pmp) CScalarAssertConstraintList(pmp), pexprAssertConstraint);
@@ -2456,7 +2470,10 @@ CXformUtils::PexprAssertOneRow
 
 	CExpression *pexprSeqPrj = PexprWindowWithRowNumber(pmp, pexprChild, NULL /*pdrgpcrInput*/);
 	CColRef *pcrRowNumber = CScalarProjectElement::PopConvert((*(*pexprSeqPrj)[1])[0]->Pop())->Pcr();
-	CExpression *pexprCmp = CUtils::PexprScalarEqCmp(pmp, pcrRowNumber, CUtils::PexprScalarConstInt4(pmp, 1 /*fVal*/));
+	/* FIXME COLLATION */
+	OID oidResultCollation = OidInvalidCollation;
+	OID oidInputCollation = OidInvalidCollation;
+	CExpression *pexprCmp = CUtils::PexprScalarEqCmp(pmp, pcrRowNumber, CUtils::PexprScalarConstInt4(pmp, 1 /*fVal*/), oidResultCollation, oidInputCollation);
 
 	CWStringConst *pstrErrorMsg = PstrErrorMessage(pmp, gpos::CException::ExmaSQL, gpos::CException::ExmiSQLMaxOneRow);
 	CExpression *pexprAssertConstraint = GPOS_NEW(pmp) CExpression
@@ -3178,12 +3195,17 @@ CXformUtils::PexprEqualityOnBoolColumn
 
 	const CMDName mdname = pmda->Pmdscop(pmdidOp)->Mdname();
 	CWStringConst strOpName(mdname.Pstr()->Wsz());
+	/* FIXME COLLATION */
+	OID oidResultCollation = OidInvalidCollation;
+	OID oidInputCollation = OidInvalidCollation;
 
 	return CUtils::PexprScalarCmp
 					(
 					pmp,
 					pcr,
 					pexprConstBool,
+					oidResultCollation,
+					oidInputCollation,
 					strOpName,
 					pmdidOp
 					);

@@ -48,6 +48,10 @@ namespace gpdxl
 			// comparison operator name
 			const CWStringConst *m_pstrCompOpName;
 
+			OID m_oidCollation;
+
+			OID m_oidInputCollation;
+
 		private:
 
 			// private copy ctor
@@ -59,7 +63,9 @@ namespace gpdxl
 				(
 				IMemoryPool *pmp,
 				IMDId *pmdidOp,
-				const CWStringConst *pstrCompOpName
+				const CWStringConst *pstrCompOpName,
+				OID oidCollation,
+				OID oidInputCollation
 				);
 			
 			virtual
@@ -78,6 +84,12 @@ namespace gpdxl
 			
 			// operator id
 			IMDId *Pmdid() const;
+
+			virtual
+			OID OidCollation() const;
+
+			virtual
+			OID OidInputCollation() const;
 						
 			// serialize operator in DXL format
 			virtual

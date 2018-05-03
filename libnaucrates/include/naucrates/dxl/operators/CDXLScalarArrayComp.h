@@ -52,7 +52,8 @@ namespace gpdxl
 				IMemoryPool *pmp,
 				IMDId *pmdidOp,
 				const CWStringConst *pstrOpName,
-				EdxlArrayCompType edxlcomptype
+				EdxlArrayCompType edxlcomptype,
+				OID oidInputCollation
 				);
 
 			// ident accessors
@@ -64,6 +65,7 @@ namespace gpdxl
 			//accessors
 			BOOL FBoolean() const;
 			EdxlArrayCompType Edxlarraycomptype() const;
+
 
 			// serialize operator in DXL format
 			virtual

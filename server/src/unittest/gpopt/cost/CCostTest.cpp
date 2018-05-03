@@ -348,7 +348,11 @@ CCostTest::EresUnittest_SetParams()
 	const CColRef *pcrOuter = CDrvdPropRelational::Pdprel(pexprOuter->PdpDerive())->PcrsOutput()->PcrAny();
 	CExpression *pexprInner = CTestUtils::PexprLogicalGet(pmp);
 	const CColRef *pcrInner = CDrvdPropRelational::Pdprel(pexprInner->PdpDerive())->PcrsOutput()->PcrAny();
-	CExpression *pexprPred = CUtils::PexprScalarCmp(pmp, pcrOuter, pcrInner, IMDType::EcmptNEq);
+	/* FIXME COLLATION */
+	OID oidResultCollation = OidInvalidCollation;
+	OID oidInputCollation = OidInvalidCollation;
+
+	CExpression *pexprPred = CUtils::PexprScalarCmp(pmp, pcrOuter, pcrInner, oidResultCollation, oidInputCollation, IMDType::EcmptNEq);
 	CExpression *pexpr = CUtils::PexprLogicalJoin<CLogicalInnerJoin>(pmp, pexprOuter, pexprInner, pexprPred);
 
 	// optimize in-equality join based on default cost model params

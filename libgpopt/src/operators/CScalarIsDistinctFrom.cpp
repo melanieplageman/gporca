@@ -86,7 +86,7 @@ CScalarIsDistinctFrom::PopCommutedOp
 	IMDId *pmdid = PmdidCommuteOp(pmda, pop);
 	if (NULL != pmdid && pmdid->FValid())
 	{
-		return GPOS_NEW(pmp) CScalarIsDistinctFrom(pmp, pmdid, Pstr(pmp, pmda, pmdid));
+		return GPOS_NEW(pmp) CScalarIsDistinctFrom(pmp, pmdid, Pstr(pmp, pmda, pmdid), OidInvalidCollation, OidInvalidCollation /* FIXME COLLATION */);
 	}
 	return NULL;
 }

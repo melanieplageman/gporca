@@ -105,8 +105,12 @@ CPredicateUtilsTest::EresUnittest_Conjunctions()
 	CColRefSet *pcrs = CDrvdPropRelational::Pdprel(pexprGet->PdpDerive())->PcrsOutput();
 	CColRef *pcr1 = pcrs->PcrAny();
 	CColRef *pcr2 = pcrs->PcrFirst();
-	CExpression *pexprCmp1 = CUtils::PexprScalarCmp(pmp, pcr1, pcr2, IMDType::EcmptEq);
-	CExpression *pexprCmp2 = CUtils::PexprScalarCmp(pmp, pcr1, CUtils::PexprScalarConstInt4(pmp, 1 /*iVal*/), IMDType::EcmptEq);
+	/* FIXME COLLATION */
+	OID oidResultCollation = OidInvalidCollation;
+	OID oidInputCollation = OidInvalidCollation;
+
+	CExpression *pexprCmp1 = CUtils::PexprScalarCmp(pmp, pcr1, pcr2, oidResultCollation, oidInputCollation, IMDType::EcmptEq);
+	CExpression *pexprCmp2 = CUtils::PexprScalarCmp(pmp, pcr1, CUtils::PexprScalarConstInt4(pmp, 1 /*iVal*/), oidResultCollation, oidInputCollation, IMDType::EcmptEq);
 
 	CExpression *pexprConj = CPredicateUtils::PexprConjunction(pmp, pexprCmp1, pexprCmp2);
 	pdrgpexprExtract = CPredicateUtils::PdrgpexprConjuncts(pmp, pexprConj);
@@ -202,8 +206,12 @@ CPredicateUtilsTest::EresUnittest_Disjunctions()
 	GPOS_ASSERT(fAdvance);
 	CColRef *pcr3 = crsi.Pcr();
 
-	CExpression *pexprCmp1 = CUtils::PexprScalarCmp(pmp, pcr1, pcr2, IMDType::EcmptEq);
-	CExpression *pexprCmp2 = CUtils::PexprScalarCmp(pmp, pcr1, CUtils::PexprScalarConstInt4(pmp, 1 /*iVal*/), IMDType::EcmptEq);
+	/* FIXME COLLATION */
+	OID oidResultCollation = OidInvalidCollation;
+	OID oidInputCollation = OidInvalidCollation;
+
+	CExpression *pexprCmp1 = CUtils::PexprScalarCmp(pmp, pcr1, pcr2, oidResultCollation, oidInputCollation, IMDType::EcmptEq);
+	CExpression *pexprCmp2 = CUtils::PexprScalarCmp(pmp, pcr1, CUtils::PexprScalarConstInt4(pmp, 1 /*iVal*/), oidResultCollation, oidInputCollation, IMDType::EcmptEq);
 
 	{
 		CExpression *pexprDisj = CPredicateUtils::PexprDisjunction(pmp, pexprCmp1, pexprCmp2);
@@ -215,9 +223,13 @@ CPredicateUtilsTest::EresUnittest_Disjunctions()
 
 
 	{
+		/* FIXME COLLATION */
+		OID oidResultCollation = OidInvalidCollation;
+		OID oidInputCollation = OidInvalidCollation;
+
 		DrgPexpr *pdrgpexpr = GPOS_NEW(pmp) DrgPexpr(pmp);
-		CExpression *pexprCmp3 = CUtils::PexprScalarCmp(pmp, pcr2, pcr1, IMDType::EcmptG);
-		CExpression *pexprCmp4 = CUtils::PexprScalarCmp(pmp, CUtils::PexprScalarConstInt4(pmp, 200 /*iVal*/), pcr3, IMDType::EcmptL);
+		CExpression *pexprCmp3 = CUtils::PexprScalarCmp(pmp, pcr2, pcr1, oidResultCollation, oidInputCollation, IMDType::EcmptG);
+		CExpression *pexprCmp4 = CUtils::PexprScalarCmp(pmp, CUtils::PexprScalarConstInt4(pmp, 200 /*iVal*/), pcr3, oidResultCollation, oidInputCollation, IMDType::EcmptL);
 		pexprCmp1->AddRef();
 		pexprCmp2->AddRef();
 
@@ -279,24 +291,27 @@ CPredicateUtilsTest::EresUnittest_PlainEqualities()
 
 	CColRef *pcrLeft = pcrsLeft->PcrAny();
 	CColRef *pcrRight = pcrsRight->PcrAny();
+	/* FIXME COLLATION */
+	OID oidResultCollation = OidInvalidCollation;
+	OID oidInputCollation = OidInvalidCollation;
 
 	// generate an equality predicate between two column reference
 	CExpression *pexprScIdentEquality =
-		CUtils::PexprScalarEqCmp(pmp, pcrLeft, pcrRight);
+		CUtils::PexprScalarEqCmp(pmp, pcrLeft, pcrRight, oidResultCollation, oidInputCollation);
 
 	pexprScIdentEquality->AddRef();
 	pdrgpexprOriginal->Append(pexprScIdentEquality);
 
 	// generate a non-equality predicate between two column reference
 	CExpression *pexprScIdentInequality =
-		CUtils::PexprScalarCmp(pmp, pcrLeft, pcrRight, CWStringConst(GPOS_WSZ_LIT("<")), GPOS_NEW(pmp) CMDIdGPDB(GPDB_INT4_LT_OP));
+		CUtils::PexprScalarCmp(pmp, pcrLeft, pcrRight, oidResultCollation, oidInputCollation, CWStringConst(GPOS_WSZ_LIT("<")), GPOS_NEW(pmp) CMDIdGPDB(GPDB_INT4_LT_OP));
 
 	pexprScIdentInequality->AddRef();
 	pdrgpexprOriginal->Append(pexprScIdentInequality);
 
 	// generate an equality predicate between a column reference and a constant value
 	CExpression *pexprScalarConstInt4 = CUtils::PexprScalarConstInt4(pmp, 10 /*fValue*/);
-	CExpression *pexprScIdentConstEquality = CUtils::PexprScalarEqCmp(pmp, pexprScalarConstInt4, pcrRight);
+	CExpression *pexprScIdentConstEquality = CUtils::PexprScalarEqCmp(pmp, pexprScalarConstInt4, pcrRight, oidResultCollation, oidInputCollation);
 
 	pdrgpexprOriginal->Append(pexprScIdentConstEquality);
 

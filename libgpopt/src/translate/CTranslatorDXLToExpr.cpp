@@ -2814,7 +2814,9 @@ CTranslatorDXLToExpr::PexprScalarIsDistinctFrom
 													(
 													m_pmp,
 													pmdidOp,
-													GPOS_NEW(m_pmp) CWStringConst(m_pmp, (pmdscop->Mdname().Pstr())->Wsz())
+													GPOS_NEW(m_pmp) CWStringConst(m_pmp, (pmdscop->Mdname().Pstr())->Wsz()),
+													pdxlopDistCmp->OidCollation(),
+													pdxlopDistCmp->OidInputCollation()
 													);
 
 	CExpression *pexpr = GPOS_NEW(m_pmp) CExpression(m_pmp, popScIDF, pexprLeft, pexprRight);
@@ -2884,7 +2886,9 @@ CTranslatorDXLToExpr::PexprScalarCmp
 										m_pmp,
 										pmdid,
 										GPOS_NEW(m_pmp) CWStringConst(m_pmp, pdxlopComp->PstrCmpOpName()->Wsz()),
-										CUtils::Ecmpt(pmdid)
+										CUtils::Ecmpt(pmdid),
+										pdxlopComp->OidCollation(),
+										pdxlopComp->OidInputCollation()
 										);
 
 	GPOS_ASSERT(NULL != popScCmp);
@@ -3373,7 +3377,7 @@ CTranslatorDXLToExpr::PexprArrayCmp
 		earrcmpt = CScalarArrayCmp::EarrcmpAny;
 	}
 	
-	CScalarArrayCmp *popArrayCmp = GPOS_NEW(m_pmp) CScalarArrayCmp(m_pmp, pmdidOp, GPOS_NEW(m_pmp) CWStringConst(m_pmp, pstrOpName->Wsz()), earrcmpt);
+	CScalarArrayCmp *popArrayCmp = GPOS_NEW(m_pmp) CScalarArrayCmp(m_pmp, pmdidOp, GPOS_NEW(m_pmp) CWStringConst(m_pmp, pstrOpName->Wsz()), earrcmpt, pdxlop->OidInputCollation());
 	
 	DrgPexpr *pdrgpexprChildren = PdrgpexprChildren(pdxln);
 

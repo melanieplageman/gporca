@@ -3843,9 +3843,13 @@ CTranslatorExprToDXL::PdxlnHashJoin
 			 pexprPredOuter->AddRef();
 			 pexprPredInner->AddRef();
 			 // create hash join predicate based on conjunct type
+			/* FIXME COLLATION */
+			OID oidResultCollation = OidInvalidCollation;
+			OID oidInputCollation = OidInvalidCollation;
+
 			 if (CPredicateUtils::FEquality(pexprPred))
 			 {
-				pexprPred = CUtils::PexprScalarEqCmp(m_pmp, pexprPredOuter, pexprPredInner);
+				pexprPred = CUtils::PexprScalarEqCmp(m_pmp, pexprPredOuter, pexprPredInner, oidResultCollation, oidInputCollation);
 			 }
 			 else
 			 {
@@ -4783,9 +4787,17 @@ CTranslatorExprToDXL::ConstructLevelFilters4PartitionSelector
 		CExpression *pexprEqFilter = popSelector->PexprEqFilter(ulLevel);
 		if (NULL != pexprEqFilter)
 		{
+			/* FIXME COLLATION */ /* why don't we have a specific node type for
+									 the equality filter DXL node? if we don't
+									 have it, should we pass some default
+									 collation for the result collation and
+									 fill it in in the caller? or just pass invalid because bool */
 			CDXLNode *pdxlnEq = PdxlnScalar(pexprEqFilter);
 			IMDId *pmdidTypeOther = CScalar::PopConvert(pexprEqFilter->Pop())->PmdidType();
 			fEQComparison = true;
+			OID oidScCmpInputCollation = pcrPartKey->OidCollation();
+			/* FIXME COLLATION */ /* putting invalid oid here for now because result will be bool */
+			OID oidScCmpResultCollation = OidInvalidCollation;
 
 			if (fRangePart)
 			{
@@ -4799,6 +4811,8 @@ CTranslatorExprToDXL::ConstructLevelFilters4PartitionSelector
 								NULL /*pmdidTypeCastExpr*/,
 								NULL /*pmdidCastFunc*/,
 								(m_pmda->Pmdtype(pmdidTypeOther))->OidTypeCollation(),
+								oidScCmpResultCollation, 
+								oidScCmpInputCollation,
 								ulLevel
 								);
 			}
@@ -5092,7 +5106,11 @@ CTranslatorExprToDXL::PdxlnScCmpPartKey
 	IMDId *pmdidTypeOther = CScalar::PopConvert(pexprOther->Pop())->PmdidType();
 	IMDId *pmdidTypeCastExpr = NULL;
 	IMDId *pmdidCastFunc = NULL;
-	OID oidResultCollation = OidInvalidCollation;
+	OID oidCastResultCollation = OidInvalidCollation;
+
+	CScalarCmp *pScCmpOp = CScalarCmp::PopConvert(pexprScCmp->Pop());
+	OID oidScCmpResultCollation = pScCmpOp->OidCollation();
+	OID oidScCmpInputCollation = pScCmpOp->OidInputCollation();
 
 	if (fRangePart) // range partition
 	{
@@ -5108,7 +5126,7 @@ CTranslatorExprToDXL::PdxlnScCmpPartKey
 			pexprPartKey->Release();
 		}
 
-		CTranslatorExprToDXLUtils::ExtractCastMdids(pexprNewPartKey->Pop(), &pmdidTypeCastExpr, &pmdidCastFunc, oidResultCollation);
+		CTranslatorExprToDXLUtils::ExtractCastMdids(pexprNewPartKey->Pop(), &pmdidTypeCastExpr, &pmdidCastFunc, oidCastResultCollation);
 
 		return CTranslatorExprToDXLUtils::PdxlnRangeFilterScCmp
 								(
@@ -5119,7 +5137,9 @@ CTranslatorExprToDXL::PdxlnScCmpPartKey
 								pmdidTypeOther,
 								pmdidTypeCastExpr,
 								pmdidCastFunc,
-								oidResultCollation,
+								oidCastResultCollation,
+								oidScCmpResultCollation,
+								oidScCmpInputCollation,
 								ecmpt,
 								ulPartLevel
 								);
@@ -5815,7 +5835,7 @@ CTranslatorExprToDXL::PdxlnScCmp
 
 	CWStringConst *pstrName = GPOS_NEW(m_pmp) CWStringConst(m_pmp, popScCmp->Pstr()->Wsz());
 
-	CDXLNode *pdxlnCmp = GPOS_NEW(m_pmp) CDXLNode(m_pmp, GPOS_NEW(m_pmp) CDXLScalarComp(m_pmp, pmdid, pstrName));
+	CDXLNode *pdxlnCmp = GPOS_NEW(m_pmp) CDXLNode(m_pmp, GPOS_NEW(m_pmp) CDXLScalarComp(m_pmp, pmdid, pstrName, popScCmp->OidCollation(), popScCmp->OidInputCollation()));
 
 	// add children
 	pdxlnCmp->AddChild(pdxlnLeft);
@@ -5859,7 +5879,7 @@ CTranslatorExprToDXL::PdxlnScDistinctCmp
 	IMDId *pmdid = popScIDF->PmdidOp();
 	pmdid->AddRef();
 
-	CDXLNode *pdxlnDistCmp = GPOS_NEW(m_pmp) CDXLNode(m_pmp, GPOS_NEW(m_pmp) CDXLScalarDistinctComp(m_pmp, pmdid));
+	CDXLNode *pdxlnDistCmp = GPOS_NEW(m_pmp) CDXLNode(m_pmp, GPOS_NEW(m_pmp) CDXLScalarDistinctComp(m_pmp, pmdid, popScIDF->OidCollation(), popScIDF->OidInputCollation()));
 
 	// add children
 	pdxlnDistCmp->AddChild(pdxlnLeft);
@@ -7083,7 +7103,8 @@ CTranslatorExprToDXL::PdxlnArrayCmp
 									m_pmp,
 									pmdidOp,
 									GPOS_NEW(m_pmp) CWStringConst(m_pmp, pstrOpName->Wsz()),
-									edxlarrcmpt
+									edxlarrcmpt,
+									pop->OidCollation()
 									)
 						);
 

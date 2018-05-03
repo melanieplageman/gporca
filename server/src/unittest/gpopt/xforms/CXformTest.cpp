@@ -299,7 +299,11 @@ CXformTest::PexprStarJoinTree
 		CDrvdPropRelational *pdprelRight = CDrvdPropRelational::Pdprel(pexprRight->PdpDerive());
 		CColRef *pcrRight = pdprelRight->PcrsOutput()->PcrAny();
 		
-		CExpression *pexprPred = CUtils::PexprScalarEqCmp(pmp, pcrLeft, pcrRight);
+		/* FIXME COLLATION */
+		OID oidResultCollation = OidInvalidCollation;
+		OID oidInputCollation = OidInvalidCollation;
+
+		CExpression *pexprPred = CUtils::PexprScalarEqCmp(pmp, pcrLeft, pcrRight, oidResultCollation, oidInputCollation);
 		
 		pexprLeft = CUtils::PexprLogicalJoin<CLogicalInnerJoin>(pmp, pexprLeft, pexprRight, pexprPred);
 	}

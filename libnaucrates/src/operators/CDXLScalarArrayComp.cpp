@@ -30,10 +30,11 @@ CDXLScalarArrayComp::CDXLScalarArrayComp
 	IMemoryPool *pmp,
 	IMDId *pmdidOp,
 	const CWStringConst *pstrOpName,
-	EdxlArrayCompType edxlcomptype
+	EdxlArrayCompType edxlcomptype,
+	OID oidInputCollation
 	)
 	:
-	CDXLScalarComp(pmp, pmdidOp, pstrOpName),
+	CDXLScalarComp(pmp, pmdidOp, pstrOpName, OidInvalidCollation, oidInputCollation), /* GPDB type ScalarArrayOpExpr has only input collation so pass invalid collation oid for result collation */
 	m_edxlcomptype(edxlcomptype)
 {
 }
@@ -125,6 +126,10 @@ CDXLScalarArrayComp::SerializeToDXL
 	pxmlser->AddAttribute(CDXLTokens::PstrToken(EdxltokenOpName), m_pstrCompOpName);
 	m_pmdid->Serialize(pxmlser, CDXLTokens::PstrToken(EdxltokenOpNo));
 	pxmlser->AddAttribute(CDXLTokens::PstrToken(EdxltokenOpType), PstrArrayCompType());
+	if (OidInvalidCollation != OidInputCollation())
+	{
+		pxmlser->AddAttribute(CDXLTokens::PstrToken(EdxltokenInputCollation), OidInputCollation());
+	}
 
 	pdxln->SerializeChildrenToDXL(pxmlser);
 	pxmlser->CloseElement(CDXLTokens::PstrToken(EdxltokenNamespacePrefix), pstrElemName);

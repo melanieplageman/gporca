@@ -422,13 +422,17 @@ CExpressionPreprocessorTest::PexprJoinHelper
 {
 	CExpression *pexprBottomJoin = pexprLOJ;
 	CExpression *pexprResult = pexprBottomJoin;
-
+	/* FIXME COLLATION */
+	OID oidResultCollation = OidInvalidCollation;
+	OID oidInputCollation = OidInvalidCollation;
 	if (fIntermediateInnerjoin)
 	{
 		CExpression *pexprGet = CTestUtils::PexprLogicalGet(pmp);
 		CColRef *pcrLeft = CDrvdPropRelational::Pdprel((*pexprBottomJoin)[0]->PdpDerive())->PcrsOutput()->PcrAny();
 		CColRef *pcrRight = CDrvdPropRelational::Pdprel(pexprGet->PdpDerive())->PcrsOutput()->PcrAny();
-		CExpression *pexprEquality = CUtils::PexprScalarEqCmp(pmp, pcrLeft, pcrRight);
+
+
+		CExpression *pexprEquality = CUtils::PexprScalarEqCmp(pmp, pcrLeft, pcrRight, oidResultCollation, oidInputCollation);
 
 		pexprBottomJoin = GPOS_NEW(pmp) CExpression(pmp, GPOS_NEW(pmp) CLogicalInnerJoin(pmp), pexprBottomJoin, pexprGet, pexprEquality);
 		pexprResult = pexprBottomJoin;
@@ -440,7 +444,7 @@ CExpressionPreprocessorTest::PexprJoinHelper
 		CExpression *pexprGet = CTestUtils::PexprLogicalGet(pmp);
 		CColRef *pcrLeft = CDrvdPropRelational::Pdprel(pexprBottomJoin->PdpDerive())->PcrsOutput()->PcrAny();
 		CColRef *pcrRight = CDrvdPropRelational::Pdprel(pexprGet->PdpDerive())->PcrsOutput()->PcrAny();
-		CExpression *pexprEquality = CUtils::PexprScalarEqCmp(pmp, pcrLeft, pcrRight);
+		CExpression *pexprEquality = CUtils::PexprScalarEqCmp(pmp, pcrLeft, pcrRight, oidResultCollation, oidInputCollation);
 
 		pexprResult = GPOS_NEW(pmp) CExpression(pmp, GPOS_NEW(pmp) CLogicalLeftOuterJoin(pmp), pexprBottomJoin, pexprGet, pexprEquality);
 	}
@@ -471,9 +475,12 @@ CExpressionPreprocessorTest::PexprWindowFuncWithLOJHelper
 	// add window function on top of join expression
 	DrgPcr *pdrgpcrPartitionBy = GPOS_NEW(pmp) DrgPcr(pmp);
 	pdrgpcrPartitionBy->Append(pcrPartitionBy);
+	/* FIXME COLLATION */
+	OID oidResultCollation = OidInvalidCollation;
+	OID oidInputCollation = OidInvalidCollation;
 
 	// add Select node on top of window function
-	CExpression *pexprPred = CUtils::PexprScalarEqCmp(pmp, pcrPartitionBy, CUtils::PexprScalarConstInt4(pmp, 1 /*iVal*/));
+	CExpression *pexprPred = CUtils::PexprScalarEqCmp(pmp, pcrPartitionBy, CUtils::PexprScalarConstInt4(pmp, 1 /*iVal*/), oidResultCollation, oidInputCollation);
 	if (!fOuterChildPred && fCascadedLOJ)
 	{
 		// add another predicate on inner child of top LOJ
@@ -482,7 +489,7 @@ CExpressionPreprocessorTest::PexprWindowFuncWithLOJHelper
 		{
 			pdrgpcrPartitionBy->Append(pcrInner);
 		}
-		CExpression *pexprPred2 = CUtils::PexprScalarEqCmp(pmp, pcrInner, CUtils::PexprScalarConstInt4(pmp, 1 /*iVal*/));
+		CExpression *pexprPred2 = CUtils::PexprScalarEqCmp(pmp, pcrInner, CUtils::PexprScalarConstInt4(pmp, 1 /*iVal*/), oidResultCollation, oidInputCollation);
 		CExpression *pexprConjunction = CPredicateUtils::PexprConjunction(pmp, pexprPred, pexprPred2);
 		pexprPred->Release();
 		pexprPred2->Release();
@@ -1471,10 +1478,12 @@ CExpressionPreprocessorTest::EresUnittest_PreProcessOuterJoin()
 
 	CExpression *pexprLOJ = CTestUtils::PexprLogicalJoin<CLogicalLeftOuterJoin>(pmp);
 	CColRefSet *pcrsInner = CDrvdPropRelational::Pdprel((*pexprLOJ)[1]->PdpDerive())->PcrsOutput();
-
+	/* FIXME COLLATION */
+	OID oidResultCollation = OidInvalidCollation;
+	OID oidInputCollation = OidInvalidCollation;
 	// test case 1: generate a single comparison predicate between an inner column and const
 	CColRef *pcrInner = pcrsInner->PcrAny();
-	CExpression *pexprPredicate1 = CUtils::PexprScalarEqCmp(pmp, pcrInner, CUtils::PexprScalarConstInt4(pmp, 1 /*iVal*/));
+	CExpression *pexprPredicate1 = CUtils::PexprScalarEqCmp(pmp, pcrInner, CUtils::PexprScalarConstInt4(pmp, 1 /*iVal*/), oidResultCollation, oidInputCollation);
 	CExpression *pexprSelect1 = CUtils::PexprLogicalSelect(pmp, pexprLOJ, pexprPredicate1);
 
  	CExpression *pexprPreprocessed1 = CExpressionPreprocessor::PexprPreprocess(pmp, pexprSelect1);
@@ -1490,8 +1499,8 @@ CExpressionPreprocessorTest::EresUnittest_PreProcessOuterJoin()
  	// test case 2: generate a conjunction of predicates involving inner columns
  	CColRefSet *pcrsOuter = CDrvdPropRelational::Pdprel((*pexprLOJ)[0]->PdpDerive())->PcrsOutput();
 	CColRef *pcrOuter = pcrsOuter->PcrAny();
-	CExpression *pexprCmp1 = CUtils::PexprScalarEqCmp(pmp, pcrInner, pcrOuter);
-	CExpression *pexprCmp2 = CUtils::PexprScalarEqCmp(pmp, pcrInner, CUtils::PexprScalarConstInt4(pmp, 1 /*iVal*/));
+	CExpression *pexprCmp1 = CUtils::PexprScalarEqCmp(pmp, pcrInner, pcrOuter, oidResultCollation, oidInputCollation);
+	CExpression *pexprCmp2 = CUtils::PexprScalarEqCmp(pmp, pcrInner, CUtils::PexprScalarConstInt4(pmp, 1 /*iVal*/), oidResultCollation, oidInputCollation);
 	CExpression *pexprPredicate2 = CPredicateUtils::PexprConjunction(pmp, pexprCmp1, pexprCmp2);
 	pexprCmp1->Release();
 	pexprCmp2->Release();
@@ -1508,8 +1517,8 @@ CExpressionPreprocessorTest::EresUnittest_PreProcessOuterJoin()
 
 
 	// test case 3: generate a disjunction of predicates involving inner columns
-	pexprCmp1 = CUtils::PexprScalarEqCmp(pmp, pcrInner, pcrOuter);
-	pexprCmp2 = CUtils::PexprScalarEqCmp(pmp, pcrInner,  CUtils::PexprScalarConstInt4(pmp, 1 /*iVal*/));
+	pexprCmp1 = CUtils::PexprScalarEqCmp(pmp, pcrInner, pcrOuter, oidResultCollation, oidInputCollation);
+	pexprCmp2 = CUtils::PexprScalarEqCmp(pmp, pcrInner,  CUtils::PexprScalarConstInt4(pmp, 1 /*iVal*/), oidResultCollation, oidInputCollation);
 	CExpression *pexprPredicate3 = CPredicateUtils::PexprDisjunction(pmp, pexprCmp1, pexprCmp2);
 	pexprCmp1->Release();
 	pexprCmp2->Release();
@@ -1526,8 +1535,8 @@ CExpressionPreprocessorTest::EresUnittest_PreProcessOuterJoin()
 	GPOS_ASSERT(FHasNoOuterJoin(pexprPreprocessed3) && "unexpected outer join");
 
 	// test case 4: generate a null-rejecting conjunction since it involves one null-rejecting conjunct
-	pexprCmp1 = CUtils::PexprScalarEqCmp(pmp, pcrInner, pcrOuter);
-	pexprCmp2 = CUtils::PexprScalarEqCmp(pmp, pcrOuter, CUtils::PexprScalarConstInt4(pmp, 1 /*iVal*/));
+	pexprCmp1 = CUtils::PexprScalarEqCmp(pmp, pcrInner, pcrOuter, oidResultCollation, oidInputCollation);
+	pexprCmp2 = CUtils::PexprScalarEqCmp(pmp, pcrOuter, CUtils::PexprScalarConstInt4(pmp, 1 /*iVal*/), oidResultCollation, oidInputCollation);
 	CExpression *pexprPredicate4 = CPredicateUtils::PexprConjunction(pmp, pexprCmp1, pexprCmp2);
 	pexprCmp1->Release();
 	pexprCmp2->Release();
@@ -1545,8 +1554,8 @@ CExpressionPreprocessorTest::EresUnittest_PreProcessOuterJoin()
 
 
 	// test case 5: generate a null-passing disjunction since it involves a predicate on outer columns
-	pexprCmp1 = CUtils::PexprScalarEqCmp(pmp, pcrInner, pcrOuter);
-	pexprCmp2 = CUtils::PexprScalarEqCmp(pmp, pcrOuter, CUtils::PexprScalarConstInt4(pmp, 1 /*iVal*/));
+	pexprCmp1 = CUtils::PexprScalarEqCmp(pmp, pcrInner, pcrOuter, oidResultCollation, oidInputCollation);
+	pexprCmp2 = CUtils::PexprScalarEqCmp(pmp, pcrOuter, CUtils::PexprScalarConstInt4(pmp, 1 /*iVal*/), oidResultCollation, oidInputCollation);
 	CExpression *pexprPredicate5 = CPredicateUtils::PexprDisjunction(pmp, pexprCmp1, pexprCmp2);
 	pexprCmp1->Release();
 	pexprCmp2->Release();
@@ -1610,7 +1619,9 @@ CExpressionPreprocessorTest::PexprCreateConjunction
 	)
 {
 	GPOS_ASSERT(NULL != pdrgpcr);
-
+	/* FIXME COLLATION */
+	OID oidResultCollation = OidInvalidCollation;
+	OID oidInputCollation = OidInvalidCollation;
 	DrgPexpr *pdrgpexpr = GPOS_NEW(pmp) DrgPexpr(pmp);
 	ULONG ulLength = pdrgpcr->UlLength();
 	for (ULONG ul = 0; ul < ulLength; ++ul)
@@ -1620,6 +1631,7 @@ CExpressionPreprocessorTest::PexprCreateConjunction
 										pmp,
 										(*pdrgpcr)[ul],
 										CUtils::PexprScalarConstInt4(pmp, ul)
+												, oidResultCollation, oidInputCollation
 										);
 		pdrgpexpr->Append(pexprComparison);
 	}
@@ -2025,10 +2037,12 @@ CExpressionPreprocessorTest::EresUnittest_CollapseInnerJoinHelper
 	CTestUtils::EqualityPredicate(pmp, rgpdprel[0]->PcrsOutput(), rgpdprel[5]->PcrsOutput(), pdrgpexpr);
 	popJoin->AddRef();
 	CExpression *pexprJoin3 = GPOS_NEW(pmp) CExpression(pmp, popJoin, pdrgpexpr);
-
+	/* FIXME COLLATION */
+	OID oidResultCollation = OidInvalidCollation;
+	OID oidInputCollation = OidInvalidCollation;
 	// (5) create Select with predicate that can turn all outer joins into inner joins,
 	// add the Select on top of the top Inner/NAry Join
-	CExpression *pexprCmpLOJInner = CUtils::PexprScalarEqCmp(pmp, rgpdprel[1]->PcrsOutput()->PcrFirst(), CUtils::PexprScalarConstInt4(pmp, 1 /*fVal*/));
+	CExpression *pexprCmpLOJInner = CUtils::PexprScalarEqCmp(pmp, rgpdprel[1]->PcrsOutput()->PcrFirst(), CUtils::PexprScalarConstInt4(pmp, 1 /*fVal*/), oidResultCollation, oidInputCollation);
 	CExpression *pexprSelect = CUtils::PexprSafeSelect(pmp, pexprJoin3, pexprCmpLOJInner);
 	CExpression *pexprPreprocessed = CExpressionPreprocessor::PexprPreprocess(pmp, pexprSelect);
 	{
@@ -2235,7 +2249,9 @@ CExpressionPreprocessorTest::EresUnittest_PreProcessConvert2InPredicate()
 	CAutoRef<CExpression> apexprGet(CTestUtils::PexprLogicalGet(pmp)); // useful for colref
 	COperator *popGet = apexprGet->Pop();
 	popGet->AddRef();
-
+	/* FIXME COLLATION */
+	OID oidResultCollation = OidInvalidCollation;
+	OID oidInputCollation = OidInvalidCollation;
 	// Create a disjunct, add as a child
 	CColRef *pcrLeft = CDrvdPropRelational::Pdprel(apexprGet->PdpDerive())->PcrsOutput()->PcrAny();
 	CScalarBoolOp *pscboolop = GPOS_NEW(pmp) CScalarBoolOp(pmp, CScalarBoolOp::EboolopOr);
@@ -2243,9 +2259,9 @@ CExpressionPreprocessorTest::EresUnittest_PreProcessConvert2InPredicate()
 			GPOS_NEW(pmp) CExpression(
 									pmp,
 									pscboolop,
-									CUtils::PexprScalarEqCmp(pmp, pcrLeft, CUtils::PexprScalarConstInt4(pmp, 1 /*iVal*/)),
-									CUtils::PexprScalarEqCmp(pmp, pcrLeft, CUtils::PexprScalarConstInt4(pmp, 2 /*iVal*/)),
-									CUtils::PexprScalarEqCmp(pmp, pcrLeft, pcrLeft)
+									CUtils::PexprScalarEqCmp(pmp, pcrLeft, CUtils::PexprScalarConstInt4(pmp, 1 /*iVal*/), oidResultCollation, oidInputCollation),
+									CUtils::PexprScalarEqCmp(pmp, pcrLeft, CUtils::PexprScalarConstInt4(pmp, 2 /*iVal*/), oidResultCollation, oidInputCollation),
+									CUtils::PexprScalarEqCmp(pmp, pcrLeft, pcrLeft, oidResultCollation, oidInputCollation)
 									);
 
 	CAutoRef<CExpression> apexprGetWithChildren(GPOS_NEW(pmp) CExpression(pmp, popGet, pexprDisjunct));
@@ -2297,11 +2313,13 @@ CExpressionPreprocessorTest::PexprCreateConvertableArray
 	// remove the array child and then make an OR node with two equality comparisons
 	CExpression *pexprArrayComp = (*pexpr->PdrgPexpr())[1];
 	GPOS_ASSERT(CUtils::FScalarArrayCmp(pexprArrayComp));
-
+	/* FIXME COLLATION */
+	OID oidResultCollation = OidInvalidCollation;
+	OID oidInputCollation = OidInvalidCollation;
 	DrgPexpr *pdrgexprDisjChildren = GPOS_NEW(pmp) DrgPexpr(pmp);
 	pdrgexprDisjChildren->Append(pexprArrayComp);
-	pdrgexprDisjChildren->Append(CUtils::PexprScalarCmp(pmp, pcrLeft, CUtils::PexprScalarConstInt4(pmp, 6 /*iVal*/), ecmptype));
-	pdrgexprDisjChildren->Append(CUtils::PexprScalarCmp(pmp, pcrLeft, CUtils::PexprScalarConstInt4(pmp, 7 /*iVal*/), ecmptype));
+	pdrgexprDisjChildren->Append(CUtils::PexprScalarCmp(pmp, pcrLeft,  CUtils::PexprScalarConstInt4(pmp, 6 /*iVal*/), oidResultCollation, oidInputCollation,ecmptype));
+	pdrgexprDisjChildren->Append(CUtils::PexprScalarCmp(pmp, pcrLeft, CUtils::PexprScalarConstInt4(pmp, 7 /*iVal*/),oidResultCollation, oidInputCollation,  ecmptype));
 
 	CScalarBoolOp *pscboolop = GPOS_NEW(pmp) CScalarBoolOp(pmp, eboolop);
 	CExpression *pexprDisjConj = GPOS_NEW(pmp) CExpression(pmp, pscboolop, pdrgexprDisjChildren);
@@ -2407,15 +2425,17 @@ CExpressionPreprocessorTest::EresUnittest_PreProcessConvert2InPredicateDeepExpre
 	GPOS_ASSERT(1 < apdrgpcr->UlLength());
 	CColRef *pcrLeft = (*apdrgpcr)[0];
 	CColRef *pcrRight = (*apdrgpcr)[1];
-
+	/* FIXME COLLATION */
+	OID oidResultCollation = OidInvalidCollation;
+	OID oidInputCollation = OidInvalidCollation;
 	// inner most OR
 	CScalarBoolOp *pscboolopOrInner = GPOS_NEW(pmp) CScalarBoolOp(pmp, CScalarBoolOp::EboolopOr);
 	CExpression *pexprDisjunctInner =
 			GPOS_NEW(pmp) CExpression(
 									pmp,
 									pscboolopOrInner,
-									CUtils::PexprScalarEqCmp(pmp, pcrRight, CUtils::PexprScalarConstInt4(pmp, 3 /*iVal*/)),
-									CUtils::PexprScalarEqCmp(pmp, pcrRight, CUtils::PexprScalarConstInt4(pmp, 4 /*iVal*/))
+									CUtils::PexprScalarEqCmp(pmp, pcrRight, CUtils::PexprScalarConstInt4(pmp, 3 /*iVal*/), oidResultCollation, oidInputCollation),
+									CUtils::PexprScalarEqCmp(pmp, pcrRight, CUtils::PexprScalarConstInt4(pmp, 4 /*iVal*/), oidResultCollation, oidInputCollation)
 									);
 	// middle and expression
 	CScalarBoolOp *pscboolopAnd = GPOS_NEW(pmp) CScalarBoolOp(pmp, CScalarBoolOp::EboolopAnd);
@@ -2424,7 +2444,7 @@ CExpressionPreprocessorTest::EresUnittest_PreProcessConvert2InPredicateDeepExpre
 									pmp,
 									pscboolopAnd,
 									pexprDisjunctInner,
-									CUtils::PexprScalarEqCmp(pmp, pcrLeft, pcrRight)
+									CUtils::PexprScalarEqCmp(pmp, pcrLeft, pcrRight, oidResultCollation, oidInputCollation)
 									);
 	// outer most OR
 	CScalarBoolOp *pscboolopOr = GPOS_NEW(pmp) CScalarBoolOp(pmp, CScalarBoolOp::EboolopOr);
@@ -2432,8 +2452,8 @@ CExpressionPreprocessorTest::EresUnittest_PreProcessConvert2InPredicateDeepExpre
 			GPOS_NEW(pmp) CExpression(
 									pmp,
 									pscboolopOr,
-									CUtils::PexprScalarEqCmp(pmp, pcrLeft, CUtils::PexprScalarConstInt4(pmp, 1)),
-									CUtils::PexprScalarEqCmp(pmp, pcrLeft, CUtils::PexprScalarConstInt4(pmp, 2)),
+									CUtils::PexprScalarEqCmp(pmp, pcrLeft, CUtils::PexprScalarConstInt4(pmp, 1), oidResultCollation, oidInputCollation),
+									CUtils::PexprScalarEqCmp(pmp, pcrLeft, CUtils::PexprScalarConstInt4(pmp, 2), oidResultCollation, oidInputCollation),
 									pexprConjunct
 									);
 

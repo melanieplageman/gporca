@@ -51,6 +51,10 @@ namespace gpopt
 			// is comparison commutative
 			BOOL m_fCommutative;
 
+			OID m_oidCollation;
+
+			OID m_oidInputCollation;
+
 			// private copy ctor
 			CScalarCmp(const CScalarCmp &);
 
@@ -62,7 +66,9 @@ namespace gpopt
 				IMemoryPool *pmp,
 				IMDId *pmdidOp,
 				const CWStringConst *pstrOp,
-				IMDType::ECmpType ecmpt
+				IMDType::ECmpType ecmpt,
+				OID oidCollation,
+				OID oidInputCollation
 				);
 
 			// dtor
@@ -94,6 +100,11 @@ namespace gpopt
 				return "CScalarCmp";
 			}
 
+			virtual
+			OID OidCollation() const;
+
+			virtual
+			OID OidInputCollation() const;
 
 			// operator specific hash function
 			ULONG UlHash() const;
