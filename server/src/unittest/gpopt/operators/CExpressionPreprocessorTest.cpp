@@ -1152,6 +1152,42 @@ CExpressionPreprocessorTest::UlScalarSubqs
 	return ulSubqs + ulChildSubqs;
 }
 
+// select * from t where a in (select count(i) from s group by j, b);
+
+//Algebrized query:
+//+--CLogicalSelect
+//|--CLogicalGet "t" ("t"), Columns: ["a" (0), "b" (1), "ctid" (2), "xmin" (3), "cmin" (4), "xmax" (5), "cmax" (6), "tableoid" (7), "gp_segment_id" (8)] Key sets: {[2,8]}
+//+--CScalarSubqueryAny(=)["count" (18)]
+//|--CLogicalGbAgg( Global ) Grp Cols: ["j" (10), "b" (1)][Global], Minimal Grp Cols: [], Generates Duplicates :[ 0 ]
+//|  |--CLogicalGet "s" ("s"), Columns: ["i" (9), "j" (10), "ctid" (11), "xmin" (12), "cmin" (13), "xmax" (14), "cmax" (15), "tableoid" (16), "gp_segment_id" (17)] Key sets: {[2,8]}
+//|  +--CScalarProjectList
+//|     +--CScalarProjectElement "count" (18)
+//|        +--CScalarAggFunc (count , Distinct: false , Aggregate Stage: Global)
+//|           +--CScalarIdent "i" (9)
+//+--CScalarIdent "a" (0)
+//
+//Algebrized preprocessed query:
+//+--CLogicalSelect
+//|--CLogicalGet "t" ("t"), Columns: ["a" (0), "b" (1), "ctid" (2), "xmin" (3), "cmin" (4), "xmax" (5), "cmax" (6), "tableoid" (7), "gp_segment_id" (8)] Key sets: {[2,8]}
+//+--CScalarSubqueryAny(=)["count" (18)]
+//|--CLogicalGbAgg( Global ) Grp Cols: ["j" (10)][Global], Minimal Grp Cols: ["j" (10)], Generates Duplicates :[ 0 ]
+//|  |--CLogicalGet "s" ("s"), Columns: ["i" (9), "j" (10), "ctid" (11), "xmin" (12), "cmin" (13), "xmax" (14), "cmax" (15), "tableoid" (16), "gp_segment_id" (17)] Key sets: {[2,8]}
+//|  +--CScalarProjectList
+//|     +--CScalarProjectElement "count" (18)
+//|        +--CScalarAggFunc (count , Distinct: false , Aggregate Stage: Global)
+//|           +--CScalarIdent "i" (9)
+//+--CScalarIdent "a" (0)
+
+//given a
+//-CLogicalGbAgg with grp cols j and b
+//when I call PexprRemoveSuperfluousOuterRefs
+//I produce an expression with
+//-CLogicalGbAgg with grp cols j
+GPOS_RESULT
+CExpressionPreprocessorTest::EresUnittest_RemoveOuterFef()
+{
+	CLogicalGbAgg *testinput =
+}
 
 //---------------------------------------------------------------------------
 //	@function:
