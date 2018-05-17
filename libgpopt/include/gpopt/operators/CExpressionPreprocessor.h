@@ -101,9 +101,7 @@ namespace gpopt
 			static
 			CExpression *PexprRemoveSuperfluousLimit(IMemoryPool *pmp, CExpression *pexpr);
 
-			// remove superfluous outer references from limit, group by and window operators
-			static
-			CExpression *PexprRemoveSuperfluousOuterRefs(IMemoryPool *pmp, CExpression *pexpr);
+
 
 			// generate predicates based on derived constraint properties
 			static
@@ -233,6 +231,10 @@ namespace gpopt
 			// convert series of AND or OR comparisons into array IN expressions
 			static
 			CExpression *PexprConvert2In(IMemoryPool *pmp, CExpression *pexpr);
+
+			// remove superfluous outer references from limit, group by and window operators
+			static
+			CExpression *PexprRemoveSuperfluousOuterRefs(IMemoryPool *pmp, CExpression *pexpr);
 
 	}; // class CExpressionPreprocessor
 }

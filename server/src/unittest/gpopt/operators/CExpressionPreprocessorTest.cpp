@@ -51,22 +51,24 @@ CExpressionPreprocessorTest::EresUnittest()
 
 	CUnittest rgut[] =
 		{
-		GPOS_UNITTEST_FUNC(EresUnittest_UnnestSubqueries),
-		GPOS_UNITTEST_FUNC(EresUnittest_PreProcess),
-		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessWindowFunc),
-		GPOS_UNITTEST_FUNC(EresUnittest_InferPredsOnLOJ),
-		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessWindowFuncWithLOJ),
-		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessWindowFuncWithOuterRefs),
-		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessWindowFuncWithDistinctAggs),
-		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessNestedScalarSubqueries),
-		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessOuterJoin),
-		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessOuterJoinMinidumps),
-		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessOrPrefilters),
-		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessOrPrefiltersPartialPush),
-		GPOS_UNITTEST_FUNC(EresUnittest_CollapseInnerJoin),
-		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessConvert2InPredicate),
-		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessConvertArrayWithEquals),
-		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessConvert2InPredicateDeepExpressionTree)
+//		GPOS_UNITTEST_FUNC(EresUnittest_UnnestSubqueries),
+//
+//		GPOS_UNITTEST_FUNC(EresUnittest_PreProcess),
+//		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessWindowFunc),
+//		GPOS_UNITTEST_FUNC(EresUnittest_InferPredsOnLOJ),
+//		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessWindowFuncWithLOJ),
+//		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessWindowFuncWithOuterRefs),
+//		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessWindowFuncWithDistinctAggs),
+//		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessNestedScalarSubqueries),
+//		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessOuterJoin),
+//		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessOuterJoinMinidumps),
+//		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessOrPrefilters),
+//		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessOrPrefiltersPartialPush),
+//		GPOS_UNITTEST_FUNC(EresUnittest_CollapseInnerJoin),
+//		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessConvert2InPredicate),
+//		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessConvertArrayWithEquals),
+//		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessConvert2InPredicateDeepExpressionTree),
+		GPOS_UNITTEST_FUNC(EresUnittest_RemoveOuterRefWorks)
 		};
 
 	return CUnittest::EresExecute(rgut, GPOS_ARRAY_SIZE(rgut));
@@ -1152,31 +1154,33 @@ CExpressionPreprocessorTest::UlScalarSubqs
 	return ulSubqs + ulChildSubqs;
 }
 
+// create table t(a int, b int);
+// create table s(i int, j int);
 // select * from t where a in (select count(i) from s group by j, b);
 
 //Algebrized query:
 //+--CLogicalSelect
 //|--CLogicalGet "t" ("t"), Columns: ["a" (0), "b" (1), "ctid" (2), "xmin" (3), "cmin" (4), "xmax" (5), "cmax" (6), "tableoid" (7), "gp_segment_id" (8)] Key sets: {[2,8]}
 //+--CScalarSubqueryAny(=)["count" (18)]
-//|--CLogicalGbAgg( Global ) Grp Cols: ["j" (10), "b" (1)][Global], Minimal Grp Cols: [], Generates Duplicates :[ 0 ]
-//|  |--CLogicalGet "s" ("s"), Columns: ["i" (9), "j" (10), "ctid" (11), "xmin" (12), "cmin" (13), "xmax" (14), "cmax" (15), "tableoid" (16), "gp_segment_id" (17)] Key sets: {[2,8]}
-//|  +--CScalarProjectList
-//|     +--CScalarProjectElement "count" (18)
-//|        +--CScalarAggFunc (count , Distinct: false , Aggregate Stage: Global)
-//|           +--CScalarIdent "i" (9)
-//+--CScalarIdent "a" (0)
+//   |--CLogicalGbAgg( Global ) Grp Cols: ["j" (10), "b" (1)][Global], Minimal Grp Cols: [], Generates Duplicates :[ 0 ]
+//   |  |--CLogicalGet "s" ("s"), Columns: ["i" (9), "j" (10), "ctid" (11), "xmin" (12), "cmin" (13), "xmax" (14), "cmax" (15), "tableoid" (16), "gp_segment_id" (17)] Key sets: {[2,8]}
+//   |  +--CScalarProjectList
+//   |     +--CScalarProjectElement "count" (18)
+//   |        +--CScalarAggFunc (count , Distinct: false , Aggregate Stage: Global)
+//   |           +--CScalarIdent "i" (9)
+//   +--CScalarIdent "a" (0)
 //
 //Algebrized preprocessed query:
 //+--CLogicalSelect
 //|--CLogicalGet "t" ("t"), Columns: ["a" (0), "b" (1), "ctid" (2), "xmin" (3), "cmin" (4), "xmax" (5), "cmax" (6), "tableoid" (7), "gp_segment_id" (8)] Key sets: {[2,8]}
 //+--CScalarSubqueryAny(=)["count" (18)]
-//|--CLogicalGbAgg( Global ) Grp Cols: ["j" (10)][Global], Minimal Grp Cols: ["j" (10)], Generates Duplicates :[ 0 ]
-//|  |--CLogicalGet "s" ("s"), Columns: ["i" (9), "j" (10), "ctid" (11), "xmin" (12), "cmin" (13), "xmax" (14), "cmax" (15), "tableoid" (16), "gp_segment_id" (17)] Key sets: {[2,8]}
-//|  +--CScalarProjectList
-//|     +--CScalarProjectElement "count" (18)
-//|        +--CScalarAggFunc (count , Distinct: false , Aggregate Stage: Global)
-//|           +--CScalarIdent "i" (9)
-//+--CScalarIdent "a" (0)
+//   |--CLogicalGbAgg( Global ) Grp Cols: ["j" (10)][Global], Minimal Grp Cols: ["j" (10)], Generates Duplicates :[ 0 ]
+//   |  |--CLogicalGet "s" ("s"), Columns: ["i" (9), "j" (10), "ctid" (11), "xmin" (12), "cmin" (13), "xmax" (14), "cmax" (15), "tableoid" (16), "gp_segment_id" (17)] Key sets: {[2,8]}
+//   |  +--CScalarProjectList
+//   |     +--CScalarProjectElement "count" (18)
+//   |        +--CScalarAggFunc (count , Distinct: false , Aggregate Stage: Global)
+//   |           +--CScalarIdent "i" (9)
+//   +--CScalarIdent "a" (0)
 
 //given a
 //-CLogicalGbAgg with grp cols j and b
@@ -1184,9 +1188,36 @@ CExpressionPreprocessorTest::UlScalarSubqs
 //I produce an expression with
 //-CLogicalGbAgg with grp cols j
 GPOS_RESULT
-CExpressionPreprocessorTest::EresUnittest_RemoveOuterFef()
+CExpressionPreprocessorTest::EresUnittest_RemoveOuterRefWorks()
 {
-	CLogicalGbAgg *testinput =
+
+	CAutoMemoryPool amp;
+	IMemoryPool *pmp = amp.Pmp();
+	CMDProviderMemory *pmdp = CTestUtils::m_pmdpf;
+	pmdp->AddRef();
+	CMDAccessor mda(pmp, CMDCache::Pcache(), CTestUtils::m_sysidDefault, pmdp);
+
+	CAutoOptCtxt aoc(pmp, &mda, NULL,  /* pceeval */ CTestUtils::Pcm(pmp));
+	// thing i actually care about
+	CWStringConst jstrName(GPOS_WSZ_LIT("j"));
+	CWStringConst bstrName(GPOS_WSZ_LIT("b"));
+	const CName jname(&jstrName);
+	const CName bname(&bstrName);
+	const IMDTypeInt4 *pmdtypeint4  = mda.PtMDType<IMDTypeInt4>(CTestUtils::m_sysidDefault);
+	CColumnFactory *colFactory = COptCtxt::PoctxtFromTLS()->Pcf();
+	CColRef *jCol  = colFactory->PcrCreate(pmdtypeint4, IDefaultTypeModifier, jname);
+	CColRef *bCol = colFactory->PcrCreate(pmdtypeint4, IDefaultTypeModifier, bname);
+	DrgPcr *outerRefs = GPOS_NEW(pmp) DrgPcr(pmp);
+	outerRefs->Append(jCol);
+	outerRefs->Append(bCol);
+	CLogicalGbAgg *inputGbAgg  = GPOS_NEW(pmp) CLogicalGbAgg(pmp, outerRefs, COperator::EgbaggtypeGlobal);
+	CExpression *input = GPOS_NEW(pmp) CExpression(pmp, inputGbAgg);
+	CExpression *testOutput  = CExpressionPreprocessor::PexprRemoveSuperfluousOuterRefs(pmp, input);
+	// need fake children because failing arity assertion
+	CLogicalGbAgg *outputGbAgg  = CLogicalGbAgg::PopConvert(testOutput->Pop());
+	GPOS_RTL_ASSERT(outputGbAgg->Pdrgpcr()->UlLength() == 1);
+
+	return GPOS_OK;
 }
 
 //---------------------------------------------------------------------------
