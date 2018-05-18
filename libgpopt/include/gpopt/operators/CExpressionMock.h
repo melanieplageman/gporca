@@ -1,15 +1,15 @@
 //---------------------------------------------------------------------------
 //	Greenplum Database
-//	Copyright (C) 2009 - 2011 EMC CORP.
+//	Copyright (C) 2018 Pivotal, Inc.
 //
 //	@filename:
-//		CExpression.h
+//		CExpressionMock.h
 //
 //	@doc:
-//		Basic tree/DAG-based representation for an expression
+//		Mock tree/DAG-based representation for an expression
 //---------------------------------------------------------------------------
-#ifndef GPOPT_CExpression_H
-#define GPOPT_CExpression_H
+#ifndef GPOPT_CExpressionMock_H
+#define GPOPT_CExpressionMock_H
 
 #include "gpos/base.h"
 #include "gpos/common/CRefCount.h"
@@ -30,11 +30,11 @@
 namespace gpopt
 {
 	// cleanup function for arrays
-	class CExpression;	
-	typedef CDynamicPtrArray<CExpression, CleanupRelease> DrgPexpr;
+	class CExpressionMock;	
+	typedef CDynamicPtrArray<CExpressionMock, CleanupRelease> DrgPexprMock;
 
 	// array of arrays of expression pointers
-	typedef CDynamicPtrArray<DrgPexpr, CleanupRelease> DrgPdrgPexpr;
+	typedef CDynamicPtrArray<DrgPexprMock, CleanupRelease> DrgPdrgPexprMock;
 
 	class CGroupExpression;
 	class CDrvdPropPlan;
@@ -52,7 +52,7 @@ namespace gpopt
 	//		Simply dynamic array for pointer types
 	//
 	//---------------------------------------------------------------------------
-	class CExpression : public CRefCount
+	class CExpressionMock : public CExpression
 	{
 		private:
 		
@@ -63,7 +63,7 @@ namespace gpopt
 			COperator *m_pop;
 			
 			// array of children
-			DrgPexpr *m_pdrgpexpr;
+			DrgPexprMock *m_pdrgpexprmock;
 
 			// derived relational properties
 			CDrvdPropRelational *m_pdprel;
@@ -118,17 +118,14 @@ namespace gpopt
 			CReqdPropPlan* PrppDecorate(IMemoryPool *pmp, CReqdPropPlan *prppInput);
 
 			// private copy ctor
-			CExpression(const CExpression &);
+			CExpressionMock(const CExpression &);
 						
 		public:
 		
 			// ctor's with different arity
 
-			// default ctor
-			CExpression
-					();
 			// ctor for leaf nodes
-			CExpression
+			CExpressionMock
 				(
 				IMemoryPool *pmp,
 				COperator *pop,
@@ -136,76 +133,76 @@ namespace gpopt
 				);
 
 			// ctor for unary expressions
-			CExpression
+			CExpressionMock
 				(
 				IMemoryPool *pmp,
 				COperator *pop,
-				CExpression *pexpr
+				CExpressionMock *pexpr
 				);
 
 			// ctor for binary expressions
-			CExpression
+			CExpressionMock
 				(
 				IMemoryPool *pmp,
 				COperator *pop,
-				CExpression *pexprChildFirst,
-				CExpression *pexprChildSecond
+				CExpressionMock *pexprChildFirst,
+				CExpressionMock *pexprChildSecond
 				);
 
 			// ctor for ternary expressions
-			CExpression
+			CExpressionMock
 				(
 				IMemoryPool *pmp,
 				COperator *pop,
-				CExpression *pexprChildFirst,
-				CExpression *pexprChildSecond,
-				CExpression *pexprChildThird
+				CExpressionMock *pexprChildFirst,
+				CExpressionMock *pexprChildSecond,
+				CExpressionMock *pexprChildThird
 				);
 
 			// ctor n-ary expressions
-			CExpression
+			CExpressionMock
 				(
 				IMemoryPool *pmp,
 				COperator *pop,
-				DrgPexpr *pdrgpexpr
+				DrgPexprMock *pdrgpexprmock
 				);
 			
 			// ctor for n-ary expression with origin group expression
-			CExpression
+			CExpressionMock
 				(
 				IMemoryPool *pmp,
 				COperator *pop,
 				CGroupExpression *pgexpr,
-				DrgPexpr *pdrgpexpr,
+				DrgPexprMock *pdrgpexprmock,
 				IStatistics *pstatsInput,
 				CCost cost = GPOPT_INVALID_COST
 				);
 
 			// ctor for expression with derived properties
-			CExpression
+			CExpressionMock
 				(
 				IMemoryPool *pmp,
 				CDrvdProp *pdprop
 				);
 			
 			// dtor
-			~CExpression();
+			~CExpressionMock();
 			
 			// shorthand to access children
-			CExpression *operator [] 
+			CExpressionMock *operator []
 				(
 				ULONG ulPos
 				)
 			const
 			{
-				GPOS_ASSERT(NULL != m_pdrgpexpr);
-				return (*m_pdrgpexpr)[ulPos];
+				GPOS_ASSERT(NULL != m_pdrgpexprmock);
+				return (*m_pdrgpexprmock)[ulPos];
 			};
 	
 			// arity function
 			ULONG UlArity() const
 			{
-				return m_pdrgpexpr == NULL ? 0 : m_pdrgpexpr->UlLength();
+				return m_pdrgpexprmock == NULL ? 0 : m_pdrgpexprmock->UlLength();
 			}
 			
 			// accessor for operator
@@ -216,9 +213,9 @@ namespace gpopt
 			}
 		
 			// accessor of children array
-			DrgPexpr *PdrgPexpr() const
+			DrgPexprMock *PdrgPexpr() const
 			{
-				return m_pdrgpexpr;
+				return m_pdrgpexprmock;
 			}
 
 			// accessor for origin group expression
@@ -317,30 +314,30 @@ namespace gpopt
 
 			// rehydrate expression from a given cost context and child expressions
 			static
-			CExpression *PexprRehydrate(IMemoryPool *pmp, CCostContext *pcc, DrgPexpr *pdrgpexpr, CDrvdPropCtxtPlan *pdpctxtplan);
+			CExpression *PexprRehydrate(IMemoryPool *pmp, CCostContext *pcc, DrgPexprMock *pdrgpexprmock, CDrvdPropCtxtPlan *pdpctxtplan);
 
 
-	}; // class CExpression
+	}; // class CExpressionMock
 
 
-	// shorthand for printing
-	inline
-	IOstream &operator << (IOstream &os, CExpression &expr)
-	{
-		return expr.OsPrint(os);
-	}
+//	// shorthand for printing
+//	inline
+//	IOstream &operator << (IOstream &os, CExpressionMock &exprmock)
+//	{
+//		return exprmock.OsPrint(os);
+//	}
 
-	// hash map from ULONG to expression
-	typedef CHashMap<ULONG, CExpression, gpos::UlHash<ULONG>, gpos::FEqual<ULONG>,
-					CleanupDelete<ULONG>, CleanupRelease<CExpression> > HMUlExpr;
-
-	// map iterator
-	typedef CHashMapIter<ULONG, CExpression, gpos::UlHash<ULONG>, gpos::FEqual<ULONG>,
-					CleanupDelete<ULONG>, CleanupRelease<CExpression> > HMUlExprIter;
+//	// hash map from ULONG to expression
+//	typedef CHashMap<ULONG, CExpressionMock, gpos::UlHash<ULONG>, gpos::FEqual<ULONG>,
+//					CleanupDelete<ULONG>, CleanupRelease<CExpressionMock> > HMUlExpr;
+//
+//	// map iterator
+//	typedef CHashMapIter<ULONG, CExpressionMock, gpos::UlHash<ULONG>, gpos::FEqual<ULONG>,
+//					CleanupDelete<ULONG>, CleanupRelease<CExpressionMock> > HMUlExprIter;
 
 }
 
 
-#endif // !GPOPT_CExpression_H
+#endif // !GPOPT_CExpressionMock_H
 
 // EOF

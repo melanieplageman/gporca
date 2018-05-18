@@ -18,6 +18,8 @@
 #include "gpopt/base/CColumnFactory.h"
 
 #include "gpopt/operators/CExpression.h"
+
+#include "gpopt/operators/CExpressionMock.h"
 #include "gpopt/operators/CScalarBoolOp.h"
 #include "gpopt/mdcache/CMDAccessor.h"
 

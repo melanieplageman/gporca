@@ -423,7 +423,8 @@ CExpressionPreprocessor::PexprRemoveSuperfluousOuterRefs
 
 	COperator *pop = pexpr->Pop();
 	COperator::EOperatorId eopid = pop->Eopid();
-	BOOL fHasOuterRefs = (pop->FLogical() && CUtils::FHasOuterRefs(pexpr));
+//	BOOL fHasOuterRefs = (pop->FLogical() && CUtils::FHasOuterRefs(pexpr));
+	BOOL fHasOuterRefs = true;
 
 	pop->AddRef();
 	if (fHasOuterRefs)

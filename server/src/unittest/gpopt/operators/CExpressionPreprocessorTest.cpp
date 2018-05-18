@@ -1211,7 +1211,7 @@ CExpressionPreprocessorTest::EresUnittest_RemoveOuterRefWorks()
 	outerRefs->Append(jCol);
 	outerRefs->Append(bCol);
 	CLogicalGbAgg *inputGbAgg  = GPOS_NEW(pmp) CLogicalGbAgg(pmp, outerRefs, COperator::EgbaggtypeGlobal);
-	CExpression *input = GPOS_NEW(pmp) CExpression(pmp, inputGbAgg);
+	CExpressionMock *input = GPOS_NEW(pmp) CExpression(pmp, inputGbAgg);
 	CExpression *testOutput  = CExpressionPreprocessor::PexprRemoveSuperfluousOuterRefs(pmp, input);
 	// need fake children because failing arity assertion
 	CLogicalGbAgg *outputGbAgg  = CLogicalGbAgg::PopConvert(testOutput->Pop());
