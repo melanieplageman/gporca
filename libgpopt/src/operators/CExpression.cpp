@@ -42,7 +42,11 @@ static CHAR szExprBarLevelWS[] =	"|  ";
 static CHAR szExprBarOpPrefix[] =	"|--";
 static CHAR szExprPlusOpPrefix[] =	"+--";
 
+CExpression::CExpression()
+:m_cost(GPOPT_INVALID_COST)
+{
 
+}
 //---------------------------------------------------------------------------
 //	@function:
 //		CExpression::CExpression

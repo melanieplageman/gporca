@@ -158,32 +158,32 @@ namespace gpopt
 				CExpressionMock *pexprChildSecond,
 				CExpressionMock *pexprChildThird
 				);
-
-			// ctor n-ary expressions
-			CExpressionMock
-				(
-				IMemoryPool *pmp,
-				COperator *pop,
-				DrgPexprMock *pdrgpexprmock
-				);
-			
-			// ctor for n-ary expression with origin group expression
-			CExpressionMock
-				(
-				IMemoryPool *pmp,
-				COperator *pop,
-				CGroupExpression *pgexpr,
-				DrgPexprMock *pdrgpexprmock,
-				IStatistics *pstatsInput,
-				CCost cost = GPOPT_INVALID_COST
-				);
-
-			// ctor for expression with derived properties
-			CExpressionMock
-				(
-				IMemoryPool *pmp,
-				CDrvdProp *pdprop
-				);
+//
+//			// ctor n-ary expressions
+//			CExpressionMock
+//				(
+//				IMemoryPool *pmp,
+//				COperator *pop,
+//				DrgPexprMock *pdrgpexprmock
+//				);
+//
+//			// ctor for n-ary expression with origin group expression
+//			CExpressionMock
+//				(
+//				IMemoryPool *pmp,
+//				COperator *pop,
+//				CGroupExpression *pgexpr,
+//				DrgPexprMock *pdrgpexprmock,
+//				IStatistics *pstatsInput,
+//				CCost cost = GPOPT_INVALID_COST
+//				);
+//
+//			// ctor for expression with derived properties
+//			CExpressionMock
+//				(
+//				IMemoryPool *pmp,
+//				CDrvdProp *pdprop
+//				);
 			
 			// dtor
 			~CExpressionMock();
@@ -313,27 +313,27 @@ namespace gpopt
 			ULONG UlHashDedup(const CExpression *pexpr);
 
 			// rehydrate expression from a given cost context and child expressions
-			static
-			CExpression *PexprRehydrate(IMemoryPool *pmp, CCostContext *pcc, DrgPexprMock *pdrgpexprmock, CDrvdPropCtxtPlan *pdpctxtplan);
+//			static
+//			CExpression *PexprRehydrate(IMemoryPool *pmp, CCostContext *pcc, DrgPexprMock *pdrgpexprmock, CDrvdPropCtxtPlan *pdpctxtplan);
 
 
 	}; // class CExpressionMock
 
 
-//	// shorthand for printing
-//	inline
-//	IOstream &operator << (IOstream &os, CExpressionMock &exprmock)
-//	{
-//		return exprmock.OsPrint(os);
-//	}
+	// shorthand for printing
+	inline
+	IOstream &operator << (IOstream &os, CExpressionMock &exprmock)
+	{
+		return exprmock.OsPrint(os);
+	}
 
-//	// hash map from ULONG to expression
-//	typedef CHashMap<ULONG, CExpressionMock, gpos::UlHash<ULONG>, gpos::FEqual<ULONG>,
-//					CleanupDelete<ULONG>, CleanupRelease<CExpressionMock> > HMUlExpr;
-//
-//	// map iterator
-//	typedef CHashMapIter<ULONG, CExpressionMock, gpos::UlHash<ULONG>, gpos::FEqual<ULONG>,
-//					CleanupDelete<ULONG>, CleanupRelease<CExpressionMock> > HMUlExprIter;
+	// hash map from ULONG to expression
+	typedef CHashMap<ULONG, CExpressionMock, gpos::UlHash<ULONG>, gpos::FEqual<ULONG>,
+					CleanupDelete<ULONG>, CleanupRelease<CExpressionMock> > HMUlExprMock;
+
+	// map iterator
+	typedef CHashMapIter<ULONG, CExpressionMock, gpos::UlHash<ULONG>, gpos::FEqual<ULONG>,
+					CleanupDelete<ULONG>, CleanupRelease<CExpressionMock> > HMUlExprMockIter;
 
 }
 

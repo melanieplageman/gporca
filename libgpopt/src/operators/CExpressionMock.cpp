@@ -183,67 +183,67 @@ CExpressionMock::CExpressionMock
 
 	GPOS_ASSERT(m_pdrgpexprmock->UlLength() == 3);
 }
-
-
-//		Ctor, generic n-ary
-CExpressionMock::CExpressionMock
-	(
-	IMemoryPool *pmp,
-	COperator *pop,
-	DrgPexprMock *pdrgpexprmock
-	)
-	:
-	m_pmp(pmp),
-	m_pop(pop),
-	m_pdrgpexprmock(pdrgpexprmock),
-	m_pdprel(NULL),
-	m_pstats(NULL),
-	m_prpp(NULL),
-	m_pdpplan(NULL),
-	m_pdpscalar(NULL),
-	m_pgexpr(NULL),
-	m_cost(GPOPT_INVALID_COST),
-	m_ulOriginGrpId(gpos::ulong_max),
-	m_ulOriginGrpExprId(gpos::ulong_max)
-{
-	GPOS_ASSERT(NULL != pmp);
-	GPOS_ASSERT(NULL != pop);
-	GPOS_ASSERT(NULL != pdrgpexprmock);
-}
-
-
-
-//		Ctor, generic n-ary with origin group expression
-CExpressionMock::CExpressionMock
-	(
-	IMemoryPool *pmp,
-	COperator *pop,
-	CGroupExpression *pgexpr,
-	DrgPexprMock *pdrgpexprmock,
-	IStatistics *pstatsInput,
-	CCost cost
-	)
-	:
-	m_pmp(pmp),
-	m_pop(pop),
-	m_pdrgpexprmock(pdrgpexprmock),
-	m_pdprel(NULL),
-	m_pstats(NULL),
-	m_prpp(NULL),
-	m_pdpplan(NULL),
-	m_pdpscalar(NULL),
-	m_pgexpr(pgexpr),
-	m_cost(cost),
-	m_ulOriginGrpId(gpos::ulong_max),
-	m_ulOriginGrpExprId(gpos::ulong_max)
-{
-	GPOS_ASSERT(NULL != pmp);
-	GPOS_ASSERT(NULL != pop);
-	GPOS_ASSERT(pgexpr->UlArity() == (pdrgpexprmock == NULL ? 0 : pdrgpexprmock->UlLength()));
-	GPOS_ASSERT(NULL != pgexpr->Pgroup());
-
-	CopyGroupPropsAndStats(pstatsInput);
-}
+//
+//
+////		Ctor, generic n-ary
+//CExpressionMock::CExpressionMock
+//	(
+//	IMemoryPool *pmp,
+//	COperator *pop,
+//	DrgPexprMock *pdrgpexprmock
+//	)
+//	:
+//	m_pmp(pmp),
+//	m_pop(pop),
+//	m_pdrgpexprmock(pdrgpexprmock),
+//	m_pdprel(NULL),
+//	m_pstats(NULL),
+//	m_prpp(NULL),
+//	m_pdpplan(NULL),
+//	m_pdpscalar(NULL),
+//	m_pgexpr(NULL),
+//	m_cost(GPOPT_INVALID_COST),
+//	m_ulOriginGrpId(gpos::ulong_max),
+//	m_ulOriginGrpExprId(gpos::ulong_max)
+//{
+//	GPOS_ASSERT(NULL != pmp);
+//	GPOS_ASSERT(NULL != pop);
+//	GPOS_ASSERT(NULL != pdrgpexprmock);
+//}
+//
+//
+//
+////		Ctor, generic n-ary with origin group expression
+//CExpressionMock::CExpressionMock
+//	(
+//	IMemoryPool *pmp,
+//	COperator *pop,
+//	CGroupExpression *pgexpr,
+//	DrgPexprMock *pdrgpexprmock,
+//	IStatistics *pstatsInput,
+//	CCost cost
+//	)
+//	:
+//	m_pmp(pmp),
+//	m_pop(pop),
+//	m_pdrgpexprmock(pdrgpexprmock),
+//	m_pdprel(NULL),
+//	m_pstats(NULL),
+//	m_prpp(NULL),
+//	m_pdpplan(NULL),
+//	m_pdpscalar(NULL),
+//	m_pgexpr(pgexpr),
+//	m_cost(cost),
+//	m_ulOriginGrpId(gpos::ulong_max),
+//	m_ulOriginGrpExprId(gpos::ulong_max)
+//{
+//	GPOS_ASSERT(NULL != pmp);
+//	GPOS_ASSERT(NULL != pop);
+//	GPOS_ASSERT(pgexpr->UlArity() == (pdrgpexprmock == NULL ? 0 : pdrgpexprmock->UlLength()));
+//	GPOS_ASSERT(NULL != pgexpr->Pgroup());
+//
+//	CopyGroupPropsAndStats(pstatsInput);
+//}
 
 
 
@@ -1309,66 +1309,59 @@ CExpressionMock::UlHashDedup
 	return ulHash;
 }
 
-//---------------------------------------------------------------------------
-//	@function:
-//		CExpressionMock::PexprRehydrate
+// Rehydrate expression from a given cost context and child expressions
+//CExpression *
+//CExpressionMock::PexprRehydrate
+//	(
+//	IMemoryPool *pmp,
+//	CCostContext *pcc,
+//	DrgPexprMock *pdrgpexprmock,
+//	CDrvdPropCtxtPlan *pdpctxtplan
+//	)
+//{
+//	GPOS_ASSERT(NULL != pcc);
+//	GPOS_ASSERT(NULL != pdpctxtplan);
 //
-//	@doc:
-//		Rehydrate expression from a given cost context and child expressions
+//	CGroupExpression *pgexpr = pcc->Pgexpr();
+//	COperator *pop = pgexpr->Pop();
+//	pop->AddRef();
 //
-//---------------------------------------------------------------------------
-CExpression *
-CExpressionMock::PexprRehydrate
-	(
-	IMemoryPool *pmp,
-	CCostContext *pcc,
-	DrgPexprMock *pdrgpexprmock,
-	CDrvdPropCtxtPlan *pdpctxtplan
-	)
-{
-	GPOS_ASSERT(NULL != pcc);
-	GPOS_ASSERT(NULL != pdpctxtplan);
-
-	CGroupExpression *pgexpr = pcc->Pgexpr();
-	COperator *pop = pgexpr->Pop();
-	pop->AddRef();
-
-	CCost cost = pcc->Cost();
-	if (pop->FPhysical())
-	{
-		const ULONG ulArity = pgexpr->UlArity();
-		DrgPcost *pdrgpcost = GPOS_NEW(pmp) DrgPcost(pmp);
-		for (ULONG ul = 0; ul < ulArity; ul++)
-		{
-			CExpression *pexprChild = (*pdrgpexprmock)[ul];
-			CCost costChild = pexprChild->Cost();
-			pdrgpcost->Append(GPOS_NEW(pmp) CCost(costChild));
-		}
-		cost = pcc->CostCompute(pmp, pdrgpcost);
-		pdrgpcost->Release();
-	}
-	CExpressionMock *pexpr = GPOS_NEW(pmp) CExpressionMock(pmp, pop, pgexpr, pdrgpexprmock,
-                                              pcc->Pstats(), CCost(cost));
-
-	// set the number of expected partition selectors in the context
-	pdpctxtplan->SetExpectedPartitionSelectors(pop, pcc);
-
-	if (pop->FPhysical() && !pexpr->FValidPlan(pcc->Poc()->Prpp(), pdpctxtplan))
-	{
-#ifdef GPOS_DEBUG
-		{
-			CAutoTrace at(pmp);
-			IOstream &os = at.Os();
-
-			os << std::endl << "INVALID EXPRESSION: " << std::endl << *pexpr;
-			os << std::endl << "REQUIRED PROPERTIES: " << std::endl << *(pcc->Poc()->Prpp());
-			os << std::endl << "DERIVED PROPERTIES: " << std::endl << *CDrvdPropPlan::Pdpplan(pexpr->PdpDerive()) << std::endl;
-		}
-#endif  // GPOS_DEBUG
-		GPOS_RAISE(gpopt::ExmaGPOPT, gpopt::ExmiUnsatisfiedRequiredProperties);
-	}
-	return pexpr;
-}
+//	CCost cost = pcc->Cost();
+//	if (pop->FPhysical())
+//	{
+//		const ULONG ulArity = pgexpr->UlArity();
+//		DrgPcost *pdrgpcost = GPOS_NEW(pmp) DrgPcost(pmp);
+//		for (ULONG ul = 0; ul < ulArity; ul++)
+//		{
+//			CExpression *pexprChild = (*pdrgpexprmock)[ul];
+//			CCost costChild = pexprChild->Cost();
+//			pdrgpcost->Append(GPOS_NEW(pmp) CCost(costChild));
+//		}
+//		cost = pcc->CostCompute(pmp, pdrgpcost);
+//		pdrgpcost->Release();
+//	}
+//	CExpressionMock *pexpr = GPOS_NEW(pmp) CExpressionMock(pmp, pop, pgexpr, pdrgpexprmock,
+//                                              pcc->Pstats(), CCost(cost));
+//
+//	// set the number of expected partition selectors in the context
+//	pdpctxtplan->SetExpectedPartitionSelectors(pop, pcc);
+//
+//	if (pop->FPhysical() && !pexpr->FValidPlan(pcc->Poc()->Prpp(), pdpctxtplan))
+//	{
+//#ifdef GPOS_DEBUG
+//		{
+//			CAutoTrace at(pmp);
+//			IOstream &os = at.Os();
+//
+//			os << std::endl << "INVALID EXPRESSION: " << std::endl << *pexpr;
+//			os << std::endl << "REQUIRED PROPERTIES: " << std::endl << *(pcc->Poc()->Prpp());
+//			os << std::endl << "DERIVED PROPERTIES: " << std::endl << *CDrvdPropPlan::Pdpplan(pexpr->PdpDerive()) << std::endl;
+//		}
+//#endif  // GPOS_DEBUG
+//		GPOS_RAISE(gpopt::ExmaGPOPT, gpopt::ExmiUnsatisfiedRequiredProperties);
+//	}
+//	return pexpr;
+//}
 
 
 //---------------------------------------------------------------------------

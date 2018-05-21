@@ -1210,12 +1210,16 @@ CExpressionPreprocessorTest::EresUnittest_RemoveOuterRefWorks()
 	DrgPcr *outerRefs = GPOS_NEW(pmp) DrgPcr(pmp);
 	outerRefs->Append(jCol);
 	outerRefs->Append(bCol);
+	// Currently, there is a problem where, when we call Pop() on the expression, the address for the operator
+	// which we have successfully made, gets cleared out incorrectly, but I'm not sure why
 	CLogicalGbAgg *inputGbAgg  = GPOS_NEW(pmp) CLogicalGbAgg(pmp, outerRefs, COperator::EgbaggtypeGlobal);
-	CExpressionMock *input = GPOS_NEW(pmp) CExpression(pmp, inputGbAgg);
+	inputGbAgg->AddRef();
+	CExpressionMock *input = GPOS_NEW(pmp) CExpressionMock(pmp, inputGbAgg);
 	CExpression *testOutput  = CExpressionPreprocessor::PexprRemoveSuperfluousOuterRefs(pmp, input);
 	// need fake children because failing arity assertion
 	CLogicalGbAgg *outputGbAgg  = CLogicalGbAgg::PopConvert(testOutput->Pop());
 	GPOS_RTL_ASSERT(outputGbAgg->Pdrgpcr()->UlLength() == 1);
+	inputGbAgg->Release();
 
 	return GPOS_OK;
 }
