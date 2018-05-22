@@ -149,42 +149,6 @@ namespace gpopt
 				CExpressionMock *pexprChildSecond
 				);
 
-			// ctor for ternary expressions
-			CExpressionMock
-				(
-				IMemoryPool *pmp,
-				COperator *pop,
-				CExpressionMock *pexprChildFirst,
-				CExpressionMock *pexprChildSecond,
-				CExpressionMock *pexprChildThird
-				);
-//
-//			// ctor n-ary expressions
-//			CExpressionMock
-//				(
-//				IMemoryPool *pmp,
-//				COperator *pop,
-//				DrgPexprMock *pdrgpexprmock
-//				);
-//
-//			// ctor for n-ary expression with origin group expression
-//			CExpressionMock
-//				(
-//				IMemoryPool *pmp,
-//				COperator *pop,
-//				CGroupExpression *pgexpr,
-//				DrgPexprMock *pdrgpexprmock,
-//				IStatistics *pstatsInput,
-//				CCost cost = GPOPT_INVALID_COST
-//				);
-//
-//			// ctor for expression with derived properties
-//			CExpressionMock
-//				(
-//				IMemoryPool *pmp,
-//				CDrvdProp *pdprop
-//				);
-			
 			// dtor
 			~CExpressionMock();
 			

@@ -1193,6 +1193,7 @@ CExpressionPreprocessorTest::EresUnittest_RemoveOuterRefWorks()
 
 	CAutoMemoryPool amp;
 	IMemoryPool *pmp = amp.Pmp();
+	CMDCache::Reset();
 	CMDProviderMemory *pmdp = CTestUtils::m_pmdpf;
 	pmdp->AddRef();
 	CMDAccessor mda(pmp, CMDCache::Pcache(), CTestUtils::m_sysidDefault, pmdp);
@@ -1212,14 +1213,15 @@ CExpressionPreprocessorTest::EresUnittest_RemoveOuterRefWorks()
 	outerRefs->Append(bCol);
 	// Currently, there is a problem where, when we call Pop() on the expression, the address for the operator
 	// which we have successfully made, gets cleared out incorrectly, but I'm not sure why
+
+	// problem is because we default construct a CExpression inside of the CExpressionMock which has everything as null
+	// then when we get the operator, it is that null one
 	CLogicalGbAgg *inputGbAgg  = GPOS_NEW(pmp) CLogicalGbAgg(pmp, outerRefs, COperator::EgbaggtypeGlobal);
-	inputGbAgg->AddRef();
 	CExpressionMock *input = GPOS_NEW(pmp) CExpressionMock(pmp, inputGbAgg);
 	CExpression *testOutput  = CExpressionPreprocessor::PexprRemoveSuperfluousOuterRefs(pmp, input);
 	// need fake children because failing arity assertion
 	CLogicalGbAgg *outputGbAgg  = CLogicalGbAgg::PopConvert(testOutput->Pop());
 	GPOS_RTL_ASSERT(outputGbAgg->Pdrgpcr()->UlLength() == 1);
-	inputGbAgg->Release();
 
 	return GPOS_OK;
 }
