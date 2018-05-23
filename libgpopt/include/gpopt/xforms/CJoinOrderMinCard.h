@@ -38,6 +38,8 @@ namespace gpopt
 			// combine the two given components using applicable edges
 			SComponent *PcompCombine(SComponent *pcompOuter, SComponent *pcompInner);
 
+						SComponent *GetStartingJoins();
+
 			// mark edges used by result component
 			void MarkUsedEdges();
 
