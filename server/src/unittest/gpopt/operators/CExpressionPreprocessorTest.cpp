@@ -1211,13 +1211,11 @@ CExpressionPreprocessorTest::EresUnittest_RemoveOuterRefWorks()
 	DrgPcr *outerRefs = GPOS_NEW(pmp) DrgPcr(pmp);
 	outerRefs->Append(jCol);
 	outerRefs->Append(bCol);
-	// Currently, there is a problem where, when we call Pop() on the expression, the address for the operator
-	// which we have successfully made, gets cleared out incorrectly, but I'm not sure why
 
-	// problem is because we default construct a CExpression inside of the CExpressionMock which has everything as null
-	// then when we get the operator, it is that null one
 	CLogicalGbAgg *inputGbAgg  = GPOS_NEW(pmp) CLogicalGbAgg(pmp, outerRefs, COperator::EgbaggtypeGlobal);
 	CExpressionMock *input = GPOS_NEW(pmp) CExpressionMock(pmp, inputGbAgg);
+	// failing on property derivation when we attempt to get the outer references as a colrefset
+			// need to figure out if this can be handled through overriding one of the methods in our mock class to only have what we need
 	CExpression *testOutput  = CExpressionPreprocessor::PexprRemoveSuperfluousOuterRefs(pmp, input);
 	// need fake children because failing arity assertion
 	CLogicalGbAgg *outputGbAgg  = CLogicalGbAgg::PopConvert(testOutput->Pop());

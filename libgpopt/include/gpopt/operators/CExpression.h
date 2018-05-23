@@ -124,9 +124,7 @@ namespace gpopt
 		
 			// ctor's with different arity
 
-//			// default ctor
-//			CExpression
-//					();
+
 			// ctor for leaf nodes
 			CExpression
 				(

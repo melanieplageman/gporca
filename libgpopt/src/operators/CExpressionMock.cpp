@@ -50,99 +50,13 @@ static CHAR szExprPlusOpPrefix[] =	"+--";
 CExpressionMock::CExpressionMock
 	(
 	IMemoryPool *pmp,
-	COperator *pop,
-	CGroupExpression *pgexpr
+	COperator *pop
 	)
 	:
-	m_pmp(pmp),
-	m_pop(pop),
-	m_pdrgpexprmock(NULL),
-	m_pdprel(NULL),
-	m_pstats(NULL),
-	m_prpp(NULL),
-	m_pdpplan(NULL),
-	m_pdpscalar(NULL),
-	m_pgexpr(pgexpr),
-	m_cost(GPOPT_INVALID_COST),
-	m_ulOriginGrpId(gpos::ulong_max),
-	m_ulOriginGrpExprId(gpos::ulong_max)
+	CExpression(pmp, pop),
+	m_cost(GPOPT_INVALID_COST)
 {
 	GPOS_ASSERT(NULL != pmp);
-	GPOS_ASSERT(NULL != pop);
-
-	if (NULL != pgexpr)
-	{
-		CopyGroupPropsAndStats(NULL /*pstatsInput*/);
-	}
-}
-
-
-//		Ctor, unary
-CExpressionMock::CExpressionMock
-	(
-	IMemoryPool *pmp,
-	COperator *pop,
-	CExpressionMock *pexprmock
-	)
-	:
-	m_pmp(pmp),
-	m_pop(pop),
-	m_pdrgpexprmock(NULL),
-	m_pdprel(NULL),
-	m_pstats(NULL),
-	m_prpp(NULL),
-	m_pdpplan(NULL),
-	m_pdpscalar(NULL),
-	m_pgexpr(NULL),
-	m_cost(GPOPT_INVALID_COST),
-	m_ulOriginGrpId(gpos::ulong_max),
-	m_ulOriginGrpExprId(gpos::ulong_max)
-{
-	GPOS_ASSERT(NULL != pmp);
-	GPOS_ASSERT(NULL != pop);
-	GPOS_ASSERT(NULL != pexprmock);
-
-	m_pdrgpexprmock = GPOS_NEW(pmp) DrgPexprMock(pmp, 1);
-	m_pdrgpexprmock->Append(pexprmock);
-
-	GPOS_ASSERT(m_pdrgpexprmock->UlLength() == 1);
-}
-
-
-
-//		Ctor, binary
-CExpressionMock::CExpressionMock
-	(
-	IMemoryPool *pmp,
-	COperator *pop,
-	CExpressionMock *pexprChildFirst,
-	CExpressionMock *pexprChildSecond
-	)
-	:
-	m_pmp(pmp),
-	m_pop(pop),
-	m_pdrgpexprmock(NULL),
-	m_pdprel(NULL),
-	m_pstats(NULL),
-	m_prpp(NULL),
-	m_pdpplan(NULL),
-	m_pdpscalar(NULL),
-	m_pgexpr(NULL),
-	m_cost(GPOPT_INVALID_COST),
-	m_ulOriginGrpId(gpos::ulong_max),
-	m_ulOriginGrpExprId(gpos::ulong_max)
-{
-	GPOS_ASSERT(NULL != pmp);
-	GPOS_ASSERT(NULL != pop);
-
-	GPOS_ASSERT(NULL != pexprChildFirst);
-	GPOS_ASSERT(NULL != pexprChildSecond);
-
-	m_pdrgpexprmock = GPOS_NEW(pmp) DrgPexprMock(pmp, 2);
-	m_pdrgpexprmock->Append(pexprChildFirst);
-	m_pdrgpexprmock->Append(pexprChildSecond);
-
-	GPOS_ASSERT(m_pdrgpexprmock->UlLength() == 2);
 }
 
 

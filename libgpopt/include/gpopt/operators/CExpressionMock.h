@@ -128,26 +128,9 @@ namespace gpopt
 			CExpressionMock
 				(
 				IMemoryPool *pmp,
-				COperator *pop,
-				CGroupExpression *pgexpr = NULL
+				COperator *pop
 				);
 
-			// ctor for unary expressions
-			CExpressionMock
-				(
-				IMemoryPool *pmp,
-				COperator *pop,
-				CExpressionMock *pexpr
-				);
-
-			// ctor for binary expressions
-			CExpressionMock
-				(
-				IMemoryPool *pmp,
-				COperator *pop,
-				CExpressionMock *pexprChildFirst,
-				CExpressionMock *pexprChildSecond
-				);
 
 			// dtor
 			~CExpressionMock();
