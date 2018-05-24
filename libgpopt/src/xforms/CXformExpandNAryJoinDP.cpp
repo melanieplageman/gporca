@@ -68,19 +68,19 @@ CXformExpandNAryJoinDP::Exfp
 	)
 	const
 {
-	COptimizerConfig *poconf = COptCtxt::PoctxtFromTLS()->Poconf();
-	const CHint *phint = poconf->Phint();
+//	COptimizerConfig *poconf = COptCtxt::PoctxtFromTLS()->Poconf();
+//	const CHint *phint = poconf->Phint();
 
-	const ULONG ulArity = exprhdl.UlArity();
-
-	// since the last child of the join operator is a scalar child
-	// defining the join predicate, ignore it.
-	const ULONG ulRelChild = ulArity - 1;
-
-	if (ulRelChild > phint->UlJoinOrderDPLimit())
-	{
-		return CXform::ExfpNone;
-	}
+//	const ULONG ulArity = exprhdl.UlArity();
+//
+//	// since the last child of the join operator is a scalar child
+//	// defining the join predicate, ignore it.
+//	const ULONG ulRelChild = ulArity - 1;
+//
+//	if (ulRelChild > phint->UlJoinOrderDPLimit())
+//	{
+//		return CXform::ExfpNone;
+//	}
 
 	return CXformUtils::ExfpExpandJoinOrder(exprhdl);
 }
@@ -122,11 +122,14 @@ CXformExpandNAryJoinDP::Transform
 		pdrgpexpr->Append(pexprChild);
 	}
 
+	COptimizerConfig *poconf = COptCtxt::PoctxtFromTLS()->Poconf();
+	const CHint *phint = poconf->Phint();
+
 	CExpression *pexprScalar = (*pexpr)[ulArity - 1];
 	DrgPexpr *pdrgpexprPreds = CPredicateUtils::PdrgpexprConjuncts(pmp, pexprScalar);
 
 	// create join order using dynamic programming
-	CJoinOrderDP jodp(pmp, pdrgpexpr, pdrgpexprPreds);
+	CJoinOrderDP jodp(pmp, pdrgpexpr, pdrgpexprPreds, phint->UlJoinOrderDPLimit());
 	CExpression *pexprResult = jodp.PexprExpand();
 
 	if (NULL != pexprResult)

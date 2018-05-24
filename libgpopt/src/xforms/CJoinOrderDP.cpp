@@ -138,12 +138,39 @@ CJoinOrderDP::CJoinOrderDP
 	m_phmexprcost = GPOS_NEW(pmp) HMExprCost(pmp);
 	m_pdrgpexprTopKOrders = GPOS_NEW(pmp) DrgPexpr(pmp);
 	m_pexprDummy = GPOS_NEW(pmp) CExpression(pmp, GPOS_NEW(pmp) CPatternLeaf(pmp));
+	m_alternatives_limit = GPOPT_DP_JOIN_ORDERING_TOPK;
 
 #ifdef GPOS_DEBUG
 	for (ULONG ul = 0; ul < m_ulComps; ul++)
 	{
 		GPOS_ASSERT(NULL != m_rgpcomp[ul]->m_pexpr->Pstats() &&
 				"stats were not derived on input component");
+	}
+#endif // GPOS_DEBUG
+}
+
+CJoinOrderDP::CJoinOrderDP
+		(
+				IMemoryPool *pmp,
+				DrgPexpr *pdrgpexprComponents,
+				DrgPexpr *pdrgpexprConjuncts,
+				INT alternatives_limit
+		)
+		:
+		CJoinOrder(pmp, pdrgpexprComponents, pdrgpexprConjuncts)
+{
+	m_phmcomplink = GPOS_NEW(pmp) HMCompLink(pmp);
+	m_phmbsexpr = GPOS_NEW(pmp) HMBSExpr(pmp);
+	m_phmexprcost = GPOS_NEW(pmp) HMExprCost(pmp);
+	m_pdrgpexprTopKOrders = GPOS_NEW(pmp) DrgPexpr(pmp);
+	m_pexprDummy = GPOS_NEW(pmp) CExpression(pmp, GPOS_NEW(pmp) CPatternLeaf(pmp));
+	m_alternatives_limit = alternatives_limit;
+
+#ifdef GPOS_DEBUG
+	for (ULONG ul = 0; ul < m_ulComps; ul++)
+	{
+		GPOS_ASSERT(NULL != m_rgpcomp[ul]->m_pexpr->Pstats() &&
+					"stats were not derived on input component");
 	}
 #endif // GPOS_DEBUG
 }
@@ -194,7 +221,7 @@ CJoinOrderDP::AddJoinOrder
 	INT ulResults = m_pdrgpexprTopKOrders->UlLength();
 	INT iReplacePos = -1;
 	BOOL fAddJoinOrder = false;
-	if (ulResults < GPOPT_DP_JOIN_ORDERING_TOPK)
+	if (ulResults < m_alternatives_limit)
 	{
 		// we have less than K results, always add the given expression
 		fAddJoinOrder = true;
