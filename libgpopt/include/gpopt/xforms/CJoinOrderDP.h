@@ -168,6 +168,9 @@ namespace gpopt
 			static
 			DrgPbs *PdrgpbsSubsets(IMemoryPool *pmp, CBitSet *pbs);
 
+			INT m_alternatives_limit;
+
+
 		public:
 
 			// ctor
@@ -177,6 +180,15 @@ namespace gpopt
 				DrgPexpr *pdrgpexprComponents,
 				DrgPexpr *pdrgpexprConjuncts
 				);
+
+			// ctor
+			CJoinOrderDP
+					(
+							IMemoryPool *pmp,
+							DrgPexpr *pdrgpexprComponents,
+							DrgPexpr *pdrgpexprConjuncts,
+							INT alternatives_limit
+					);
 
 			// dtor
 			virtual
@@ -195,6 +207,8 @@ namespace gpopt
 			// print function
 			virtual
 			IOstream &OsPrint(IOstream &) const;
+
+
 
 	}; // class CJoinOrderDP
 
