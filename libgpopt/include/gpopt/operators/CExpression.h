@@ -26,6 +26,7 @@
 #include "gpopt/base/CPrintPrefix.h"
 #include "gpopt/operators/COperator.h"
 
+// TODO: make a new class to inherit from so I don't have to make everything public
 
 namespace gpopt
 {
@@ -54,15 +55,14 @@ namespace gpopt
 	//---------------------------------------------------------------------------
 	class CExpression : public CRefCount
 	{
-		private:
-		
+		public:
 			// memory pool
 			IMemoryPool *m_pmp;
 			
 			// operator class
 			COperator *m_pop;
-			
 			// array of children
+			// TODO: make this not public
 			DrgPexpr *m_pdrgpexpr;
 
 			// derived relational properties
@@ -117,13 +117,14 @@ namespace gpopt
 			// decorate expression tree with required plan properties
 			CReqdPropPlan* PrppDecorate(IMemoryPool *pmp, CReqdPropPlan *prppInput);
 
+		private:
 			// private copy ctor
 			CExpression(const CExpression &);
 						
 		public:
 		
 			// ctor's with different arity
-
+			CExpression(IMemoryPool *pmp);
 
 			// ctor for leaf nodes
 			CExpression
@@ -189,8 +190,9 @@ namespace gpopt
 			// dtor
 			~CExpression();
 			
+			
 			// shorthand to access children
-			CExpression *operator [] 
+			virtual CExpression *operator []
 				(
 				ULONG ulPos
 				)
@@ -201,23 +203,24 @@ namespace gpopt
 			};
 	
 			// arity function
-			ULONG UlArity() const
+			virtual ULONG UlArity() const
 			{
 				return m_pdrgpexpr == NULL ? 0 : m_pdrgpexpr->UlLength();
 			}
 			
 			// accessor for operator
-			COperator *Pop() const
+			virtual COperator *Pop() const
 			{
 				GPOS_ASSERT(NULL != m_pop);
 				return m_pop;
 			}
 		
 			// accessor of children array
-			DrgPexpr *PdrgPexpr() const
+			virtual DrgPexpr *PdrgPexpr() const
 			{
 				return m_pdrgpexpr;
 			}
+
 
 			// accessor for origin group expression
 			CGroupExpression *Pgexpr() const
@@ -250,7 +253,7 @@ namespace gpopt
 			CDrvdProp::EPropType Ept() const;
 
 			// derive properties, determine the suitable derived property type internally
-			CDrvdProp *PdpDerive(CDrvdPropCtxt *pdpctxt = NULL);
+			virtual CDrvdProp *PdpDerive(CDrvdPropCtxt *pdpctxt = NULL);
 
 			// derive statistics
 			IStatistics *PstatsDerive(CReqdPropRelational *prprel, DrgPstat *pdrgpstatCtxt);

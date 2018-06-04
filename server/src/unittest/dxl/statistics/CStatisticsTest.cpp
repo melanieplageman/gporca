@@ -13,6 +13,7 @@
 #define __STDC_CONSTANT_MACROS
 #endif
 
+#define GPOPT_TEST_REL_OID1	OID(11111)
 #include <stdint.h>
 
 #include "gpos/io/COstreamString.h"

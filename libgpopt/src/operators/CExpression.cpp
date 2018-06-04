@@ -42,7 +42,23 @@ static CHAR szExprBarLevelWS[] =	"|  ";
 static CHAR szExprBarOpPrefix[] =	"|--";
 static CHAR szExprPlusOpPrefix[] =	"+--";
 
-
+CExpression::CExpression(IMemoryPool *pmp)
+:
+m_pmp(pmp),
+m_pop(NULL),
+m_pdrgpexpr(NULL),
+m_pdprel(NULL),
+m_pstats(NULL),
+m_prpp(NULL),
+m_pdpplan(NULL),
+m_pdpscalar(NULL),
+m_pgexpr(NULL),
+m_cost(GPOPT_INVALID_COST),
+m_ulOriginGrpId(gpos::ulong_max),
+m_ulOriginGrpExprId(gpos::ulong_max)
+{
+	GPOS_ASSERT(NULL != pmp);
+}
 //---------------------------------------------------------------------------
 //	@function:
 //		CExpression::CExpression

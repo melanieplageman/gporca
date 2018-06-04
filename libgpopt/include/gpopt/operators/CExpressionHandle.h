@@ -51,8 +51,8 @@ namespace gpopt
 	//---------------------------------------------------------------------------
 	class CExpressionHandle 
 	{
-		private:
-					
+		// TODO: probably shouldn't be public
+		public:
 			// memory pool
 			IMemoryPool *m_pmp;
 			
@@ -86,9 +86,12 @@ namespace gpopt
 			// array of children's required properties
 			DrgPrp *m_pdrgprp;
 
+		private:
+
 			// private copy ctor
 			CExpressionHandle(const CExpressionHandle &);
 
+		public:
 			// cache properties of group and its children on the handle
 			void CopyGroupProps();
 
@@ -124,10 +127,10 @@ namespace gpopt
 			CExpressionHandle(IMemoryPool *pmp);
 
 			// dtor
-			~CExpressionHandle();
+			virtual ~CExpressionHandle();
 
 			// attach handle to a given expression
-			void Attach(CExpression *pexpr);
+			virtual void Attach(CExpression *pexpr);
 
 			// attach handle to a given group expression
 			void Attach(CGroupExpression *pgexpr);
@@ -136,7 +139,7 @@ namespace gpopt
 			void Attach(CCostContext *pcc);
 
 			// recursive property derivation,
-			void DeriveProps(CDrvdPropCtxt *pdpctxt);
+			virtual void DeriveProps(CDrvdPropCtxt *pdpctxt);
 
 			// recursive stats derivation
 			void DeriveStats(DrgPstat *pdrgpstatCtxt, BOOL fComputeRootStats = true);
