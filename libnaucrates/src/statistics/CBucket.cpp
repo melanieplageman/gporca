@@ -604,7 +604,7 @@ CBucket::ICompareUpperBounds
 	CPoint *ppoint2 = pbucket2->PpUpper();
 
 	BOOL fClosedPoint1 = pbucket1->FUpperClosed();
-	BOOL fClosedPoint2 = pbucket1->FUpperClosed();
+	BOOL fClosedPoint2 = pbucket2->FUpperClosed();
 
 	if (ppoint1->FEqual(ppoint2))
 	{

@@ -109,6 +109,11 @@ CBucketTest::EresUnittest_CBucketInt4()
 	CBucket *pbucket3 = CCardinalityTestUtils::PbucketInteger(pmp, 1, 2, true, true, CDouble(1.0), CDouble(1.0));
 	CBucket *pbucket4 = CCardinalityTestUtils::PbucketInteger(pmp, 2, 4, false, false, CDouble(1.0), CDouble(1.0));
 
+	// bucket1 [1,3] and bucket2 [0,3)
+	CBucket *bucket1 = CCardinalityTestUtils::PbucketInteger(pmp, 1, 3, true, true, CDouble(1.0), CDouble(1.0));
+	CBucket *bucket2 = CCardinalityTestUtils::PbucketInteger(pmp, 0, 3, true, false, CDouble(1.0), CDouble(1.0));
+	GPOS_RTL_ASSERT_MSG(bucket2->FBefore(bucket1), "broken");
+
 	// point FBefore
 	GPOS_RTL_ASSERT_MSG(pbucket4->FBefore(ppoint2), "2 must be before (2,4)");
 
