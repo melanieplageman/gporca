@@ -113,15 +113,8 @@ CExpressionMock::Pop() const
 				return m_pop;
 }
 
-//---------------------------------------------------------------------------
-//	@function:
-//		CExpressionMock::PdpDerive
-//
-//	@doc:
 //		Derive properties;
 //		Determine the suitable derived property type internally
-//
-//---------------------------------------------------------------------------
 CDrvdProp *
 CExpressionMock::PdpDerive
 	(
@@ -196,6 +189,12 @@ CExpressionMock::PtabdescTwoColumnSource
 	}
 
 	return ptabdesc;
+}
+
+CDrvdProp::EPropType
+CExpressionMock::Ept() const
+{
+		return CDrvdProp::EptRelational;
 }
 
 // EOF

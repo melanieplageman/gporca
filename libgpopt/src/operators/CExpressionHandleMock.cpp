@@ -68,21 +68,28 @@ CExpressionHandleMock::DeriveProps
 
 	// extract children's properties
 	m_pdrgpdp = GPOS_NEW(m_pmp) DrgPdp(m_pmp);
-	const ULONG ulArity = m_pexpr->UlArity();
-	for (ULONG ul = 0; ul < ulArity; ul++)
-	{
-		CExpression *pexprChild = (*m_pexpr)[ul];
-		CDrvdProp *pdp = pexprChild->PdpDerive(pdpctxt);
-		pdp->AddRef();
-		m_pdrgpdp->Append(pdp);
+	GPOS_ASSERT(pdpctxt == NULL);
+	// make properties for two children
+			//TODO:
+//	CDrvdProp *pdp1 = GPOS_NEW(m_pmp) CDrvdPropRelational::CDrvdPropRelational();
+//	CDrvdProp *pdp2 = GPOS_NEW(m_pmp) CDrvdPropRelational::CDrvdPropRelational();
+//	m_pdp->Derive(m_pmp, *this, pdpctxt);
 
-		// add child props to derivation context
-		gpopt::CDrvdPropCtxt::AddDerivedProps(pdp, pdpctxt);
-	}
+//	const ULONG ulArity = m_pexpr->UlArity();
+//	for (ULONG ul = 0; ul < ulArity; ul++)
+//	{
+//		CExpression *pexprChild = (*m_pexpr)[ul];
+//		CDrvdProp *pdp = pexprChild->PdpDerive(pdpctxt);
+//		pdp->AddRef();
+//		m_pdrgpdp->Append(pdp);
+//
+//		// add child props to derivation context
+//		gpopt::CDrvdPropCtxt::AddDerivedProps(pdp, pdpctxt);
+//	}
 
 	// create/derive local properties
-	m_pdp = Pop()->PdpCreate(m_pmp);
-	m_pdp->Derive(m_pmp, *this, pdpctxt);
+	//m_pdp = Pop()->PdpCreate(m_pmp);
+//	m_pdp->Derive(m_pmp, *this, pdpctxt);
 }
 
 // EOF

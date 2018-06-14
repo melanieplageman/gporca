@@ -100,6 +100,8 @@ namespace gpopt
 				const CWStringConst &strColB
 				);
 
+			// get the suitable derived property type based on operator
+			CDrvdProp::EPropType Ept() const;
 
 	}; // class CExpressionMock
 }
