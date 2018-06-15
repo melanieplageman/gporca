@@ -67,13 +67,8 @@ CExpressionHandleMock::DeriveProps
 	/* CopyStats(); */
 
 	// extract children's properties
-	m_pdrgpdp = GPOS_NEW(m_pmp) DrgPdp(m_pmp);
+	//m_pdrgpdp = GPOS_NEW(m_pmp) DrgPdp(m_pmp);
 	GPOS_ASSERT(pdpctxt == NULL);
-	// make properties for two children
-			//TODO:
-//	CDrvdProp *pdp1 = GPOS_NEW(m_pmp) CDrvdPropRelational::CDrvdPropRelational();
-//	CDrvdProp *pdp2 = GPOS_NEW(m_pmp) CDrvdPropRelational::CDrvdPropRelational();
-//	m_pdp->Derive(m_pmp, *this, pdpctxt);
 
 //	const ULONG ulArity = m_pexpr->UlArity();
 //	for (ULONG ul = 0; ul < ulArity; ul++)

@@ -449,6 +449,11 @@ CExpressionPreprocessor::PexprRemoveSuperfluousOuterRefs
 		}
 		else if (COperator::EopLogicalGbAgg == eopid)
 		{
+			// TODO: how to get Pdprel to still return my mock derived relational properties so that I can call my mock PcrsOuter on it
+			// TODO: made Pdprel virtual -- not sure if this will work-- basically want this to call
+			// CDrvdPropRelationalMock::Pdprel on my mock expression which will return a CDrvdPropRelationalMock from PdpDerive
+			// Then call PcrsOuter on this CDrvdPropRelationalMock to get the pcrsouter that we are working with
+			// TODO: need to find a way to get rid of Pdprel
 			CColRefSet *pcrsOuter = CDrvdPropRelational::Pdprel(pexpr->PdpDerive())->PcrsOuter();
 
 			CLogicalGbAgg *popAgg = CLogicalGbAgg::PopConvert(pop);

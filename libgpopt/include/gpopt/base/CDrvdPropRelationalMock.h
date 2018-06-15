@@ -28,6 +28,11 @@ namespace gpopt
 			// ctor
 			CDrvdPropRelationalMock();
 
+			void Derive(IMemoryPool *pmp, CExpressionHandle &exprhdl, CDrvdPropCtxt *pdpctxt);
+
+
+			static CDrvdPropRelationalMock *Pdprel(CDrvdProp *pdp);
+
 	}; // class CDrvdPropRelationalMock
 
 }
