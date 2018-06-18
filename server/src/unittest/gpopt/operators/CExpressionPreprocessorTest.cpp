@@ -1187,6 +1187,8 @@ CExpressionPreprocessorTest::UlScalarSubqs
 //when I call PexprRemoveSuperfluousOuterRefs
 //I produce an expression with
 //-CLogicalGbAgg with grp cols j
+
+// Next step: mock out [] for pexpr
 GPOS_RESULT
 CExpressionPreprocessorTest::EresUnittest_RemoveOuterRefWorks()
 {

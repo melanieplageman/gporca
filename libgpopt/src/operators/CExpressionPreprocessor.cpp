@@ -28,6 +28,10 @@
 #include "gpopt/operators/CExpressionPreprocessor.h"
 #include "gpopt/optimizer/COptimizerConfig.h"
 
+#include "gpopt/PropertyDerivationUtils.h"
+
+#include "gpopt/base/CDrvdPropRelationalMock.h"
+
 #include "gpopt/mdcache/CMDAccessor.h"
 #include "gpopt/xforms/CXform.h"
 #include "naucrates/md/IMDScalarOp.h"
@@ -454,7 +458,7 @@ CExpressionPreprocessor::PexprRemoveSuperfluousOuterRefs
 			// CDrvdPropRelationalMock::Pdprel on my mock expression which will return a CDrvdPropRelationalMock from PdpDerive
 			// Then call PcrsOuter on this CDrvdPropRelationalMock to get the pcrsouter that we are working with
 			// TODO: need to find a way to get rid of Pdprel
-			CColRefSet *pcrsOuter = CDrvdPropRelational::Pdprel(pexpr->PdpDerive())->PcrsOuter();
+			CColRefSet *pcrsOuter = Pdprel(pexpr->PdpDerive())->PcrsOuter(pmp);
 
 			CLogicalGbAgg *popAgg = CLogicalGbAgg::PopConvert(pop);
 			DrgPcr *pdrgpcr = CUtils::PdrgpcrExcludeColumns(pmp, popAgg->Pdrgpcr(), pcrsOuter);

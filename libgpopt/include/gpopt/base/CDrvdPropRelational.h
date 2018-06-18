@@ -130,8 +130,12 @@ namespace gpopt
 			}
 
 			// outer references
-			CColRefSet *PcrsOuter() const
+			virtual CColRefSet *PcrsOuter(IMemoryPool *pmp = NULL) const
 			{
+				if(pmp)
+				{
+					GPOS_ASSERT(pmp);
+				}
 				return m_pcrsOuter;
 			}
 			

@@ -7,6 +7,16 @@
 
 #include "gpopt/base/CDrvdPropRelational.h"
 
+#include "naucrates/md/CMDProviderMemory.h"
+#include "gpopt/base/CAutoOptCtxt.h"
+#include "gpos/memory/CAutoMemoryPool.h"
+#include "gpopt/mdcache/CMDCache.h"
+
+
+#include "naucrates/md/IMDTypeInt4.h"
+#include "gpopt/base/CColumnFactory.h"
+
+#include "gpopt/base/CColRefSet.h"
 
 namespace gpopt
 {
@@ -14,7 +24,6 @@ namespace gpopt
 
 	// fwd declaration
 	class CExpressionHandleMock;
-	class CColRefSet;
 
 
 	class CDrvdPropRelationalMock : public CDrvdPropRelational
@@ -31,7 +40,8 @@ namespace gpopt
 			void Derive(IMemoryPool *pmp, CExpressionHandle &exprhdl, CDrvdPropCtxt *pdpctxt);
 
 
-			static CDrvdPropRelationalMock *Pdprel(CDrvdProp *pdp);
+			// output columns
+			CColRefSet *PcrsOuter(IMemoryPool *pmp) const;
 
 	}; // class CDrvdPropRelationalMock
 
