@@ -65,7 +65,16 @@ CExpressionMock::CExpressionMock
 }
 
 
-
+CExpressionMock::CExpressionMock
+		(
+				IMemoryPool *pmp,
+				DrgPexpr *kids
+		)
+		:
+		CExpression(pmp)
+{
+	m_pdrgpexpr = kids;
+}
 
 //		Dtor
 CExpressionMock::~CExpressionMock()
@@ -125,26 +134,6 @@ CExpressionMock::PdpDerive
 	GPOS_CHECK_STACK_SIZE;
 	GPOS_CHECK_ABORT;
 	const CDrvdProp::EPropType ept = Ept();
-#ifdef GPOS_DEBUG
-	AssertValidPropDerivation(ept);
-#endif // GPOS_DEBUG
-	// see if suitable prop is already cached
-//	 if (NULL == Pdp(ept))
-//	 {
-//		CExpressionHandleMock exprhdlmock(m_pmp);
-//		exprhdlmock.Attach(this);
-//
-//		// trigger recursive property derivation
-//		 exprhdlmock.DeriveProps(pdpctxt);
-//
-//	 	// cache handle's derived properties on expression
-//	 	CRefCount::SafeRelease(Pdp(ept));
-//	 	CDrvdProp *pdp = exprhdlmock.Pdp();
-//	 	pdp->AddRef();
-//	 	SetPdp(pdp, ept);
-//	 }
-//	return Pdp(ept);
-
 		// make fake relational properties
 	GPOS_ASSERT(pdpctxt == NULL);
 	CDrvdProp *pdp = GPOS_NEW(m_pmp) CDrvdPropRelationalMock::CDrvdPropRelationalMock();

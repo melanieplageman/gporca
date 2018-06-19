@@ -84,26 +84,15 @@ CDrvdPropRelationalMock::PcrsOuter(IMemoryPool *pmp) const
 	CMDAccessor *pmda = COptCtxt::PoctxtFromTLS()->Pmda();
 
 	const IMDTypeInt4 *pmdtypeint4 = pmda->PtMDType<IMDTypeInt4>(CTestUtils::m_sysidDefault);
-	CWStringConst jstrName(GPOS_WSZ_LIT("j"));
 	CWStringConst bstrName(GPOS_WSZ_LIT("b"));
-	const CName jname(&jstrName);
 	const CName bname(&bstrName);
 
 	CColumnFactory *colFactory = COptCtxt::PoctxtFromTLS()->Pcf();
-	CColRef *jCol  = colFactory->PcrCreate(pmdtypeint4, IDefaultTypeModifier, jname);
-	CColRef *bCol = colFactory->PcrCreate(pmdtypeint4, IDefaultTypeModifier, bname);
+	CColRef *bCol = colFactory->PcrCreate(pmdtypeint4, 1, &bname);
 	DrgPcr *outerRefs = GPOS_NEW(pmp) DrgPcr(pmp);
-	outerRefs->Append(jCol);
 	outerRefs->Append(bCol);
-	CColRefSet *colref_set = GPOS_NEW(pmp) CColRefSet(pmp, outerRefs, 2);
+	CColRefSet *colref_set = GPOS_NEW(pmp) CColRefSet(pmp, outerRefs, 1);
 	return colref_set;
 }
-
-//	CMDProviderMemory *pmdp = CTestUtils::m_pmdpf;
-//	pmdp->AddRef();
-//	CMDAccessor mda(pmp, CMDCache::Pcache(), CTestUtils::m_sysidDefault, pmdp);
-//
-//	CAutoOptCtxt aoc(pmp, &mda, NULL,  /* pceeval */ CTestUtils::Pcm(pmp));
-//	const IMDTypeInt4 *pmdtypeint4  = mda.PtMDType<IMDTypeInt4>(CTestUtils::m_sysidDefault);
 
 // EOF

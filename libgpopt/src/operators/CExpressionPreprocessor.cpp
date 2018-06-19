@@ -457,7 +457,6 @@ CExpressionPreprocessor::PexprRemoveSuperfluousOuterRefs
 			// TODO: made Pdprel virtual -- not sure if this will work-- basically want this to call
 			// CDrvdPropRelationalMock::Pdprel on my mock expression which will return a CDrvdPropRelationalMock from PdpDerive
 			// Then call PcrsOuter on this CDrvdPropRelationalMock to get the pcrsouter that we are working with
-			// TODO: need to find a way to get rid of Pdprel
 			CColRefSet *pcrsOuter = Pdprel(pexpr->PdpDerive())->PcrsOuter(pmp);
 
 			CLogicalGbAgg *popAgg = CLogicalGbAgg::PopConvert(pop);

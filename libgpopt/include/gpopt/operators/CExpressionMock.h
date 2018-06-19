@@ -58,7 +58,11 @@ namespace gpopt
 					(
 							IMemoryPool *pmp
 					);
-
+			CExpressionMock
+					(
+							IMemoryPool *pmp,
+							DrgPexpr *kids
+							);
 
 			// dtor
 			~CExpressionMock();
@@ -71,7 +75,10 @@ namespace gpopt
 			const
 			{
 				GPOS_ASSERT(ulPos >= 0 || ulPos < 0);
-				return GPOS_NEW(m_pmp) CExpressionMock(m_pmp);
+				DrgPexpr *kids = GPOS_NEW(m_pmp) DrgPexpr(m_pmp);
+				// TODO: enum for kids?
+				kids->Append(GPOS_NEW(m_pmp) CExpressionMock(m_pmp, GPOS_NEW(m_pmp) CScalarProjectList(m_pmp)));
+				return GPOS_NEW(m_pmp) CExpressionMock(m_pmp, kids);
 			};
 
 			// accessor for operator

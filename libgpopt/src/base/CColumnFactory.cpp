@@ -94,6 +94,13 @@ CColumnFactory::Initialize()
 	m_phmcrcrs = GPOS_NEW(m_pmp) HMCrCrs(m_pmp);
 }
 
+CColRef *
+CColumnFactory::PcrCreate(const IMDType *pmdtype, ULONG ulId, const CName *name)
+{
+	// note that this cname ownership could be a problem
+	CColRef *pcr = GPOS_NEW(m_pmp) CColRefComputed(pmdtype, -1, ulId, name);
+	return pcr;
+}
 //---------------------------------------------------------------------------
 //	@function:
 //		CColumnFactory::PcrCreate
@@ -328,6 +335,7 @@ CColumnFactory::PcrLookup
 	
 	return pcr;
 }
+
 
 
 //---------------------------------------------------------------------------

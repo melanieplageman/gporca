@@ -87,7 +87,8 @@ namespace gpopt
 
 			// initialize the hash map between computed column and used columns
 			void Initialize();
-
+			// currently just used for mock
+			CColRef *PcrCreate(const IMDType *pmdtype, ULONG ulId, const CName *name);
 			// create a column reference given only its type and type modifier, used for computed columns
 			CColRef *PcrCreate(const IMDType *pmdtype, INT iTypeModifier);
 
@@ -135,6 +136,7 @@ namespace gpopt
 
 			// lookup by id
 			CColRef *PcrLookup(ULONG ulId);
+
 			
 			// destructor
 			void Destroy(CColRef *);

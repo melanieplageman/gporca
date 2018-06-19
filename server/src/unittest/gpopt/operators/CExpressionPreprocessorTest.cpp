@@ -1188,7 +1188,12 @@ CExpressionPreprocessorTest::UlScalarSubqs
 //I produce an expression with
 //-CLogicalGbAgg with grp cols j
 
-// Next step: mock out [] for pexpr
+// TODO: make PdrgpcrArgDQA something for my group by op
+// TODO: make a fixture for that memory pool stuff
+// TODO: currently, I am correctly excluding the column, but because my overloaded [] always makes a dummy kid
+// and the UlArity for mock expression is overridden to always return 2, we will go into an infinite loop
+// big next step is to architect the recursion aspect of the processing steps to handle recursion -- i.e. only recurse if I need it for my test input
+// how to handle recursion with mocks?
 GPOS_RESULT
 CExpressionPreprocessorTest::EresUnittest_RemoveOuterRefWorks()
 {
@@ -1208,18 +1213,18 @@ CExpressionPreprocessorTest::EresUnittest_RemoveOuterRefWorks()
 	const CName bname(&bstrName);
 	const IMDTypeInt4 *pmdtypeint4  = mda.PtMDType<IMDTypeInt4>(CTestUtils::m_sysidDefault);
 	CColumnFactory *colFactory = COptCtxt::PoctxtFromTLS()->Pcf();
-	CColRef *jCol  = colFactory->PcrCreate(pmdtypeint4, IDefaultTypeModifier, jname);
-	CColRef *bCol = colFactory->PcrCreate(pmdtypeint4, IDefaultTypeModifier, bname);
-	DrgPcr *outerRefs = GPOS_NEW(pmp) DrgPcr(pmp);
-	outerRefs->Append(jCol);
-	outerRefs->Append(bCol);
+	CColRef *jCol  = colFactory->PcrCreate(pmdtypeint4, 10, &jname);
+	CColRef *bCol = colFactory->PcrCreate(pmdtypeint4, 1, &bname);
+	DrgPcr *grouping_cols = GPOS_NEW(pmp) DrgPcr(pmp);
+	grouping_cols->Append(jCol);
+	grouping_cols->Append(bCol);
 
-	CLogicalGbAgg *inputGbAgg  = GPOS_NEW(pmp) CLogicalGbAgg(pmp, outerRefs, COperator::EgbaggtypeGlobal);
+	DrgPcr *min_cols = GPOS_NEW(pmp) DrgPcr(pmp);
+	min_cols->Append(jCol);
+
+	CLogicalGbAgg *inputGbAgg  = GPOS_NEW(pmp) CLogicalGbAgg(pmp, grouping_cols, min_cols, COperator::EgbaggtypeGlobal);
 	CExpressionMock *input = GPOS_NEW(pmp) CExpressionMock(pmp, inputGbAgg);
-	// failing on property derivation when we attempt to get the outer references as a colrefset
-			// need to figure out if this can be handled through overriding one of the methods in our mock class to only have what we need
 	CExpression *testOutput  = CExpressionPreprocessor::PexprRemoveSuperfluousOuterRefs(pmp, input);
-	// need fake children because failing arity assertion
 	CLogicalGbAgg *outputGbAgg  = CLogicalGbAgg::PopConvert(testOutput->Pop());
 	GPOS_RTL_ASSERT(outputGbAgg->Pdrgpcr()->UlLength() == 1);
 
