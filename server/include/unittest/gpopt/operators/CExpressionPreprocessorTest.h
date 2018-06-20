@@ -191,6 +191,7 @@ namespace gpopt
 			static GPOS_RESULT EresUnittest_PreProcessConvert2InPredicate();
 			static GPOS_RESULT EresUnittest_PreProcessConvert2InPredicateDeepExpressionTree();
 			static GPOS_RESULT EresUnittest_PreProcessConvertArrayWithEquals();
+			static GPOS_RESULT EresUnittest_PreProcessRemoveSuperfluousOuterRefs();
 
 	}; // class CExpressionPreprocessorTest
 }

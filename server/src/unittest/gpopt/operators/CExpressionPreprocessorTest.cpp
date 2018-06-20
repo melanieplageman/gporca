@@ -51,22 +51,23 @@ CExpressionPreprocessorTest::EresUnittest()
 
 	CUnittest rgut[] =
 		{
-		GPOS_UNITTEST_FUNC(EresUnittest_UnnestSubqueries),
-		GPOS_UNITTEST_FUNC(EresUnittest_PreProcess),
-		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessWindowFunc),
-		GPOS_UNITTEST_FUNC(EresUnittest_InferPredsOnLOJ),
-		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessWindowFuncWithLOJ),
-		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessWindowFuncWithOuterRefs),
-		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessWindowFuncWithDistinctAggs),
-		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessNestedScalarSubqueries),
-		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessOuterJoin),
-		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessOuterJoinMinidumps),
-		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessOrPrefilters),
-		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessOrPrefiltersPartialPush),
-		GPOS_UNITTEST_FUNC(EresUnittest_CollapseInnerJoin),
-		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessConvert2InPredicate),
-		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessConvertArrayWithEquals),
-		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessConvert2InPredicateDeepExpressionTree)
+//		GPOS_UNITTEST_FUNC(EresUnittest_UnnestSubqueries),
+//		GPOS_UNITTEST_FUNC(EresUnittest_PreProcess),
+//		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessWindowFunc),
+//		GPOS_UNITTEST_FUNC(EresUnittest_InferPredsOnLOJ),
+//		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessWindowFuncWithLOJ),
+//		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessWindowFuncWithOuterRefs),
+//		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessWindowFuncWithDistinctAggs),
+//		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessNestedScalarSubqueries),
+//		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessOuterJoin),
+//		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessOuterJoinMinidumps),
+//		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessOrPrefilters),
+//		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessOrPrefiltersPartialPush),
+//		GPOS_UNITTEST_FUNC(EresUnittest_CollapseInnerJoin),
+//		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessConvert2InPredicate),
+//		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessConvertArrayWithEquals),
+//		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessConvert2InPredicateDeepExpressionTree),
+		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessRemoveSuperfluousOuterRefs)
 		};
 
 	return CUnittest::EresExecute(rgut, GPOS_ARRAY_SIZE(rgut));
@@ -2445,6 +2446,86 @@ CExpressionPreprocessorTest::EresUnittest_PreProcessConvert2InPredicateDeepExpre
 
 	GPOS_ASSERT(2 == CUtils::UlCountOperator(apexprConvert.Pt(), COperator::EopScalarArrayCmp));
 	GPOS_ASSERT(1 == CUtils::UlCountOperator(apexprConvert.Pt(), COperator::EopScalarCmp));
+
+	return GPOS_OK;
+}
+
+//Algebrized query:
+//+--CLogicalSelect
+//|--CLogicalGet "t" ("t"), Columns: ["a" (0), "b" (1), "ctid" (2), "xmin" (3), "cmin" (4), "xmax" (5), "cmax" (6), "tableoid" (7), "gp_segment_id" (8)] Key sets: {[2,8]}
+//+--CScalarSubqueryAny(=)["count" (18)]
+//   |--CLogicalGbAgg( Global ) Grp Cols: ["j" (10), "b" (1)][Global], Minimal Grp Cols: [], Generates Duplicates :[ 0 ]
+//   |  |--CLogicalGet "s" ("s"), Columns: ["i" (9), "j" (10), "ctid" (11), "xmin" (12), "cmin" (13), "xmax" (14), "cmax" (15), "tableoid" (16), "gp_segment_id" (17)] Key sets: {[2,8]}
+//   |  +--CScalarProjectList
+//   |     +--CScalarProjectElement "count" (18)
+//   |        +--CScalarAggFunc (count , Distinct: false , Aggregate Stage: Global)
+//   |           +--CScalarIdent "i" (9)
+//   +--CScalarIdent "a" (0)
+//
+//Algebrized preprocessed query:
+//+--CLogicalSelect
+//|--CLogicalGet "t" ("t"), Columns: ["a" (0), "b" (1), "ctid" (2), "xmin" (3), "cmin" (4), "xmax" (5), "cmax" (6), "tableoid" (7), "gp_segment_id" (8)] Key sets: {[2,8]}
+//+--CScalarSubqueryAny(=)["count" (18)]
+//   |--CLogicalGbAgg( Global ) Grp Cols: ["j" (10)][Global], Minimal Grp Cols: ["j" (10)], Generates Duplicates :[ 0 ]
+//   |  |--CLogicalGet "s" ("s"), Columns: ["i" (9), "j" (10), "ctid" (11), "xmin" (12), "cmin" (13), "xmax" (14), "cmax" (15), "tableoid" (16), "gp_segment_id" (17)] Key sets: {[2,8]}
+//   |  +--CScalarProjectList
+//   |     +--CScalarProjectElement "count" (18)
+//   |        +--CScalarAggFunc (count , Distinct: false , Aggregate Stage: Global)
+//   |           +--CScalarIdent "i" (9)
+//   +--CScalarIdent "a" (0)
+
+// Test Type 1: Use file which will be serialized as test input
+
+GPOS_RESULT
+CExpressionPreprocessorTest::EresUnittest_PreProcessRemoveSuperfluousOuterRefs()
+{
+	const CHAR *szFilePath = "../data/dxl/expressiontests/LOJ-TO-InnerJoin-Q15.xml";
+	// TODO: this is a minidump which is not desirable. Generating one of these is non-trivial and involves lots of extra information
+	// I want the closest thing to just an expression
+	// more similar to what you see in VolatileHashJoinQuery.xml
+	// TODO: make this work with the expression, make several of the test cases from the comment, refactor into its own file for
+	// testing remove superfluous outer refs
+	// move any tests that make the object itself over
+	// outline the following
+	// - all tests of the actual manipulation of the expression which describe what is valid and invalid from a SQL semantic perspective
+	// - any tests of validations of the actual objects themselves which require making and asserting on the objects (which involves helper functions)
+	// - any unit tests of the individual functions like exclude columns
+	// refactor memory management and serialization into a fixutre?
+	CAutoMemoryPool amp;
+	IMemoryPool *pmp = amp.Pmp();
+
+	// reset metadata cache
+	CMDCache::Reset();
+
+	// set up MD providers
+	CMDProviderMemory *pmdp = GPOS_NEW(pmp) CMDProviderMemory(pmp, szFilePath);
+	GPOS_CHECK_ABORT;
+
+	{
+		CAutoMDAccessor amda(pmp, pmdp,  CTestUtils::m_sysidDefault);
+		CAutoOptCtxt aoc(pmp, amda.Pmda(), NULL,  /* pceeval */ CTestUtils::Pcm(pmp));
+
+		// read query expression
+		// maybe check out CTestUtils::EresTranslate to rehydrate a query from XML
+		// instead of needing a minidump
+		CExpression *pexpr = CTestUtils::PexprReadQuery(pmp, szFilePath);
+
+		CWStringDynamic str(pmp);
+		COstreamString oss(&str);
+
+		oss << std::endl << "EXPR:" << std::endl << *pexpr << std::endl;
+		GPOS_TRACE(str.Wsz());
+		str.Reset();
+
+		CExpression *pexprPreprocessed = CExpressionPreprocessor::PexprPreprocess(pmp, pexpr);
+		oss << std::endl << "PREPROCESSED EXPR:" << std::endl << *pexprPreprocessed << std::endl;
+		GPOS_TRACE(str.Wsz());
+
+		str.Reset();
+
+		pexprPreprocessed->Release();
+		pexpr->Release();
+	}
 
 	return GPOS_OK;
 }
