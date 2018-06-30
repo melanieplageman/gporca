@@ -647,11 +647,14 @@ CBitSet::FDisjoint
 	{
 		pbsl = PbslLocate(pbslOther->UlOffset(), pbsl);
 		
-		if (NULL != pbsl && 
-			pbsl->UlOffset() == pbslOther->UlOffset() &&
-			!pbsl->Pbv()->FDisjoint(pbslOther->Pbv()))
+		if (NULL != pbsl)
 		{
-			return false;
+			if(pbsl->UlOffset() == pbslOther->UlOffset())
+			{
+				if(!pbsl->Pbv()->FDisjoint(pbslOther->Pbv()))
+					return false;
+
+			}
 		}
 	}
 	

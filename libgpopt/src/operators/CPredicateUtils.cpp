@@ -1913,6 +1913,7 @@ CPredicateUtils::PexprIndexLookup
 	GPOS_ASSERT(NULL != pdrgpcrIndex);
 
 	IMDType::ECmpType cmptype = IMDType::EcmptOther;
+	CScalarCmp::PopConvert(pexprScalar->Pop())->SetEcmpt();
 
 	if (CUtils::FScalarCmp(pexprScalar))
 	{
