@@ -2319,8 +2319,8 @@ CXformUtils::FIndexApplicable
 	IMDIndex::EmdindexType emdindtype
 	)
 {
-	if (emdindtype != pmdindex->Emdindt() ||
-		0 == pcrsScalar->CElements()) // no columns to match index against
+	if ((emdindtype != pmdindex->Emdindt() && emdindtype != IMDIndex::EmdindAny) ||
+		(0 == pcrsScalar->CElements()))// no columns to match index against
 	{
 		return false;
 	}

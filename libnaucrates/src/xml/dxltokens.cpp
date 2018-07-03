@@ -538,6 +538,7 @@ CDXLTokens::Init
 			{EdxltokenIndexType, GPOS_WSZ_LIT("IndexType")},
 			{EdxltokenIndexTypeBtree, GPOS_WSZ_LIT("B-tree")},
 			{EdxltokenIndexTypeBitmap, GPOS_WSZ_LIT("Bitmap")},
+			{EdxltokenIndexTypeAny, GPOS_WSZ_LIT("Any")},
 			{EdxltokenIndexItemType, GPOS_WSZ_LIT("IndexItemType")},
 			
 			{EdxltokenOpClass, GPOS_WSZ_LIT("OpClass")},

@@ -486,6 +486,7 @@ namespace gpdxl
 		EdxltokenIndexType,
 		EdxltokenIndexTypeBtree,
 		EdxltokenIndexTypeBitmap,
+		EdxltokenIndexTypeAny,
 		EdxltokenIndexItemType,
 		
 		EdxltokenOpClass,

@@ -116,7 +116,7 @@ CXformJoin2IndexApply::CreateHomogeneousIndexApplyAlternatives
 	GPOS_ASSERT(NULL != pexprScalar);
 	GPOS_ASSERT(NULL != ptabdescInner);
 	GPOS_ASSERT(NULL != pxfres);
-	GPOS_ASSERT(IMDIndex::EmdindBtree == emdtype || IMDIndex::EmdindBitmap == emdtype);
+	GPOS_ASSERT(IMDIndex::EmdindBtree == emdtype || IMDIndex::EmdindBitmap == emdtype || IMDIndex::EmdindAny == emdtype);
 
 	const ULONG ulIndices = ptabdescInner->UlIndices();
 	if (0 == ulIndices)
@@ -168,6 +168,37 @@ CXformJoin2IndexApply::CreateHomogeneousIndexApplyAlternatives
 			ptabdescInner,
 			pcrsOuterRefs,
 			pcrsReqd,
+			pxfres
+			);
+	}
+
+	if (IMDIndex::EmdindAny == emdtype)
+	{
+		CreateHomogeneousBitmapIndexApplyAlternatives
+		(
+			pmp,
+			ulOriginOpId,
+			pexprOuter,
+			pexprInner,
+			pexprScalar,
+			ptabdescInner,
+			pcrsOuterRefs,
+			pcrsReqd,
+			pxfres
+			);
+		CreateHomogeneousBtreeIndexApplyAlternatives
+		(
+			pmp,
+			ulOriginOpId,
+			pexprOuter,
+			pexprInner,
+			pexprScalar,
+			ptabdescInner,
+			popDynamicGet,
+			pcrsScalarExpr,
+			pcrsOuterRefs,
+			pcrsReqd,
+			ulIndices,
 			pxfres
 			);
 	}
