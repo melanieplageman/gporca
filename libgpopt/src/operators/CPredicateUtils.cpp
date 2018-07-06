@@ -1913,7 +1913,6 @@ CPredicateUtils::PexprIndexLookup
 	GPOS_ASSERT(NULL != pdrgpcrIndex);
 
 	IMDType::ECmpType cmptype = IMDType::EcmptOther;
-	CScalarCmp::PopConvert(pexprScalar->Pop())->SetEcmpt();
 
 	if (CUtils::FScalarCmp(pexprScalar))
 	{
@@ -1924,9 +1923,10 @@ CPredicateUtils::PexprIndexLookup
 		cmptype = CUtils::Ecmpt(CScalarArrayCmp::PopConvert(pexprScalar->Pop())->PmdidOp());
 	}
 
+    // TODO: Initial thought to support GIST
 	if (cmptype == IMDType::EcmptNEq ||
 		cmptype == IMDType::EcmptIDF ||
-		cmptype == IMDType::EcmptOther)
+        (cmptype == IMDType::EcmptOther && pmdindex->Emdindt() != IMDIndex::EmdindAny))
 	{
 		return NULL;
 	}

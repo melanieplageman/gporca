@@ -177,6 +177,9 @@ CLogical::PosFromIndex
 	// get relation from the metadata accessor using metadata id
 	CMDAccessor *pmda = COptCtxt::PoctxtFromTLS()->Pmda();
 	const IMDRelation *pmdrel = pmda->Pmdrel(ptabdesc->Pmdid());
+    
+    if (pmdindex->Emdindt() == IMDIndex::EmdindAny)
+        return pos;
 
 	for (ULONG  ul = 0; ul < ulLenKeys; ul++)
 	{

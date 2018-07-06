@@ -87,12 +87,6 @@ namespace gpopt
 				return m_ecmpt;
 			}
 
-
-		void SetEcmpt()
-		{
-			m_ecmpt = IMDType::EcmptEq;
-		}
-
 			// return a string for operator name
 			virtual 
 			const CHAR *SzId() const

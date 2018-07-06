@@ -2319,7 +2319,7 @@ CXformUtils::FIndexApplicable
 	IMDIndex::EmdindexType emdindtype
 	)
 {
-	if ((emdindtype != pmdindex->Emdindt() && emdindtype != IMDIndex::EmdindAny) ||
+	if ((emdindtype != pmdindex->Emdindt() && pmdindex->Emdindt() != IMDIndex::EmdindAny) ||
 		(0 == pcrsScalar->CElements()))// no columns to match index against
 	{
 		return false;
