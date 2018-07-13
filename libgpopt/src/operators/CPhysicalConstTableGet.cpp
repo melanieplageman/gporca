@@ -297,7 +297,7 @@ CPhysicalConstTableGet::PrsDerive
 	)
 	const
 {
-	return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtGeneral /*ert*/);
+	return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtGeneralStreaming /*ert*/);
 }
 
 

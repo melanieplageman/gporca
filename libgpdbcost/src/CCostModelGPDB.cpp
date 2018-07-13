@@ -16,6 +16,7 @@
 #include "gpopt/operators/CExpressionHandle.h"
 #include "gpopt/operators/CPhysicalSequenceProject.h"
 #include "gpopt/operators/CPhysicalIndexScan.h"
+#include "gpopt/operators/CPhysicalSpool.h"
 #include "gpopt/operators/CPhysicalDynamicIndexScan.h"
 #include "gpopt/operators/CPhysicalHashAgg.h"
 #include "gpopt/operators/CPhysicalUnionAll.h"
@@ -242,6 +243,10 @@ CCostModelGPDB::CostUnary
 	CCost costLocal = CCost(dRebinds * CostTupleProcessing(dRows, dWidth, pcp).DVal());
 	CCost costChild = CostChildren(pmp, exprhdl, pci, pcp);
 
+	if (COperator::EopPhysicalSpool == exprhdl.Pop()->Eopid())
+	{
+		return CostSpooling(pmp, exprhdl, pci, pcp);
+	}
 	return costLocal + costChild;
 }
 
@@ -277,6 +282,12 @@ CCostModelGPDB::CostSpooling
 	CCost costLocal = CCost(dRebinds * (dWidth * dRows * dMaterializeCostUnit));
 	CCost costChild = CostChildren(pmp, exprhdl, pci, pcp);
 
+	//CPhysicalSpool *p = CPhysicalSpool::PopConvert(exprhdl.Pop());
+
+	/*if (p->FEager())
+	{
+		return costLocal + costChild + CCost(1) ;
+	}*/
 	return costLocal + costChild;
 }
 

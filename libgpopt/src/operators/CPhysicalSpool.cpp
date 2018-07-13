@@ -29,10 +29,12 @@ using namespace gpopt;
 //---------------------------------------------------------------------------
 CPhysicalSpool::CPhysicalSpool
 	(
-	IMemoryPool *pmp
+	IMemoryPool *pmp,
+	BOOL eager
 	)
 	:
-	CPhysical(pmp)
+	CPhysical(pmp),
+	m_eager(eager)
 {}
 
 
@@ -261,12 +263,23 @@ CRewindabilitySpec *
 CPhysicalSpool::PrsDerive
 	(
 	IMemoryPool *pmp,
-	CExpressionHandle & // exprhdl
+	CExpressionHandle &exprhdl
 	)
 	const
 {
 	// rewindability of output is always true
-	return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtGeneral /*ert*/);
+	if(FEager())
+	{
+		return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtGeneralBlocking /*ert*/);
+	}
+	else
+	{
+		CRewindabilitySpec *prsChild = PrsDerivePassThruOuter(exprhdl);
+		if (prsChild->Ert() == CRewindabilitySpec::ErtNoneDueToMotion)
+			return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtGeneralStreamingMotionHazard /*ert*/);
+		else
+			return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtGeneralStreaming /*ert*/);
+	}
 }
 
 
@@ -436,6 +449,13 @@ CPhysicalSpool::FValidContext
 		return false;
 	}
 	return true;
+}
+
+ULONG
+CPhysicalSpool::UlHash() const
+{
+	ULONG ulHash = COperator::UlHash();
+	return  gpos::UlCombineHashes(ulHash, gpos::UlHash<BOOL>(&m_eager));
 }
 // EOF
 

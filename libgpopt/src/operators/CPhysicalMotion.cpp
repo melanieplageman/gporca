@@ -253,7 +253,7 @@ CPhysicalMotion::PrsDerive
 	const
 {
 	// output of motion is non-rewindable
-	return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtNone /*ert*/);
+	return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtNoneDueToMotion /*ert*/);
 }
 
 

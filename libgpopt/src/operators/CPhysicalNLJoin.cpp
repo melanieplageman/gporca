@@ -109,7 +109,7 @@ CPhysicalNLJoin::PrsRequired
 	CExpressionHandle &exprhdl,
 	CRewindabilitySpec *prsRequired,
 	ULONG ulChildIndex,
-	DrgPdp *, //pdrgpdpCtxt
+	DrgPdp *pdrgpdpCtxt, //pdrgpdpCtxt
 	ULONG // ulOptReq
 	)
 	const
@@ -120,13 +120,20 @@ CPhysicalNLJoin::PrsRequired
 	// if there are outer references, then we need a materialize on both children
 	if (exprhdl.FHasOuterRefs())
 	{
-		return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtGeneral);
+		return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtGeneralStreaming);
 	}
 
-	if (1 == ulChildIndex)
+	if (!FFirstChildToOptimize(ulChildIndex) && 1 == ulChildIndex)
 	{
+		CRewindabilitySpec *prsOuter = CDrvdPropPlan::Pdpplan((*pdrgpdpCtxt)[0])->Prs();
+		if (prsOuter->Ert() == CRewindabilitySpec::ErtNoneDueToMotion ||
+			prsOuter->Ert() == CRewindabilitySpec::ErtGeneralStreamingMotionHazard)
+		{
+			return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtGeneralBlocking /*ert*/);
+		}
+
 		// inner child has to be rewindable
-		return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtGeneral /*ert*/);
+		return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtGeneralStreaming /*ert*/);
 	}
 
 	// pass through requirements to outer child

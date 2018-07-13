@@ -396,6 +396,19 @@ CPhysicalJoin::PrsDerive
 		return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtNone /*ert*/);
 	}
 
+	if (CRewindabilitySpec::ErtGeneralStreamingMotionHazard == prsOuter->Ert() ||
+		CRewindabilitySpec::ErtGeneralStreamingMotionHazard == prsInner->Ert())
+	{
+		return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtGeneralStreamingMotionHazard /*ert*/);
+	}
+
+	if (CRewindabilitySpec::ErtNoneDueToMotion == prsOuter->Ert() ||
+		CRewindabilitySpec::ErtNoneDueToMotion == prsInner->Ert())
+	{
+		// rewindability is not established if any child is non-rewindable
+		return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtNoneDueToMotion /*ert*/);
+	}
+
 	if (CRewindabilitySpec::ErtNone == prsOuter->Ert() ||
 		CRewindabilitySpec::ErtNone == prsInner->Ert())
 	{
@@ -412,7 +425,7 @@ CPhysicalJoin::PrsDerive
 
 	// one of the two children has general rewindability while the other child has
 	// mark-restore  rewindability
-	return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtGeneral /*ert*/);
+	return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtGeneralStreaming /*ert*/);
 }
 
 
@@ -913,7 +926,7 @@ CPhysicalJoin::PrsRequiredCorrelatedJoin
 	// if there are outer references, then we need a materialize on both children
 	if (exprhdl.FHasOuterRefs())
 	{
-		return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtGeneral);
+		return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtGeneralStreaming);
 	}
 
 	if (1 == ulChildIndex)
@@ -924,7 +937,7 @@ CPhysicalJoin::PrsRequiredCorrelatedJoin
 		// refs (i.e. subplan with no params) then we need a materialize
 		if (!exprhdl.FHasOuterRefs(1))
 		{
-			return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtGeneral /*ert*/);
+			return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtGeneralStreaming /*ert*/);
 		}
 
 		return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtNone /*ert*/);

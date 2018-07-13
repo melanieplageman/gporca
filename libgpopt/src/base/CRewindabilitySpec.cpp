@@ -11,6 +11,7 @@
 
 #include "gpopt/base/CRewindabilitySpec.h"
 #include "gpopt/operators/CPhysicalSpool.h"
+#include "gpopt/operators/CExpressionHandle.h"
 
 using namespace gpopt;
 
@@ -80,10 +81,51 @@ CRewindabilitySpec::FSatisfies
 	)
 	const
 {
-	return
-		FMatch(prs) ||
-		ErtNone == prs->Ert() ||
-		(ErtMarkRestore == Ert() && ErtGeneral == prs->Ert());
+	if (FMatch(prs))
+	{
+		return true;
+	}
+
+	if (ErtNone == prs->Ert())
+	{
+		return true;
+	}
+
+	if (ErtNoneDueToMotion == prs->Ert())
+	{
+		if (ErtNone == Ert())
+		{
+			return false;
+		}
+		else
+		{
+			return true;
+		}
+	}
+
+	if (ErtGeneralBlocking == prs->Ert())
+	{
+		if (/*ErtGeneralStreamingMotionHazard != Ert() &&*/
+			ErtNoneDueToMotion != Ert())
+		{
+			return true;
+		}
+	}
+
+	if (ErtGeneralStreaming == prs->Ert())
+	{
+		if (ErtGeneralStreamingMotionHazard == Ert() ||
+			ErtGeneralBlocking == Ert())
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+	return false;
 }
 
 
@@ -114,12 +156,8 @@ void
 CRewindabilitySpec::AppendEnforcers
 	(
 	IMemoryPool *pmp,
-	CExpressionHandle &, // exprhdl
-	CReqdPropPlan *
-#ifdef GPOS_DEBUG
-	prpp
-#endif // GPOS_DEBUG
-	,
+	CExpressionHandle &exprhdl, // exprhdl
+	CReqdPropPlan *prpp,
 	DrgPexpr *pdrgpexpr, 
 	CExpression *pexpr
 	)
@@ -131,11 +169,20 @@ CRewindabilitySpec::AppendEnforcers
 	GPOS_ASSERT(this == prpp->Per()->PrsRequired() &&
 				"required plan properties don't match enforced rewindability spec");
 
+	CRewindabilitySpec *prs = CDrvdPropPlan::Pdpplan(exprhdl.Pdp())->Prs();
+
+	BOOL eager = false;
+	if ((prs->Ert() == CRewindabilitySpec::ErtNoneDueToMotion || prs->Ert() == CRewindabilitySpec::ErtGeneralStreamingMotionHazard)
+		&& prpp->Per()->PrsRequired()->Ert() == CRewindabilitySpec::ErtGeneralBlocking)
+	{
+			eager = true;
+	}
+
 	pexpr->AddRef();
 	CExpression *pexprSpool = GPOS_NEW(pmp) CExpression
 									(
 									pmp, 
-									GPOS_NEW(pmp) CPhysicalSpool(pmp),
+									GPOS_NEW(pmp) CPhysicalSpool(pmp, eager),
 									pexpr
 									);
 	pdrgpexpr->Append(pexprSpool);
@@ -159,14 +206,20 @@ CRewindabilitySpec::OsPrint
 {
 	switch (Ert())
 	{
-		case ErtGeneral:
-			return os << "REWINDABLE";
+		case ErtGeneralStreaming:
+			return os << "REWINDABLE STREAMING";
 
-		case ErtMarkRestore:
-			return os << "MARK-RESTORE";
+		case ErtGeneralBlocking:
+			return os << "REWINDABLE BLOCKING";
+			
+		case ErtGeneralStreamingMotionHazard:
+			return os << "REWINDABLE STREAMING MOTION HAZARD";
 
 		case ErtNone:
 			return os << "NON-REWINDABLE";
+
+		case ErtNoneDueToMotion:
+			return os << "NON-REWINDABLE DUE TO MOTION";
 
 		default:
 			GPOS_ASSERT(!"Unrecognized rewindability type");

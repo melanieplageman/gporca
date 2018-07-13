@@ -37,9 +37,11 @@ namespace gpopt
 
 			enum ERewindabilityType
 			{
-				ErtGeneral,			// rewindability of all intermediate query results
-				ErtMarkRestore,		// rewindability of a subset of intermediate query results
+				ErtGeneralStreaming, // streaming rewindability of all intermediate query results
+				ErtGeneralBlocking,  // blocking rewindability of all intermediate query results
+				ErtGeneralStreamingMotionHazard, // streaming rewindability of all intermediate query results
 				ErtNone,			// no rewindability
+				ErtNoneDueToMotion,  // no rewindability due to a motion
 
 				ErtSentinel
 			};

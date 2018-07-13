@@ -23,6 +23,7 @@
 #include "gpopt/operators/CExpressionHandle.h"
 #include "gpopt/operators/CPhysicalDynamicTableScan.h"
 #include "gpopt/operators/CPhysicalDynamicIndexScan.h"
+#include "gpopt/operators/CPhysicalSpool.h"
 
 #include "gpopt/optimizer/COptimizerConfig.h"
 #include "gpopt/search/CGroupExpression.h"
@@ -300,7 +301,8 @@ CCostContext::FValid
 		IOstream &os = at.Os();
 
 		os << std::endl << "PROPERTY MISMATCH:" << std::endl;
-		os << std::endl << "GEXPR:" << std::endl << Pgexpr();
+		os << std::endl << "GEXPR:" << std::endl;
+		Pgexpr()->DbgPrint();
 		os << std::endl << "REQUIRED PROPERTIES:" << std::endl << *(m_poc->Prpp());
 		os << std::endl << "DERIVED PROPERTIES:" << std::endl << *pdprel << std::endl << *m_pdpplan;
 	}
@@ -453,6 +455,19 @@ CCostContext::FBetterThan
 		{
 			return (this == pccPrefered);
 		}
+	}
+
+	if(COperator::EopPhysicalSpool == pcc->Pgexpr()->Pop()->Eopid() &&
+	   COperator::EopPhysicalSpool == Pgexpr()->Pop()->Eopid() &&
+	   pcc->Poc()->Prpp()->Per()->PrsRequired()->Ert() == CRewindabilitySpec::ErtGeneralBlocking)
+	{
+		CPhysicalSpool *spool_me = CPhysicalSpool::PopConvert(Pgexpr()->Pop());
+		CPhysicalSpool *spool_existing = CPhysicalSpool::PopConvert(pcc->Pgexpr()->Pop());
+		if (spool_me->FEager())
+			return false;
+
+		else if(spool_existing->FEager())
+			return true;
 	}
 
 	return false;

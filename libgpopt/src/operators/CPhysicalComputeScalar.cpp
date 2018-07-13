@@ -265,7 +265,7 @@ CPhysicalComputeScalar::PrsRequired
 	// if there are outer references, then we need a materialize
 	if (exprhdl.FHasOuterRefs())
 	{
-		return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtGeneral);
+		return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtGeneralStreaming);
 	}
 
 	return PrsPassThru(pmp, exprhdl, prsRequired, ulChildIndex);

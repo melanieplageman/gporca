@@ -224,7 +224,7 @@ CPhysicalHashJoin::PrsRequired
 	// if there are outer references, then we need a materialize on both children
 	if (exprhdl.FHasOuterRefs())
 	{
-		return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtGeneral);
+		return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtGeneralStreaming);
 	}
 
 	if (1 == ulChildIndex)

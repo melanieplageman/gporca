@@ -15,6 +15,7 @@
 #include "gpopt/metadata/CIndexDescriptor.h"
 #include "gpopt/operators/CExpressionHandle.h"
 #include "gpopt/operators/CPhysicalSequenceProject.h"
+#include "gpopt/operators/CPhysicalSpool.h"
 
 #include "gpdbcost/CCostModelGPDBLegacy.h"
 
@@ -1061,6 +1062,15 @@ CCostModelGPDBLegacy::Cost
 	COperator::EOperatorId eopid = exprhdl.Pop()->Eopid();
 	if (FUnary(eopid))
 	{
+		if (COperator::EopPhysicalSpool == exprhdl.Pop()->Eopid())
+		{
+			CPhysicalSpool *p = CPhysicalSpool::PopConvert(exprhdl.Pop());
+
+			if (p->FEager())
+			{
+				return CostUnary(pci->DRows(), pci->DWidth(), pci->DRebinds(), pci->PdCost(), m_pcp) + CCost(1);
+			}
+		}
 		return CostUnary(pci->DRows(), pci->DWidth(), pci->DRebinds(), pci->PdCost(), m_pcp);
 	}
 

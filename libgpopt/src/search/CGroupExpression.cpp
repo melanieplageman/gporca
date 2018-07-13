@@ -1029,7 +1029,7 @@ CGroupExpression::UlHash
 	{
 		ulHash = UlCombineHashes(ulHash, (*pdrgpgroup)[i]->UlHash());
 	}
-	
+
 	return ulHash;
 }
 
@@ -1193,6 +1193,12 @@ CGroupExpression::OsPrint
 {
 	os << szPrefix << m_ulId << ": ";
 	(void) m_pop->OsPrint(os);
+
+	if (COperator::EopPhysicalSpool == m_pop->Eopid())
+	{
+		CPhysicalSpool *p = CPhysicalSpool::PopConvert(m_pop);
+		os << "   ***** EAGER" << p->FEager();
+	}
 
 	if (EolHigh == m_eol)
 	{

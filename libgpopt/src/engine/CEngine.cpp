@@ -2240,7 +2240,8 @@ CEngine::FCheckEnfdProps
 
 	BOOL fRewindabilityReqd =
 		!GPOS_FTRACE(EopttraceDisableSpool) &&
-		(CRewindabilitySpec::ErtNone != prpp->Per()->PrsRequired()->Ert());
+		(CRewindabilitySpec::ErtNone != prpp->Per()->PrsRequired()->Ert() &&
+		 CRewindabilitySpec::ErtNoneDueToMotion != prpp->Per()->PrsRequired()->Ert());
 
 	BOOL fPartPropagationReqd =
 		!GPOS_FTRACE(EopttraceDisablePartPropagation) &&
