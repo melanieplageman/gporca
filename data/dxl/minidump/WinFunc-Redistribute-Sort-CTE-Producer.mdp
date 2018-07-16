@@ -692,7 +692,7 @@ with v as (select * from t1) select  row_number() over(partition by v1.b), rank(
                         </dxl:ProjElem>
                       </dxl:ProjList>
                     </dxl:CTEConsumer>
-                    <dxl:Materialize Eager="true">
+                    <dxl:Materialize Eager="false">
                       <dxl:Properties>
                         <dxl:Cost StartupCost="0" TotalCost="431.227040" Rows="2000.000000" Width="8"/>
                       </dxl:Properties>
@@ -818,7 +818,7 @@ with v as (select * from t1) select  row_number() over(partition by v1.b), rank(
                   </dxl:WindowKey>
                 </dxl:WindowKeyList>
               </dxl:Window>
-              <dxl:Materialize Eager="true">
+              <dxl:Materialize Eager="false">
                 <dxl:Properties>
                   <dxl:Cost StartupCost="0" TotalCost="434.768464" Rows="2.000000" Width="8"/>
                 </dxl:Properties>

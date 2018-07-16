@@ -376,7 +376,7 @@ select * from foo, bar where foo.a is distinct from c;
               </dxl:Columns>
             </dxl:TableDescriptor>
           </dxl:TableScan>
-          <dxl:Materialize Eager="true">
+          <dxl:Materialize Eager="false">
             <dxl:Properties>
               <dxl:Cost StartupCost="0" TotalCost="431.000653" Rows="12.000000" Width="8"/>
             </dxl:Properties>

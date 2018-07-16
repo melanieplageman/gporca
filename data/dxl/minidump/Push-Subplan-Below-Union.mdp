@@ -823,7 +823,7 @@ union
                       </dxl:Columns>
                     </dxl:TableDescriptor>
                   </dxl:TableScan>
-                  <dxl:Materialize Eager="true">
+                  <dxl:Materialize Eager="false">
                     <dxl:Properties>
                       <dxl:Cost StartupCost="0" TotalCost="431.000261" Rows="2.000000" Width="8"/>
                     </dxl:Properties>
@@ -1171,7 +1171,7 @@ union
                               </dxl:ProjElem>
                             </dxl:ProjList>
                           </dxl:CTEConsumer>
-                          <dxl:Materialize Eager="true">
+                          <dxl:Materialize Eager="false">
                             <dxl:Properties>
                               <dxl:Cost StartupCost="0" TotalCost="2155.000953" Rows="2.000000" Width="16"/>
                             </dxl:Properties>
@@ -1232,7 +1232,7 @@ union
                                       <dxl:SubPlan TypeMdid="0.23.1.0" SubPlanType="ScalarSubPlan">
                                         <dxl:TestExpr/>
                                         <dxl:ParamList/>
-                                        <dxl:Materialize Eager="true">
+                                        <dxl:Materialize Eager="false">
                                           <dxl:Properties>
                                             <dxl:Cost StartupCost="0" TotalCost="431.000227" Rows="2.000000" Width="8"/>
                                           </dxl:Properties>
@@ -1309,7 +1309,7 @@ union
                                     </dxl:Columns>
                                   </dxl:TableDescriptor>
                                 </dxl:TableScan>
-                                <dxl:Materialize Eager="true">
+                                <dxl:Materialize Eager="false">
                                   <dxl:Properties>
                                     <dxl:Cost StartupCost="0" TotalCost="431.000064" Rows="2.000000" Width="1"/>
                                   </dxl:Properties>
@@ -1414,7 +1414,7 @@ union
                               </dxl:ProjElem>
                             </dxl:ProjList>
                           </dxl:CTEConsumer>
-                          <dxl:Materialize Eager="true">
+                          <dxl:Materialize Eager="false">
                             <dxl:Properties>
                               <dxl:Cost StartupCost="0" TotalCost="2155.000953" Rows="2.000000" Width="16"/>
                             </dxl:Properties>
@@ -1475,7 +1475,7 @@ union
                                       <dxl:SubPlan TypeMdid="0.23.1.0" SubPlanType="ScalarSubPlan">
                                         <dxl:TestExpr/>
                                         <dxl:ParamList/>
-                                        <dxl:Materialize Eager="true">
+                                        <dxl:Materialize Eager="false">
                                           <dxl:Properties>
                                             <dxl:Cost StartupCost="0" TotalCost="431.000227" Rows="2.000000" Width="8"/>
                                           </dxl:Properties>
@@ -1552,7 +1552,7 @@ union
                                     </dxl:Columns>
                                   </dxl:TableDescriptor>
                                 </dxl:TableScan>
-                                <dxl:Materialize Eager="true">
+                                <dxl:Materialize Eager="false">
                                   <dxl:Properties>
                                     <dxl:Cost StartupCost="0" TotalCost="431.000064" Rows="2.000000" Width="1"/>
                                   </dxl:Properties>

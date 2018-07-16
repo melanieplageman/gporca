@@ -756,7 +756,7 @@ select * from t1 where 10 not in (select a from t2 where t2.b<>t1.b group by t2.
                             </dxl:Comparison>
                           </dxl:Filter>
                           <dxl:OneTimeFilter/>
-                          <dxl:Materialize Eager="true">
+                          <dxl:Materialize Eager="false">
                             <dxl:Properties>
                               <dxl:Cost StartupCost="0" TotalCost="431.000618" Rows="10.000000" Width="8"/>
                             </dxl:Properties>

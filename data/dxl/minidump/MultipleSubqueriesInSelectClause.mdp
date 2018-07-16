@@ -1279,7 +1279,7 @@
                     </dxl:ProjList>
                     <dxl:Filter/>
                     <dxl:OneTimeFilter/>
-                    <dxl:Materialize Eager="true">
+                    <dxl:Materialize Eager="false">
                       <dxl:Properties>
                         <dxl:Cost StartupCost="0" TotalCost="0.000011" Rows="1.000000" Width="5"/>
                       </dxl:Properties>
@@ -1343,7 +1343,7 @@
                     </dxl:ProjList>
                     <dxl:Filter/>
                     <dxl:OneTimeFilter/>
-                    <dxl:Materialize Eager="true">
+                    <dxl:Materialize Eager="false">
                       <dxl:Properties>
                         <dxl:Cost StartupCost="0" TotalCost="0.000011" Rows="1.000000" Width="5"/>
                       </dxl:Properties>
@@ -1407,7 +1407,7 @@
                     </dxl:ProjList>
                     <dxl:Filter/>
                     <dxl:OneTimeFilter/>
-                    <dxl:Materialize Eager="true">
+                    <dxl:Materialize Eager="false">
                       <dxl:Properties>
                         <dxl:Cost StartupCost="0" TotalCost="0.000011" Rows="1.000000" Width="5"/>
                       </dxl:Properties>

@@ -1037,7 +1037,7 @@
               </dxl:Result>
             </dxl:Result>
           </dxl:BroadcastMotion>
-          <dxl:Materialize Eager="true">
+          <dxl:Materialize Eager="false">
             <dxl:Properties>
               <dxl:Cost StartupCost="0" TotalCost="800064.742188" Rows="1000.000000" Width="9"/>
             </dxl:Properties>

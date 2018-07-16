@@ -636,7 +636,7 @@ select * from bar, (select * from foo where foo.a in (select h.a from bar h, bar
                   </dxl:Columns>
                 </dxl:TableDescriptor>
               </dxl:TableScan>
-              <dxl:Materialize Eager="true">
+              <dxl:Materialize Eager="false">
                 <dxl:Properties>
                   <dxl:Cost StartupCost="0" TotalCost="431.000247" Rows="3.000000" Width="4"/>
                 </dxl:Properties>

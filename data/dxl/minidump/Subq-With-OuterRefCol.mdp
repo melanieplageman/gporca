@@ -661,7 +661,7 @@ pivotal=# explain select a, c from r, s where a in (select c from r) order by a,
 		    </dxl:TableDescriptor>
 		  </dxl:TableScan>
 		</dxl:HashJoin>
-		<dxl:Materialize Eager="true">
+		<dxl:Materialize Eager="false">
 		  <dxl:Properties>
 		    <dxl:Cost StartupCost="0" TotalCost="431.000211" Rows="3.000000" Width="1"/>
 		  </dxl:Properties>

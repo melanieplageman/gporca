@@ -535,7 +535,7 @@
                       </dxl:ProjList>
                       <dxl:Filter/>
                       <dxl:OneTimeFilter/>
-                      <dxl:Materialize Eager="true">
+                      <dxl:Materialize Eager="false">
                         <dxl:Properties>
                           <dxl:Cost StartupCost="0" TotalCost="1324032.082743" Rows="1.000000" Width="4"/>
                         </dxl:Properties>
@@ -558,7 +558,7 @@
                             <dxl:SubPlan TypeMdid="0.16.1.0" SubPlanType="ExistsSubPlan">
                               <dxl:TestExpr/>
                               <dxl:ParamList/>
-                              <dxl:Materialize Eager="true">
+                              <dxl:Materialize Eager="false">
                                 <dxl:Properties>
                                   <dxl:Cost StartupCost="0" TotalCost="431.000030" Rows="1.000000" Width="4"/>
                                 </dxl:Properties>

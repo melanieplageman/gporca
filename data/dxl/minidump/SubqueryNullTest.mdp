@@ -762,7 +762,7 @@
 	     </dxl:Columns>
 	   </dxl:TableDescriptor>
 	 </dxl:TableScan>
-	 <dxl:Materialize Eager="true">
+	 <dxl:Materialize Eager="false">
 	   <dxl:Properties>
 	     <dxl:Cost StartupCost="0" TotalCost="433.508984" Rows="3.000000" Width="1"/>
 	   </dxl:Properties>

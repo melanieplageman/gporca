@@ -743,7 +743,7 @@ SELECT * FROM foo WHERE foo.a IN (SELECT foo.b + 1 FROM (SELECT * FROM bar WHERE
               </dxl:Columns>
             </dxl:TableDescriptor>
           </dxl:TableScan>
-          <dxl:Materialize Eager="true">
+          <dxl:Materialize Eager="false">
             <dxl:Properties>
               <dxl:Cost StartupCost="0" TotalCost="1293.002032" Rows="3.000000" Width="1"/>
             </dxl:Properties>
@@ -809,7 +809,7 @@ SELECT * FROM foo WHERE foo.a IN (SELECT foo.b + 1 FROM (SELECT * FROM bar WHERE
                           </dxl:Columns>
                         </dxl:TableDescriptor>
                       </dxl:TableScan>
-                      <dxl:Materialize Eager="true">
+                      <dxl:Materialize Eager="false">
                         <dxl:Properties>
                           <dxl:Cost StartupCost="0" TotalCost="431.000066" Rows="3.000000" Width="1"/>
                         </dxl:Properties>

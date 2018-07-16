@@ -539,7 +539,7 @@ select * from bar where c not in (select distinct a from foo);
                 </dxl:Columns>
               </dxl:TableDescriptor>
             </dxl:TableScan>
-            <dxl:Materialize Eager="true">
+            <dxl:Materialize Eager="false">
               <dxl:Properties>
                 <dxl:Cost StartupCost="0" TotalCost="431.000067" Rows="3.000000" Width="1"/>
               </dxl:Properties>
@@ -710,7 +710,7 @@ select * from bar where c not in (select distinct a from foo);
                 </dxl:Columns>
               </dxl:TableDescriptor>
             </dxl:TableScan>
-            <dxl:Materialize Eager="true">
+            <dxl:Materialize Eager="false">
               <dxl:Properties>
                 <dxl:Cost StartupCost="0" TotalCost="431.000026" Rows="3.000000" Width="1"/>
               </dxl:Properties>

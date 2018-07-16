@@ -1226,7 +1226,7 @@ Select * from X where X.a < ANY (select a from P);
                 </dxl:Comparison>
               </dxl:TestExpr>
               <dxl:ParamList/>
-              <dxl:Materialize Eager="true">
+              <dxl:Materialize Eager="false">
                 <dxl:Properties>
                   <dxl:Cost StartupCost="0" TotalCost="431.761971" Rows="12649.974700" Width="4"/>
                 </dxl:Properties>

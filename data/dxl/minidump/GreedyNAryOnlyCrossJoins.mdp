@@ -1590,7 +1590,7 @@ EXPLAIN SELECT * FROM t1, t2, t3;
               </dxl:TableDescriptor>
             </dxl:TableScan>
           </dxl:NestedLoopJoin>
-          <dxl:Materialize Eager="true">
+          <dxl:Materialize Eager="false">
             <dxl:Properties>
               <dxl:Cost StartupCost="0" TotalCost="431.008431" Rows="300.000000" Width="4"/>
             </dxl:Properties>

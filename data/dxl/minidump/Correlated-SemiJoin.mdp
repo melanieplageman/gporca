@@ -665,7 +665,7 @@ SQL: select * from t1 where exists(select a from t2 where t2.b<>t1.b group by t2
               </dxl:Columns>
             </dxl:TableDescriptor>
           </dxl:TableScan>
-          <dxl:Materialize Eager="true">
+          <dxl:Materialize Eager="false">
             <dxl:Properties>
               <dxl:Cost StartupCost="0" TotalCost="431.012287" Rows="200.000000" Width="4"/>
             </dxl:Properties>

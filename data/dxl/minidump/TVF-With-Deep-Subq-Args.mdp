@@ -389,7 +389,7 @@ SELECT generate_series((
                         </dxl:ProjElem>
                       </dxl:ProjList>
                       <dxl:Filter/>
-                      <dxl:Materialize Eager="true">
+                      <dxl:Materialize Eager="false">
                         <dxl:Properties>
                           <dxl:Cost StartupCost="0" TotalCost="2.002930" Rows="1.000000" Width="1"/>
                         </dxl:Properties>
@@ -438,7 +438,7 @@ SELECT generate_series((
                       </dxl:ProjElem>
                     </dxl:ProjList>
                     <dxl:Filter/>
-                    <dxl:Materialize Eager="true">
+                    <dxl:Materialize Eager="false">
                       <dxl:Properties>
                         <dxl:Cost StartupCost="0" TotalCost="2.002930" Rows="1.000000" Width="1"/>
                       </dxl:Properties>
@@ -584,7 +584,7 @@ SELECT generate_series((
                         </dxl:ProjElem>
                       </dxl:ProjList>
                       <dxl:Filter/>
-                      <dxl:Materialize Eager="true">
+                      <dxl:Materialize Eager="false">
                         <dxl:Properties>
                           <dxl:Cost StartupCost="0" TotalCost="2.002930" Rows="1.000000" Width="1"/>
                         </dxl:Properties>
@@ -633,7 +633,7 @@ SELECT generate_series((
                       </dxl:ProjElem>
                     </dxl:ProjList>
                     <dxl:Filter/>
-                    <dxl:Materialize Eager="true">
+                    <dxl:Materialize Eager="false">
                       <dxl:Properties>
                         <dxl:Cost StartupCost="0" TotalCost="2.002930" Rows="1.000000" Width="1"/>
                       </dxl:Properties>

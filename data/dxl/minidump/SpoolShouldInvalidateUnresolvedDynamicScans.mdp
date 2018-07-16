@@ -705,7 +705,7 @@ And instead have a plan like
               </dxl:TableDescriptor>
             </dxl:TableScan>
           </dxl:BroadcastMotion>
-          <dxl:Materialize Eager="true">
+          <dxl:Materialize Eager="false">
             <dxl:Properties>
               <dxl:Cost StartupCost="0" TotalCost="862.004073" Rows="32.774145" Width="16"/>
             </dxl:Properties>

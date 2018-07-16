@@ -185,7 +185,7 @@ select count(*) from (select generate_series(1, 10) i) t1, (select generate_seri
                 <dxl:OneTimeFilter/>
               </dxl:Result>
             </dxl:Result>
-            <dxl:Materialize Eager="true">
+            <dxl:Materialize Eager="false">
               <dxl:Properties>
                 <dxl:Cost StartupCost="0" TotalCost="0.000003" Rows="1.000000" Width="1"/>
               </dxl:Properties>

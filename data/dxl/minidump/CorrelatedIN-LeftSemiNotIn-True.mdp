@@ -700,7 +700,7 @@ create table customer
                                   </dxl:Comparison>
                                 </dxl:Filter>
                                 <dxl:OneTimeFilter/>
-                                <dxl:Materialize Eager="true">
+                                <dxl:Materialize Eager="false">
                                   <dxl:Properties>
                                     <dxl:Cost StartupCost="0" TotalCost="431.000084" Rows="1.000000" Width="4"/>
                                   </dxl:Properties>
@@ -757,7 +757,7 @@ create table customer
                   </dxl:SubPlan>
                 </dxl:Filter>
                 <dxl:OneTimeFilter/>
-                <dxl:Materialize Eager="true">
+                <dxl:Materialize Eager="false">
                   <dxl:Properties>
                     <dxl:Cost StartupCost="0" TotalCost="431.000084" Rows="1.000000" Width="4"/>
                   </dxl:Properties>

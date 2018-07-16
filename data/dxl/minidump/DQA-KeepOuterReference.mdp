@@ -278,7 +278,7 @@ select (select distinct tint.c from tint as tt)  x from tint;
                       </dxl:ProjElem>
                     </dxl:ProjList>
                     <dxl:Filter/>
-                    <dxl:Materialize Eager="true">
+                    <dxl:Materialize Eager="false">
                       <dxl:Properties>
                         <dxl:Cost StartupCost="0" TotalCost="431.000047" Rows="112.000000" Width="1"/>
                       </dxl:Properties>

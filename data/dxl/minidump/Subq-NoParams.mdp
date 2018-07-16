@@ -417,7 +417,7 @@
               <dxl:SubPlan TypeMdid="0.23.1.0" SubPlanType="ScalarSubPlan">
                 <dxl:TestExpr/>
                 <dxl:ParamList/>
-                <dxl:Materialize Eager="true">
+                <dxl:Materialize Eager="false">
                   <dxl:Properties>
                     <dxl:Cost StartupCost="0" TotalCost="3.054688" Rows="2.000000" Width="4"/>
                   </dxl:Properties>
