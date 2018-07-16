@@ -371,7 +371,7 @@ EXPLAIN SELECT pk from partitioned_table WHERE a > (select d from other_table wh
                       </dxl:Comparison>
                     </dxl:Filter>
                     <dxl:OneTimeFilter/>
-                    <dxl:Materialize Eager="true">
+                    <dxl:Materialize Eager="false">
                       <dxl:Properties>
                         <dxl:Cost StartupCost="0" TotalCost="431.000473" Rows="3.000000" Width="8"/>
                       </dxl:Properties>

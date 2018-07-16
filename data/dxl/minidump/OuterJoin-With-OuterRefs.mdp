@@ -569,7 +569,7 @@
                       <dxl:Ident ColId="0" ColName="i" TypeMdid="0.23.1.0"/>
                     </dxl:Comparison>
                   </dxl:JoinFilter>
-                  <dxl:Materialize Eager="true">
+                  <dxl:Materialize Eager="false">
                     <dxl:Properties>
                       <dxl:Cost StartupCost="0" TotalCost="2.136719" Rows="20.000000" Width="4"/>
                     </dxl:Properties>
@@ -616,7 +616,7 @@
                       </dxl:TableScan>
                     </dxl:BroadcastMotion>
                   </dxl:Materialize>
-                  <dxl:Materialize Eager="true">
+                  <dxl:Materialize Eager="false">
                     <dxl:Properties>
                       <dxl:Cost StartupCost="0" TotalCost="2.136719" Rows="20.000000" Width="4"/>
                     </dxl:Properties>

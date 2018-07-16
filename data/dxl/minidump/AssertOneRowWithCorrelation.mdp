@@ -339,7 +339,7 @@ select (select a from x x2 where x2.a=x1.a) from x x1;
                   </dxl:Comparison>
                 </dxl:Filter>
                 <dxl:OneTimeFilter/>
-                <dxl:Materialize Eager="true">
+                <dxl:Materialize Eager="false">
                   <dxl:Properties>
                     <dxl:Cost StartupCost="0" TotalCost="431.027620" Rows="1000.000000" Width="4"/>
                   </dxl:Properties>

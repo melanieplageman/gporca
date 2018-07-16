@@ -768,7 +768,7 @@ select * from foo a full join foo b on false;
                         </dxl:ProjElem>
                       </dxl:ProjList>
                     </dxl:CTEConsumer>
-                    <dxl:Materialize Eager="true">
+                    <dxl:Materialize Eager="false">
                       <dxl:Properties>
                         <dxl:Cost StartupCost="0" TotalCost="431.000158" Rows="24.000000" Width="1"/>
                       </dxl:Properties>

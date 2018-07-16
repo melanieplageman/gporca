@@ -905,7 +905,7 @@ SELECT pn, cn, vn FROM sale s WHERE NOT EXISTS (SELECT * FROM customer WHERE NOT
               <dxl:JoinFilter>
                 <dxl:ConstValue TypeMdid="0.16.1.0" IsNull="false" IsByValue="true" Value="true"/>
               </dxl:JoinFilter>
-              <dxl:Materialize Eager="true">
+              <dxl:Materialize Eager="false">
                 <dxl:Properties>
                   <dxl:Cost StartupCost="0" TotalCost="431.000162" Rows="4.000000" Width="4"/>
                 </dxl:Properties>
@@ -965,7 +965,7 @@ SELECT pn, cn, vn FROM sale s WHERE NOT EXISTS (SELECT * FROM customer WHERE NOT
                   </dxl:Comparison>
                 </dxl:Filter>
                 <dxl:OneTimeFilter/>
-                <dxl:Materialize Eager="true">
+                <dxl:Materialize Eager="false">
                   <dxl:Properties>
                     <dxl:Cost StartupCost="0" TotalCost="431.000309" Rows="8.000000" Width="4"/>
                   </dxl:Properties>

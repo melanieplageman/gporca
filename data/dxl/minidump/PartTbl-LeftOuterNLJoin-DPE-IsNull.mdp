@@ -363,7 +363,7 @@ select * from t2 left outer join t1 on t1.b = t2.d where t1.b is null;
                 </dxl:Columns>
               </dxl:TableDescriptor>
             </dxl:TableScan>
-            <dxl:Materialize Eager="true">
+            <dxl:Materialize Eager="false">
               <dxl:Properties>
                 <dxl:Cost StartupCost="0" TotalCost="431.000166" Rows="3.000000" Width="8"/>
               </dxl:Properties>

@@ -3801,7 +3801,7 @@ The SQL along with the DDL are in TINC repo. In the aggregates directory under q
                 </dxl:Columns>
               </dxl:TableDescriptor>
             </dxl:TableScan>
-            <dxl:Materialize Eager="true">
+            <dxl:Materialize Eager="false">
               <dxl:Properties>
                 <dxl:Cost StartupCost="0" TotalCost="14148.822833" Rows="361329.000000" Width="1"/>
               </dxl:Properties>
@@ -4358,7 +4358,7 @@ The SQL along with the DDL are in TINC repo. In the aggregates directory under q
                                     </dxl:Columns>
                                   </dxl:TableDescriptor>
                                 </dxl:TableScan>
-                                <dxl:Materialize Eager="true">
+                                <dxl:Materialize Eager="false">
                                   <dxl:Properties>
                                     <dxl:Cost StartupCost="0" TotalCost="894.203284" Rows="3.000000" Width="1"/>
                                   </dxl:Properties>

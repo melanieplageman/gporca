@@ -599,7 +599,7 @@ SELECT 1 FROM (SELECT * FROM foo) t2 FULL JOIN (SELECT 1) t1 ON true;
                             </dxl:ProjElem>
                           </dxl:ProjList>
                         </dxl:CTEConsumer>
-                        <dxl:Materialize Eager="true">
+                        <dxl:Materialize Eager="false">
                           <dxl:Properties>
                             <dxl:Cost StartupCost="0" TotalCost="431.000006" Rows="1.000000" Width="1"/>
                           </dxl:Properties>

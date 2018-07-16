@@ -643,7 +643,7 @@ select * from A,B where exists (select * from C where C.j = A.j and B.i not in (
                         </dxl:Comparison>
                       </dxl:TestExpr>
                       <dxl:ParamList/>
-                      <dxl:Materialize Eager="true">
+                      <dxl:Materialize Eager="false">
                         <dxl:Properties>
                           <dxl:Cost StartupCost="0" TotalCost="431.000863" Rows="26.953361" Width="4"/>
                         </dxl:Properties>
@@ -698,7 +698,7 @@ select * from A,B where exists (select * from C where C.j = A.j and B.i not in (
                     </dxl:SubPlan>
                   </dxl:Filter>
                   <dxl:OneTimeFilter/>
-                  <dxl:Materialize Eager="true">
+                  <dxl:Materialize Eager="false">
                     <dxl:Properties>
                       <dxl:Cost StartupCost="0" TotalCost="431.001468" Rows="27.000000" Width="8"/>
                     </dxl:Properties>

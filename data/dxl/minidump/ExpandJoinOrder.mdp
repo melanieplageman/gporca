@@ -1907,7 +1907,7 @@
                             </dxl:Columns>
                           </dxl:TableDescriptor>
                         </dxl:TableScan>
-                        <dxl:Materialize Eager="true">
+                        <dxl:Materialize Eager="false">
                           <dxl:Properties>
                             <dxl:Cost StartupCost="0" TotalCost="18503.362305" Rows="20.000000" Width="541297"/>
                           </dxl:Properties>
@@ -2014,7 +2014,7 @@
                           </dxl:BroadcastMotion>
                         </dxl:Materialize>
                       </dxl:NestedLoopJoin>
-                      <dxl:Materialize Eager="true">
+                      <dxl:Materialize Eager="false">
                         <dxl:Properties>
                           <dxl:Cost StartupCost="0" TotalCost="19222.161133" Rows="20.000000" Width="562327"/>
                         </dxl:Properties>

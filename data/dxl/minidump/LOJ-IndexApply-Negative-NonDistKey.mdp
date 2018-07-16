@@ -352,7 +352,7 @@ explain select * from foo left join bar on foo.a=bar.a and foo.b=bar.b;
               </dxl:Columns>
             </dxl:TableDescriptor>
           </dxl:TableScan>
-          <dxl:Materialize Eager="true">
+          <dxl:Materialize Eager="false">
             <dxl:Properties>
               <dxl:Cost StartupCost="0" TotalCost="431.000473" Rows="3.000000" Width="8"/>
             </dxl:Properties>

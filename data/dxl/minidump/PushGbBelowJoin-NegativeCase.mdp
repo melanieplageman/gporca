@@ -763,7 +763,7 @@
                 </dxl:ProjList>
                 <dxl:Filter/>
                 <dxl:OneTimeFilter/>
-                <dxl:Materialize Eager="true">
+                <dxl:Materialize Eager="false">
                   <dxl:Properties>
                     <dxl:Cost StartupCost="0" TotalCost="2.003906" Rows="1.000000" Width="1"/>
                   </dxl:Properties>

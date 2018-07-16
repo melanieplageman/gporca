@@ -446,7 +446,7 @@
               </dxl:TableDescriptor>
             </dxl:DynamicTableScan>
           </dxl:Sequence>
-          <dxl:Materialize Eager="true">
+          <dxl:Materialize Eager="false">
             <dxl:Properties>
               <dxl:Cost StartupCost="0" TotalCost="2.328125" Rows="16.000000" Width="12"/>
             </dxl:Properties>

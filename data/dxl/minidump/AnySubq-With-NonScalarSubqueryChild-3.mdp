@@ -491,7 +491,7 @@
               </dxl:Columns>
             </dxl:TableDescriptor>
           </dxl:TableScan>
-          <dxl:Materialize Eager="true">
+          <dxl:Materialize Eager="false">
             <dxl:Properties>
               <dxl:Cost StartupCost="0" TotalCost="1324032.101428" Rows="3.000000" Width="8"/>
             </dxl:Properties>
@@ -625,7 +625,7 @@
                       </dxl:WindowKeyList>
                     </dxl:Window>
                   </dxl:Assert>
-                  <dxl:Materialize Eager="true">
+                  <dxl:Materialize Eager="false">
                     <dxl:Properties>
                       <dxl:Cost StartupCost="0" TotalCost="431.000029" Rows="1.000000" Width="4"/>
                     </dxl:Properties>

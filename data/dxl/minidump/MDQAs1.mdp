@@ -677,7 +677,7 @@ SQL:
                   </dxl:ProjElem>
                 </dxl:ProjList>
                 <dxl:Filter/>
-                <dxl:Materialize Eager="true">
+                <dxl:Materialize Eager="false">
                   <dxl:Properties>
                     <dxl:Cost StartupCost="0" TotalCost="431.001299" Rows="1.000000" Width="8"/>
                   </dxl:Properties>

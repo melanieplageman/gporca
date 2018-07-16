@@ -1517,7 +1517,7 @@ WHERE tt.event_ts &gt;= tq.ets AND
                       </dxl:Columns>
                     </dxl:TableDescriptor>
                   </dxl:DynamicTableScan>
-                  <dxl:Materialize Eager="true">
+                  <dxl:Materialize Eager="false">
                     <dxl:Properties>
                       <dxl:Cost StartupCost="0" TotalCost="2.302734" Rows="2.000000" Width="62"/>
                     </dxl:Properties>

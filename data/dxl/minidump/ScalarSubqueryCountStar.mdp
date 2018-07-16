@@ -358,7 +358,7 @@ EXPLAIN SELECT (SELECT COUNT(*) FROM bar GROUP BY c LIMIT 1) FROM foo;
                   </dxl:Columns>
                 </dxl:TableDescriptor>
               </dxl:TableScan>
-              <dxl:Materialize Eager="true">
+              <dxl:Materialize Eager="false">
                 <dxl:Properties>
                   <dxl:Cost StartupCost="0" TotalCost="431.000509" Rows="3.000000" Width="8"/>
                 </dxl:Properties>

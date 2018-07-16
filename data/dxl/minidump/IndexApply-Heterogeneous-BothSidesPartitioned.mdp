@@ -1377,7 +1377,7 @@ select * from x, y where (x.i > y.j);
                         </dxl:Columns>
                       </dxl:TableDescriptor>
                     </dxl:DynamicTableScan>
-                    <dxl:Materialize Eager="true">
+                    <dxl:Materialize Eager="false">
                       <dxl:Properties>
                         <dxl:Cost StartupCost="0" TotalCost="431.003541" Rows="3.000000" Width="62"/>
                       </dxl:Properties>

@@ -484,7 +484,7 @@ explain select tab3.k, (select tab2.k from tab2 where tab2.i = tab1.i limit 1) a
                         </dxl:Comparison>
                       </dxl:Filter>
                       <dxl:OneTimeFilter/>
-                      <dxl:Materialize Eager="true">
+                      <dxl:Materialize Eager="false">
                         <dxl:Properties>
                           <dxl:Cost StartupCost="0" TotalCost="431.123570" Rows="1500.000000" Width="4"/>
                         </dxl:Properties>
@@ -554,7 +554,7 @@ explain select tab3.k, (select tab2.k from tab2 where tab2.i = tab1.i limit 1) a
             </dxl:ProjList>
             <dxl:Filter/>
             <dxl:OneTimeFilter/>
-            <dxl:Materialize Eager="true">
+            <dxl:Materialize Eager="false">
               <dxl:Properties>
                 <dxl:Cost StartupCost="0" TotalCost="886.606548" Rows="4994000.000000" Width="4"/>
               </dxl:Properties>

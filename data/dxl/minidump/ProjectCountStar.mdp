@@ -817,7 +817,7 @@ SELECT (SELECT 1 + count(*) FROM x) FROM y;
                     </dxl:Columns>
                   </dxl:TableDescriptor>
                 </dxl:TableScan>
-                <dxl:Materialize Eager="true">
+                <dxl:Materialize Eager="false">
                   <dxl:Properties>
                     <dxl:Cost StartupCost="0" TotalCost="18.281738" Rows="2.000000" Width="8"/>
                   </dxl:Properties>

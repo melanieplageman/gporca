@@ -542,7 +542,7 @@ explain select f.k, f.subq from (select tab3.k, (select tab2.k from tab2 where t
                             </dxl:Comparison>
                           </dxl:Filter>
                           <dxl:OneTimeFilter/>
-                          <dxl:Materialize Eager="true">
+                          <dxl:Materialize Eager="false">
                             <dxl:Properties>
                               <dxl:Cost StartupCost="0" TotalCost="432.234217" Rows="14982.000000" Width="4"/>
                             </dxl:Properties>

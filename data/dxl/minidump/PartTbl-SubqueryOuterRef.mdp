@@ -508,7 +508,7 @@ select * from t1 where a = 1 and b in (select b from t2);
               </dxl:TableDescriptor>
             </dxl:DynamicTableScan>
           </dxl:Sequence>
-          <dxl:Materialize Eager="true">
+          <dxl:Materialize Eager="false">
             <dxl:Properties>
               <dxl:Cost StartupCost="0" TotalCost="431.000331" Rows="20.000000" Width="1"/>
             </dxl:Properties>

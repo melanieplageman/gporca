@@ -1406,7 +1406,7 @@ EXPLAIN SELECT * FROM t1, t2, t3, t4 where b = c;
                 </dxl:TableDescriptor>
               </dxl:TableScan>
             </dxl:HashJoin>
-            <dxl:Materialize Eager="true">
+            <dxl:Materialize Eager="false">
               <dxl:Properties>
                 <dxl:Cost StartupCost="0" TotalCost="431.000843" Rows="30.000000" Width="4"/>
               </dxl:Properties>
@@ -1453,7 +1453,7 @@ EXPLAIN SELECT * FROM t1, t2, t3, t4 where b = c;
               </dxl:BroadcastMotion>
             </dxl:Materialize>
           </dxl:NestedLoopJoin>
-          <dxl:Materialize Eager="true">
+          <dxl:Materialize Eager="false">
             <dxl:Properties>
               <dxl:Cost StartupCost="0" TotalCost="431.001686" Rows="60.000000" Width="4"/>
             </dxl:Properties>
