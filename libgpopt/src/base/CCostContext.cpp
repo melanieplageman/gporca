@@ -458,16 +458,22 @@ CCostContext::FBetterThan
 	}
 
 	if(COperator::EopPhysicalSpool == pcc->Pgexpr()->Pop()->Eopid() &&
-	   COperator::EopPhysicalSpool == Pgexpr()->Pop()->Eopid() &&
-	   pcc->Poc()->Prpp()->Per()->PrsRequired()->Ert() == CRewindabilitySpec::ErtGeneralBlocking)
+	   COperator::EopPhysicalSpool == Pgexpr()->Pop()->Eopid())
 	{
 		CPhysicalSpool *spool_me = CPhysicalSpool::PopConvert(Pgexpr()->Pop());
 		CPhysicalSpool *spool_existing = CPhysicalSpool::PopConvert(pcc->Pgexpr()->Pop());
-		if (spool_me->FEager())
-			return false;
 
-		else if(spool_existing->FEager())
-			return true;
+		if (pcc->Poc()->Prpp()->Per()->PrsRequired()->Ert() == CRewindabilitySpec::ErtGeneralBlocking)
+		{
+			if (!spool_existing->FEager() && spool_me->FEager())
+				return true;
+		}
+
+		if (pcc->Poc()->Prpp()->Per()->PrsRequired()->Ert() == CRewindabilitySpec::ErtGeneralStreaming)
+		{
+			if (spool_existing->FEager() && !spool_me->FEager())
+				return true;
+		}
 	}
 
 	return false;
