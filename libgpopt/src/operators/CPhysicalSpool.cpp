@@ -299,7 +299,13 @@ CPhysicalSpool::FMatch
 	const
 {
 	// spool doesn't contain any members as of now
-	return Eopid() == pop->Eopid();
+	if(Eopid() == pop->Eopid())
+	{
+		CPhysicalSpool *popSpool = CPhysicalSpool::PopConvert(pop);
+		return m_eager == popSpool->FEager();
+	}
+
+	return false;
 }
 
 
