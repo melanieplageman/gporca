@@ -286,9 +286,21 @@ CPhysicalSpool::FMatch
 	const
 {
 	// spool doesn't contain any members as of now
-	return Eopid() == pop->Eopid();
+	if(Eopid() == pop->Eopid())
+	{
+		CPhysicalSpool *pspool = CPhysicalSpool::PopConvert(pop);
+		return m_eager == pop->FEager();
+	}
+
+	return false;
 }
 
+ULONG
+CPhysicalSpool::UlHash() const
+{
+	ULONG ulHash = COperator::UlHash();
+    return  gpos::UlCombineHashes(ulHash, gpos::UlHash<BOOL>(&m_eager));
+}
 
 //---------------------------------------------------------------------------
 //	@function:

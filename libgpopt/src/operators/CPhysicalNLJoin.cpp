@@ -123,10 +123,26 @@ CPhysicalNLJoin::PrsRequired
 		return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtGeneral);
 	}
 
+	// inner child has to be rewindable
+	if (!FFirstChildToOptimize(ulChildIndex) && 1 == ulChildIndex)
+	{
+		// get the rewindability of the outer child
+		CRewindabilitySpec *prsOuter = exprhdl.Pdpplan(0)->Prs();
+
+		if (prsOuter->Ert() == ErtNotRewindableMotion ||
+		    prsOuter->Ert() == ErtRewindableMotion)
+		{
+			// alter the inner child to take care of motion hazard if necessary
+			return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtRewindableMotion /*ert*/);
+		}
+
+		return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtRewindableNoMotion /*ert*/);
+	}
+
+	// for index nested loop case
 	if (1 == ulChildIndex)
 	{
-		// inner child has to be rewindable
-		return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtGeneral /*ert*/);
+		return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtRewindableNoMotion /*ert*/);
 	}
 
 	// pass through requirements to outer child

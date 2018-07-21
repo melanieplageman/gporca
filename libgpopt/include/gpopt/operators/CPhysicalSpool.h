@@ -33,11 +33,13 @@ namespace gpopt
 			// private copy ctor
 			CPhysicalSpool(const CPhysicalSpool &);
 
+			BOOL m_eager;
+
 		public:
 		
 			// ctor
 			explicit
-			CPhysicalSpool(IMemoryPool *pmp);
+			CPhysicalSpool(IMemoryPool *pmp, BOOL eager);
 
 			// dtor
 			virtual 
@@ -263,6 +265,13 @@ namespace gpopt
 
 				return dynamic_cast<CPhysicalSpool*>(pop);
 			}
+
+			BOOL FEager() const
+			{
+				return m_eager;
+			}
+
+			ULONG UlHash() const;
 
 			virtual BOOL
 			FValidContext(IMemoryPool *pmp, COptimizationContext *poc, DrgPoc *pdrgpocChild) const;
