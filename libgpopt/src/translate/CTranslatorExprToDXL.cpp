@@ -4072,8 +4072,10 @@ CTranslatorExprToDXL::PdxlnMaterialize
 	// translate relational child expression
 	CDXLNode *pdxlnChild = Pdxln(pexprChild, pdrgpcr, pdrgpdsBaseTables, pulNonGatherMotions, pfDML, false /*fRemap*/, false /*fRoot*/);
 
+	CPhysicalSpool *spoolExpr = CPhysicalSpool::PopConvert(pexprSpool->Pop());
+
 	// construct a materialize node
-	CDXLPhysicalMaterialize *pdxlopMat = GPOS_NEW(m_pmp) CDXLPhysicalMaterialize(m_pmp, true /* fEager */);
+	CDXLPhysicalMaterialize *pdxlopMat = GPOS_NEW(m_pmp) CDXLPhysicalMaterialize(m_pmp, spoolExpr->FEager());
 
 	// construct project list from child project list
 	GPOS_ASSERT(NULL != pdxlnChild && 1 <= pdxlnChild->UlArity());

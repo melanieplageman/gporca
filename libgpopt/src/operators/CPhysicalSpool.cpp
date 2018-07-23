@@ -29,10 +29,12 @@ using namespace gpopt;
 //---------------------------------------------------------------------------
 CPhysicalSpool::CPhysicalSpool
 	(
-	IMemoryPool *pmp
+	IMemoryPool *pmp,
+	BOOL eager
 	)
 	:
-	CPhysical(pmp)
+	CPhysical(pmp),
+	m_eager(eager)
 {}
 
 
@@ -261,7 +263,7 @@ CRewindabilitySpec *
 CPhysicalSpool::PrsDerive
 	(
 	IMemoryPool *pmp,
-	CExpressionHandle & // exprhdl
+	CExpressionHandle &exprhdl
 	)
 	const
 {
@@ -298,8 +300,8 @@ CPhysicalSpool::FMatch
 	// spool doesn't contain any members as of now
 	if(Eopid() == pop->Eopid())
 	{
-		CPhysicalSpool *pspool = CPhysicalSpool::PopConvert(pop);
-		return m_eager == pop->FEager();
+		CPhysicalSpool *popSpool = CPhysicalSpool::PopConvert(pop);
+		return m_eager == popSpool->FEager();
 	}
 
 	return false;

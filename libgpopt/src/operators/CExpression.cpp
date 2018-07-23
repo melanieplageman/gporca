@@ -1246,6 +1246,13 @@ CExpression::OsPrint
 	}
 	
 	(void) m_pop->OsPrint(os);
+
+	if (COperator::EopPhysicalSpool == m_pop->Eopid())
+	{
+		CPhysicalSpool *p = CPhysicalSpool::PopConvert(m_pop);
+		os << "   ***** EAGER" << p->FEager();
+	}
+
 	if (!m_pop->FScalar() && NULL != m_pstats)
 	{
 		os

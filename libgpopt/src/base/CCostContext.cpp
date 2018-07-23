@@ -23,6 +23,7 @@
 #include "gpopt/operators/CExpressionHandle.h"
 #include "gpopt/operators/CPhysicalDynamicTableScan.h"
 #include "gpopt/operators/CPhysicalDynamicIndexScan.h"
+#include "gpopt/operators/CPhysicalSpool.h"
 
 #include "gpopt/optimizer/COptimizerConfig.h"
 #include "gpopt/search/CGroupExpression.h"
@@ -300,6 +301,8 @@ CCostContext::FValid
 		IOstream &os = at.Os();
 
 		os << std::endl << "PROPERTY MISMATCH:" << std::endl;
+		os << std::endl << "GEXPR:" << std::endl;
+		Pgexpr()->DbgPrint();
 		os << std::endl << "GEXPR:" << std::endl << Pgexpr();
 		os << std::endl << "REQUIRED PROPERTIES:" << std::endl << *(m_poc->Prpp());
 		os << std::endl << "DERIVED PROPERTIES:" << std::endl << *pdprel << std::endl << *m_pdpplan;
@@ -452,6 +455,33 @@ CCostContext::FBetterThan
 		if (fSuccess)
 		{
 			return (this == pccPrefered);
+		}
+	}
+	if(COperator::EopPhysicalSpool == pcc->Pgexpr()->Pop()->Eopid() &&
+		COperator::EopPhysicalSpool == Pgexpr()->Pop()->Eopid())
+	{
+		CPhysicalSpool *spool_me = CPhysicalSpool::PopConvert(Pgexpr()->Pop());
+		CPhysicalSpool *spool_other = CPhysicalSpool::PopConvert(pcc->Pgexpr()->Pop());
+
+		// if the request must be conscious of motion, then must be eager true
+		if (pcc->Poc()->Prpp()->Per()->PrsRequired()->Ert() == CRewindabilitySpec::ErtRewindableMotion)
+		{
+			// if spool other is not eager true and I am, then return true that I am better
+			if(!spool_other->FEager() && spool_me->FEager())
+			{
+				return true;
+			}
+		}
+
+		// if the request does not need to be conscious of motion, then can be eager false
+		// which is preferred when eager true is not required
+		if (pcc->Poc()->Prpp()->Per()->PrsRequired()->Ert() == CRewindabilitySpec::ErtRewindableNoMotion)
+		{
+			// if other spool is eager true and I am eager false, prefer me and return true
+			if (spool_other->FEager() && !spool_me->FEager())
+			{
+				return true;
+			}
 		}
 	}
 

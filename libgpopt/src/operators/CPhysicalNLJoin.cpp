@@ -13,6 +13,7 @@
 #include "gpopt/base/CUtils.h"
 
 #include "gpopt/base/COptCtxt.h"
+#include "gpopt/base/CRewindabilitySpec.h"
 #include "gpopt/operators/CPhysicalNLJoin.h"
 #include "gpopt/operators/CExpressionHandle.h"
 #include "gpopt/operators/CPredicateUtils.h"
@@ -109,7 +110,7 @@ CPhysicalNLJoin::PrsRequired
 	CExpressionHandle &exprhdl,
 	CRewindabilitySpec *prsRequired,
 	ULONG ulChildIndex,
-	DrgPdp *, //pdrgpdpCtxt
+	DrgPdp *pdrgpdpCtxt,
 	ULONG // ulOptReq
 	)
 	const
@@ -127,10 +128,10 @@ CPhysicalNLJoin::PrsRequired
 	if (!FFirstChildToOptimize(ulChildIndex) && 1 == ulChildIndex)
 	{
 		// get the rewindability of the outer child
-		CRewindabilitySpec *prsOuter = exprhdl.Pdpplan(0)->Prs();
+		CRewindabilitySpec *prsOuter = CDrvdPropPlan::Pdpplan((*pdrgpdpCtxt)[0])->Prs();
 
-		if (prsOuter->Ert() == ErtNotRewindableMotion ||
-		    prsOuter->Ert() == ErtRewindableMotion)
+		if (prsOuter->Ert() == CRewindabilitySpec::ErtNotRewindableMotion ||
+			prsOuter->Ert() == CRewindabilitySpec::ErtRewindableMotion)
 		{
 			// alter the inner child to take care of motion hazard if necessary
 			return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtRewindableMotion /*ert*/);

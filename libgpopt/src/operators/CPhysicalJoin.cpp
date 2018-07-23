@@ -926,7 +926,7 @@ CPhysicalJoin::PrsRequiredCorrelatedJoin
 	// if there are outer references, then we need a materialize on both children
 	if (exprhdl.FHasOuterRefs())
 	{
-		return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtGeneral);
+		return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtRewindableNoMotion);
 	}
 
 	if (1 == ulChildIndex)
@@ -937,10 +937,10 @@ CPhysicalJoin::PrsRequiredCorrelatedJoin
 		// refs (i.e. subplan with no params) then we need a materialize
 		if (!exprhdl.FHasOuterRefs(1))
 		{
-			return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtGeneral /*ert*/);
+			return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtRewindableNoMotion /*ert*/);
 		}
 
-		return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtNone /*ert*/);
+		return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtNotRewindableNoMotion /*ert*/);
 	}
 
 	// pass through requirements to outer child

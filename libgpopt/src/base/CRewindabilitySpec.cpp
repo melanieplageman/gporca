@@ -82,10 +82,28 @@ CRewindabilitySpec::FSatisfies
 	)
 	const
 {
-	return
-		FMatch(prs) ||
-		ErtNotRewindableNoMotion == prs->Ert() ||
-		(ErtMarkRestore == Ert() && ErtRewindableNoMotion == prs->Ert());
+	if (FMatch(prs))
+	{
+		return true;
+	}
+
+	if (prs->Ert() == ErtNotRewindableNoMotion || prs->Ert() == ErtNotRewindableMotion)
+	{
+		return true;
+	}
+
+	if (prs->Ert() == ErtRewindableNoMotion && Ert() == ErtRewindableMotion)
+	{
+		return true;
+	}
+
+	if (prs->Ert() == ErtRewindableMotion && Ert() == ErtRewindableNoMotion)
+	{
+		return true;
+	}
+
+
+	return false;
 }
 
 
@@ -131,8 +149,12 @@ CRewindabilitySpec::AppendEnforcers
 
 	CRewindabilitySpec *prs = CDrvdPropPlan::Pdpplan(exprhdl.Pdp())->Prs();
 	BOOL eager = false;
+	// if required is rewindablemotion and derived is notrewindablemotion , then eager = true
+	// do we need eager=true when derived is rewindable but has a motion (see diagram, maybe if already rewindable, we won't add a spool)
+	//if(prpp->Per()->PrsRequired()->Ert() == CRewindabilitySpec::ErtRewindableMotion &&
+	  // prs->Ert() == CRewindabilitySpec::ErtNotRewindableMotion)
 	if(prpp->Per()->PrsRequired()->Ert() == CRewindabilitySpec::ErtRewindableMotion &&
-	   (prs->Ert() == CRewindabilitySpec::ErtNotRewindableMotion || prs->Ert() == CRewindabilitySpec::ErtRewindableMotion))
+	  (prs->Ert() == CRewindabilitySpec::ErtNotRewindableMotion || prs->Ert() == CRewindabilitySpec::ErtRewindableMotion))
 	{
 		eager = true;
 	}
