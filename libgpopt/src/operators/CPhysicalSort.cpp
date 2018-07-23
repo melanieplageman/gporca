@@ -200,7 +200,7 @@ CPhysicalSort::PrsRequired
 	GPOS_ASSERT(0 == ulChildIndex);
 
 	// sort establishes rewindability on its own
-	return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtNone /*ert*/);
+	return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtNotRewindableNoMotion /*ert*/);
 }
 
 //---------------------------------------------------------------------------
@@ -339,7 +339,7 @@ CPhysicalSort::PrsDerive
 	const
 {
 	// rewindability of output is always true
-	return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtGeneral /*ert*/);
+	return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtRewindableNoMotion /*ert*/);
 }
 
 

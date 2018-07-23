@@ -11,6 +11,8 @@
 
 #include "gpopt/base/CRewindabilitySpec.h"
 #include "gpopt/operators/CPhysicalSpool.h"
+#include "gpopt/operators/CExpressionHandle.h"
+
 
 using namespace gpopt;
 
@@ -82,8 +84,8 @@ CRewindabilitySpec::FSatisfies
 {
 	return
 		FMatch(prs) ||
-		ErtNone == prs->Ert() ||
-		(ErtMarkRestore == Ert() && ErtGeneral == prs->Ert());
+		ErtNotRewindableNoMotion == prs->Ert() ||
+		(ErtMarkRestore == Ert() && ErtRewindableNoMotion == prs->Ert());
 }
 
 
@@ -114,12 +116,8 @@ void
 CRewindabilitySpec::AppendEnforcers
 	(
 	IMemoryPool *pmp,
-	CExpressionHandle &, // exprhdl
-	CReqdPropPlan *
-#ifdef GPOS_DEBUG
-	prpp
-#endif // GPOS_DEBUG
-	,
+	CExpressionHandle &exprhdl,
+	CReqdPropPlan *prpp,
 	DrgPexpr *pdrgpexpr, 
 	CExpression *pexpr
 	)
@@ -131,11 +129,19 @@ CRewindabilitySpec::AppendEnforcers
 	GPOS_ASSERT(this == prpp->Per()->PrsRequired() &&
 				"required plan properties don't match enforced rewindability spec");
 
+	CRewindabilitySpec *prs = CDrvdPropPlan::Pdpplan(exprhdl.Pdp())->Prs();
+	BOOL eager = false;
+	if(prpp->Per()->PrsRequired()->Ert() == CRewindabilitySpec::ErtRewindableMotion &&
+	   (prs->Ert() == CRewindabilitySpec::ErtNotRewindableMotion || prs->Ert() == CRewindabilitySpec::ErtRewindableMotion))
+	{
+		eager = true;
+	}
+
 	pexpr->AddRef();
 	CExpression *pexprSpool = GPOS_NEW(pmp) CExpression
 									(
 									pmp, 
-									GPOS_NEW(pmp) CPhysicalSpool(pmp),
+									GPOS_NEW(pmp) CPhysicalSpool(pmp, eager),
 									pexpr
 									);
 	pdrgpexpr->Append(pexprSpool);
@@ -159,14 +165,20 @@ CRewindabilitySpec::OsPrint
 {
 	switch (Ert())
 	{
-		case ErtGeneral:
-			return os << "REWINDABLE";
+		case ErtRewindableNoMotion:
+			return os << "REWINDABLE NO MOTION";
+
+		case ErtRewindableMotion:
+			return os << "REWINDABLE MOTION";
+
+		case ErtNotRewindableMotion:
+			return os << "NON-REWINDABLE MOTION";
 
 		case ErtMarkRestore:
 			return os << "MARK-RESTORE";
 
-		case ErtNone:
-			return os << "NON-REWINDABLE";
+		case ErtNotRewindableNoMotion:
+			return os << "NON-REWINDABLE NO MOTION";
 
 		default:
 			GPOS_ASSERT(!"Unrecognized rewindability type");

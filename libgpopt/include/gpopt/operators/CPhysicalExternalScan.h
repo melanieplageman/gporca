@@ -70,7 +70,7 @@ namespace gpopt
 				const
 			{
 				// external tables are not rewindable
-				return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtNone /*ert*/);
+				return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtNotRewindableNoMotion /*ert*/);
 			}
 
 			//-------------------------------------------------------------------------------------

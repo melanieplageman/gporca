@@ -393,14 +393,27 @@ CPhysicalJoin::PrsDerive
 	if (CUtils::FCorrelatedNLJoin(exprhdl.Pop()))
 	{
 		// rewindability is not established if correlated join
-		return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtNone /*ert*/);
+		return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtNotRewindableNoMotion /*ert*/);
 	}
 
-	if (CRewindabilitySpec::ErtNone == prsOuter->Ert() ||
-		CRewindabilitySpec::ErtNone == prsInner->Ert())
+	if (CRewindabilitySpec::ErtRewindableMotion == prsOuter->Ert() ||
+		CRewindabilitySpec::ErtRewindableMotion == prsInner->Ert())
+	{
+		return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtRewindableMotion /*ert*/);
+	}
+
+	if (CRewindabilitySpec::ErtNotRewindableMotion == prsOuter->Ert() ||
+		CRewindabilitySpec::ErtNotRewindableMotion == prsInner->Ert())
 	{
 		// rewindability is not established if any child is non-rewindable
-		return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtNone /*ert*/);
+		return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtNotRewindableMotion /*ert*/);
+	}
+
+	if (CRewindabilitySpec::ErtNotRewindableNoMotion == prsOuter->Ert() ||
+		CRewindabilitySpec::ErtNotRewindableNoMotion == prsInner->Ert())
+	{
+		// rewindability is not established if any child is non-rewindable
+		return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtNotRewindableNoMotion /*ert*/);
 	}
 
 	// check if both children have the same rewindability spec
@@ -412,7 +425,7 @@ CPhysicalJoin::PrsDerive
 
 	// one of the two children has general rewindability while the other child has
 	// mark-restore  rewindability
-	return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtGeneral /*ert*/);
+	return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtRewindableNoMotion /*ert*/);
 }
 
 

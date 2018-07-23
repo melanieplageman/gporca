@@ -173,7 +173,7 @@ CPhysicalFilter::PrsRequired
 	// results.
 	if (exprhdl.FHasOuterRefs() && !exprhdl.FHasOuterRefs(0))
 	{
-		return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtGeneral);
+		return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtRewindableNoMotion);
 	}
 
 	return PrsPassThru(pmp, exprhdl, prsRequired, ulChildIndex);

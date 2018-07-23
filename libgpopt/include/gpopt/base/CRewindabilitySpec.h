@@ -53,6 +53,8 @@ namespace gpopt
 				// derive: I am not rewindable and I do not impose any motion hazard
                 ErtNotRewindableNoMotion,
 
+				ErtMarkRestore, // currently unused
+
                 ErtSentinel
             };
 
