@@ -512,7 +512,7 @@ WHERE tt.event_ts &gt;= tq.ets AND
         </dxl:And>
       </dxl:LogicalJoin>
     </dxl:Query>
-    <dxl:Plan Id="1" SpaceSize="12">
+    <dxl:Plan Id="1" SpaceSize="13">
       <dxl:Sequence>
         <dxl:Properties>
           <dxl:Cost StartupCost="0" TotalCost="8700.178385" Rows="1.000000" Width="8"/>

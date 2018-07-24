@@ -625,7 +625,7 @@
                       </dxl:WindowKeyList>
                     </dxl:Window>
                   </dxl:Assert>
-                  <dxl:Materialize Eager="false">
+                  <dxl:Materialize Eager="true">
                     <dxl:Properties>
                       <dxl:Cost StartupCost="0" TotalCost="431.000029" Rows="1.000000" Width="4"/>
                     </dxl:Properties>

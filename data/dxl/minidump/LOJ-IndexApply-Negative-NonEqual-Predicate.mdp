@@ -584,7 +584,7 @@ explain select * from foo left join bar on foo.a=bar.b and foo.b>bar.a left oute
               </dxl:BroadcastMotion>
             </dxl:Materialize>
           </dxl:NestedLoopJoin>
-          <dxl:Materialize Eager="false">
+          <dxl:Materialize Eager="true">
             <dxl:Properties>
               <dxl:Cost StartupCost="0" TotalCost="431.000921" Rows="3.000000" Width="16"/>
             </dxl:Properties>
