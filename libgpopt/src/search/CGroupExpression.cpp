@@ -22,6 +22,7 @@
 
 #include "gpopt/xforms/CXformFactory.h"
 #include "gpopt/xforms/CXformUtils.h"
+#include "gpopt/xforms/CXformRemoveSubqDistinct.h"
 
 #include "gpos/string/CWStringDynamic.h"
 #include "gpos/io/COstreamString.h"
@@ -876,17 +877,51 @@ CGroupExpression::Transform
 	// pre-processing before applying xform to group expression
 	PreprocessTransform(pmpLocal, pmp, pxform);
 
+	// TODO: need to log these somewhere, also,
+	ULONG potential_applications_of_xform_to_group9 = 0;
+	ULONG potential_applications_of_xform_to_group9_grpexpr0 = 0;
 	// extract memo bindings to apply xform
 	CBinding binding;
 	CXformContext *pxfctxt = GPOS_NEW(pmp) CXformContext(pmp);
 
 	CExpression *pexprPattern = pxform->PexprPattern();
-	CExpression *pexpr = binding.PexprExtract(pmp, this, pexprPattern , NULL);
+	// are we applying this xform (potentially) to the same group (group 9)
+	if (CXformRemoveSubqDistinct::ExfRemoveSubqDistinct == pxform->Exfid())
+	{
+		if (this->Pgroup()->UlId() == 9)
+		{
+			potential_applications_of_xform_to_group9++;
+			// for the particular group expression
+			if (this->UlId() == 0)
+			{
+				potential_applications_of_xform_to_group9_grpexpr0++;
+			}
+		}
+
+	}
+		CExpression *pexpr = binding.PexprExtract(pmp, this, pexprPattern , NULL);
+	ULONG grp9_grpexpr0_pattern_matches_xform_applied = 0;
+	ULONG grp9_grpexpr0_xform_applied_alternative_produced = 0;
 	while (NULL != pexpr)
 	{
+		if (CXformRemoveSubqDistinct::ExfRemoveSubqDistinct == pxform->Exfid())
+		{
+			grp9_grpexpr0_pattern_matches_xform_applied++;
+		}
 		ULONG ulNumResults = pxfres->Pdrgpexpr()->UlLength();
+		// if 1+ alternative is produced for this particular application to an expression
+		// rooted at this group and group expression, then increment the counter
+		// later can add a counter to count how many alternatives are produced each time
+		// any are produced, but this is less important
 		pxform->Transform(pxfctxt, pxfres, pexpr);
 		ulNumResults = pxfres->Pdrgpexpr()->UlLength() - ulNumResults;
+		if (CXformRemoveSubqDistinct::ExfRemoveSubqDistinct == pxform->Exfid()
+		&& ulNumResults > 0
+		&& this->Pgroup()->UlId() == 9
+		&& this->UlId() == 0)
+		{
+			grp9_grpexpr0_xform_applied_alternative_produced++;
+		}
 		PrintXform(pmp, pxform, pexpr, pxfres, ulNumResults);
 
 		if (pxform->IsApplyOnce() ||
@@ -906,7 +941,25 @@ CGroupExpression::Transform
 
 		GPOS_CHECK_ABORT;
 	}
-	pxfctxt->Release();
+	if (potential_applications_of_xform_to_group9 != 0 &&
+potential_applications_of_xform_to_group9_grpexpr0 != 0 &&
+grp9_grpexpr0_pattern_matches_xform_applied != 0 &&
+grp9_grpexpr0_xform_applied_alternative_produced != 0)
+	{
+		CAutoTrace at(pmp);
+		IOstream &os(at.Os());
+		os << "Potential applications of xform CXformRemoveSubqDistinct to Group 9" << std::endl;
+		os << potential_applications_of_xform_to_group9 << std::endl;
+		os << "Potential applications of xform CXformRemoveSubqDistinct to Group 9 Group Expr 0" << std::endl;
+		os << potential_applications_of_xform_to_group9_grpexpr0 << std::endl;
+		os << "Number of candidate expressions rooted at Group 9, Group Expression 0 which matched the pattern of CXformRemoveSubqDistinct and it was applied" << std::endl;
+		os << grp9_grpexpr0_pattern_matches_xform_applied << std::endl;
+		os << "Number of times an alternative was produced after CXformRemoveSubqDistinct was applied to an expression rooted at Grp9GrpExpr0" << std::endl;
+		os << grp9_grpexpr0_xform_applied_alternative_produced << std::endl;
+		os << std::endl;
+		pxfctxt->Release();
+	}
+
 
 	// post-prcoessing before applying xform to group expression
 	PostprocessTransform(pmpLocal, pmp, pxform);
